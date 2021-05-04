@@ -10,7 +10,7 @@ function newer_than_spaces_versions() {
   ver=${1:-}
   [ -z "${ver}" ] && abort "version number is required. Usage: ${FUNCNAME[0]} <ver>"
   repo_tree=$(curl -sSL "${SPACES_ROOT_URL}" || wget -qO- "${SPACES_ROOT_URL}")
-  files=$(echo "${repo_tree}" | grep -oE '(Key>signed/dotty-agent/deb/x86_64/)[^<]+' | grep -oE '\d.\d.\d' | tr ' ' '\n')
+  files=$(echo "${repo_tree}" | grep -oE '(Key>signed/droplet-agent/deb/x86_64/)[^<]+' | grep -oE '\d.\d.\d' | tr ' ' '\n')
   files=$(printf "%s\n%s" "${files}" "${ver}")
   latest_ver=$(echo "${files}" | sort -V | tail -1)
 

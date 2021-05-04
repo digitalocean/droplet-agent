@@ -47,7 +47,7 @@ function spaces_version_exist() {
   version=${1:-}
   [ -z "$version" ] && abort "version is required. Usage: ${FUNCNAME[0]} <version>"
 
-  spaces_url=$(printf "${SPACES_ROOT_URL}/tar/dotty-agent/dotty-agent.%s.amd64.tar.gz" "${version}")
+  spaces_url=$(printf "${SPACES_ROOT_URL}/tar/droplet-agent/droplet-agent.%s.amd64.tar.gz" "${version}")
   status_code=$(http_status_for "${spaces_url}")
   case $status_code in
   404)

@@ -3,7 +3,7 @@
 
 set -ue
 
-SVC_NAME=dotty-agent
+SVC_NAME=droplet-agent
 CRON_SCHEDULE=/etc/cron.hourly
 CRON=${CRON_SCHEDULE}/${SVC_NAME}
 
@@ -31,7 +31,6 @@ main() {
 	remove_cron
 }
 
-# TODO: remove this once agent binary handles the cronjobs
 remove_cron() {
 	rm -fv "${CRON}"
 }

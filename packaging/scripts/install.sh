@@ -10,13 +10,13 @@ BETA=${BETA:-0}
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
 
-repo="dotty-agent"
-[ "${UNSTABLE}" != 0 ] && repo="dotty-agent-unstable"
-[ "${BETA}" != 0 ] && repo="dotty-agent-beta"
+repo="droplet-agent"
+[ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
+[ "${BETA}" != 0 ] && repo="droplet-agent-beta"
 
 RETRY_CRON_SCHEDULE=/etc/cron.hourly
-RETRY_CRON=${RETRY_CRON_SCHEDULE}/dotty-agent-install
-cron_install_log=/var/log/dotty.install.cron.log
+RETRY_CRON=${RETRY_CRON_SCHEDULE}/droplet-agent-install
+cron_install_log=/var/log/droplet_agent.install.cron.log
 
 dist="unknown"
 architecture="unknown"
@@ -52,21 +52,20 @@ main() {
   esac
 }
 
-# TODO: [freebsd-support] this function is currently not compatible with freebsd, should rewrite it
 patch_retry_install() {
   [ -f "${RETRY_CRON}" ] && rm -f "${RETRY_CRON}"
   mkdir -p ${RETRY_CRON_SCHEDULE}
 
   cat <<'EOF' >"${RETRY_CRON}"
 #!/bin/sh
-tmp_file=$(mktemp -t dotty.install.XXXXXX)
+tmp_file=$(mktemp -t droplet_agent.install.XXXXXX)
 trap "rm -f ${tmp_file}" EXIT
 url="https://repos-droplet.digitalocean.com/install.sh"
 install_script=$(curl -sSL "${url}" || wget -qO- "${url}")
 echo "${install_script}" > ${tmp_file}
 now=$(date +"%T")
-echo "Retry at: ${now}" > /var/log/dotty.install.log
-/bin/bash ${tmp_file} >> /var/log/dotty.install.log 2>&1
+echo "Retry at: ${now}" > /var/log/droplet_agent.install.log
+/bin/bash ${tmp_file} >> /var/log/droplet_agent.install.log 2>&1
 EOF
 
   chmod +x "${RETRY_CRON}"
@@ -85,7 +84,7 @@ script_cleanup() {
       echo "Install failed, and will not be retried"
     fi
   else
-    echo "DoTTY agent is successfully installed"
+    echo "DigitalOcean Droplet Agent is successfully installed"
     remove_retry_install || true
   fi
   if [ ${tmp_dir} != "unknown" ]; then
@@ -110,7 +109,7 @@ find_latest_pkg() {
 install_deps() {
   platform=${1:-}
   [ -z "${platform}" ] && abort "Destination repository is required. Usage: install_deps <platform>"
-  echo "Checking dependencies for installing dotty-agent"
+  echo "Checking dependencies for installing droplet-agent"
   case "${platform}" in
   rpm)
     if ! command -v gpg &>/dev/null; then
@@ -137,31 +136,31 @@ install_pkg() {
   gpg_key=$(wget -qO- "${REPO_GPG_KEY}" || curl -sL "${REPO_GPG_KEY}")
   echo "${gpg_key}" | gpg --import
 
-  tmp_dir=$(mktemp -d -t dotty-XXXXXXXXXX)
+  tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
   cd "${tmp_dir}"
   echo "Temporary directory: $(pwd)"
 
   echo "Downloading ${pkg_url}"
   case "${platform}" in
   rpm)
-    curl "${pkg_url}" --output ./dotty.rpm.signed
+    curl "${pkg_url}" --output ./droplet-agent.rpm.signed
     echo "Verifying package signature..."
-    gpg --verify dotty.rpm.signed >/dev/null 2>&1
+    gpg --verify droplet-agent.rpm.signed >/dev/null 2>&1
     echo "OK"
     echo "Extracting package"
-    gpg --output dotty.rpm --decrypt dotty.rpm.signed
-    rpm -i dotty.rpm
+    gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
+    rpm -i droplet-agent.rpm
     yum install -y cronie >${cron_install_log} 2>&1 &
     cron_ins_pid=$!
     ;;
   deb)
-    wget -O ./dotty.deb.signed "${pkg_url}"
+    wget -O ./droplet-agent.deb.signed "${pkg_url}"
     echo "Verifying package signature..."
-    gpg --verify dotty.deb.signed >/dev/null 2>&1
+    gpg --verify droplet-agent.deb.signed >/dev/null 2>&1
     echo "OK"
     echo "Extracting package"
-    gpg --output dotty.deb --decrypt dotty.deb.signed
-    dpkg -i dotty.deb
+    gpg --output droplet-agent.deb --decrypt droplet-agent.deb.signed
+    dpkg -i droplet-agent.deb
     apt-get install -y cron >${cron_install_log} 2>&1 &
     cron_ins_pid=$!
     ;;
@@ -225,7 +224,7 @@ check_do() {
   if ! [ "$sys_vendor" = "DigitalOcean" ]; then
     cat <<-EOF
 
-		The DigitalOcean DoTTY Agent is only supported on DigitalOcean machines.
+		The DigitalOcean Droplet Agent is only supported on DigitalOcean machines.
 
 		If you are seeing this message on an older droplet, you may need to power-off
 		and then power-on at http://cloud.digitalocean.com. After power-cycling,

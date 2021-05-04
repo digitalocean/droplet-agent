@@ -53,8 +53,8 @@ ldflags = '\
 	-X "main.buildDate=$(now)" \
 '
 
-SYSINIT_CONF="packaging/syscfg/init/dotty-agent.conf"
-SYSTEMD_CONF="packaging/syscfg/systemd/dotty-agent.service"
+SYSINIT_CONF="packaging/syscfg/init/droplet-agent.conf"
+SYSTEMD_CONF="packaging/syscfg/systemd/droplet-agent.service"
 UPDATE_SCRIPT="packaging/scripts/update.sh"
 
 ###########
@@ -63,7 +63,7 @@ UPDATE_SCRIPT="packaging/scripts/update.sh"
 out                := target
 package_dir        := $(out)/pkg
 cache              := $(out)/.cache
-project            := dotty-agent
+project            := droplet-agent
 pkg_project        := $(subst _,-,$(project))# make sure package does not have underscores in the name
 gofiles            := $(shell find . -type f -iname '*.go' ! -path './vendor/*')
 shellscripts       := $(shell find . -type f -iname '*.sh' ! -path './vendor/*' ! -path './.git/*')
@@ -149,19 +149,19 @@ $(base_linux_package): $(binary)
 		--name $(pkg_project) \
 		--maintainer "DigitalOcean Droplet Engineering" \
 		--version $(VERSION) \
-		--url https://github.com/digitalocean/dotty-agent \
-		--description "DigitalOcean TTY Service Agent" \
-		--license mpl-2.0 \
+		--url https://github.com/digitalocean/droplet-agent \
+		--description "DigitalOcean Droplet Agent" \
+		--license apache-2.0 \
 		--vendor DigitalOcean \
 		--log info \
 		--after-install packaging/scripts/after_install.sh \
 		--after-remove packaging/scripts/after_remove.sh \
-		--config-files /etc/init/dotty-agent.conf \
-		--config-files /etc/systemd/system/dotty-agent.service \
-		$<=/opt/digitalocean/bin/dotty-agent \
-		$(UPDATE_SCRIPT)=/opt/digitalocean/dotty-agent/scripts/update.sh \
-		$(SYSINIT_CONF)=/etc/init/dotty-agent.conf \
-		$(SYSTEMD_CONF)=/etc/systemd/system/dotty-agent.service
+		--config-files /etc/init/droplet-agent.conf \
+		--config-files /etc/systemd/system/droplet-agent.service \
+		$<=/opt/digitalocean/bin/droplet-agent \
+		$(UPDATE_SCRIPT)=/opt/digitalocean/droplet-agent/scripts/update.sh \
+		$(SYSINIT_CONF)=/etc/init/droplet-agent.conf \
+		$(SYSTEMD_CONF)=/etc/systemd/system/droplet-agent.service
 
 deb: $(deb_package)
 $(deb_package): $(base_linux_package)
@@ -206,7 +206,7 @@ $(tar_package): $(base_linux_package)
 	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
 
 
-## mockgen: generates the mocks for the DoTTY agent service
+## mockgen: generates the mocks for the droplet agent service
 mockgen:
 	@echo "Generating mocks"
 	mockgen -source=internal/sysaccess/common.go -package=mocks -destination=internal/sysaccess/internal/mocks/mocks.go
