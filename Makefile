@@ -151,7 +151,7 @@ $(base_linux_package): $(binary)
 		--version $(VERSION) \
 		--url https://github.com/digitalocean/dotty-agent \
 		--description "DigitalOcean TTY Service Agent" \
-		--license mpl-2.0 \
+		--license apache-2.0 \
 		--vendor DigitalOcean \
 		--log info \
 		--after-install packaging/scripts/after_install.sh \

@@ -1,4 +1,12 @@
-# droplet-agent
+<pre>
+    ____                   __     __     ___                    __ 
+   / __ \_________  ____  / /__  / /_   /   | ____ ____  ____  / /_
+  / / / / ___/ __ \/ __ \/ / _ \/ __/  / /| |/ __ `/ _ \/ __ \/ __/
+ / /_/ / /  / /_/ / /_/ / /  __/ /_   / ___ / /_/ /  __/ / / / /_  
+/_____/_/   \____/ .___/_/\___/\__/  /_/  |_\__, /\___/_/ /_/\__/  
+                /_/                        /____/                  
+</pre>
+
 Droplet Agent is the daemon that runs on customer droplets to enable some features such as web console access.
 
 * [Installing][#installing]
