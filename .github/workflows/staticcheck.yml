@@ -1,0 +1,47 @@
+name: static check
+on: pull_request
+
+jobs:
+  imports:
+    name: Imports
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - name: check
+      uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
+      with:
+        run: imports
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  errcheck:
+    name: Errcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - name: check
+      uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
+      with:
+        run: errcheck
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  shadow:
+    name: Shadow
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - name: check
+      uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
+      with:
+        run: shadow
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  staticcheck:
+    name: StaticCheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - name: check
+      uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
+      with:
+        run: staticcheck
+        token: ${{ secrets.GITHUB_TOKEN }}
