@@ -42,7 +42,7 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, dottyKeys []*S
 	// First, filter out all dotty keys
 	for _, line := range localKeys {
 		lineDup := strings.Trim(line, " \t")
-		if lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
+		if lineDup == dottyPrevComment || lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
 		}
 		ret = append(ret, line)

@@ -15,7 +15,7 @@ var (
 	ErrUpdateMetadataFailed = errors.New("failed to update status")
 )
 
-// Updater updates the metadata for the DOTTY agent status of the droplet
+// Updater updates the metadata for the Droplet agent status of the droplet
 type Updater interface {
 	Update(status metadata.AgentStatus) error
 }
@@ -48,7 +48,7 @@ func (m *statusUpdaterImpl) Update(status metadata.AgentStatus) error {
 		return fmt.Errorf("%w:%v", ErrUpdateMetadataFailed, err)
 	}
 
-	req.Header.Set("User-Agent", "DoTTY/1.0.1")
+	req.Header.Set("User-Agent", "Droplet-Agent/1.0.1")
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	resp, err := m.http.Do(req)
 	if err != nil {

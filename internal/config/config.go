@@ -3,6 +3,11 @@ package config
 import "time"
 
 const (
+	AppFullName  = "DigitalOcean Droplet Agent (code name: DoTTY)"
+	AppShortName = "Droplet Agent"
+)
+
+const (
 	backgroundJobIntervalSeconds = 120
 )
 

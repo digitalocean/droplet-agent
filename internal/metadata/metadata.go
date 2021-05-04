@@ -20,7 +20,7 @@ const (
 
 // Metadata is part of the object returned by the metadata/v1.json.
 type Metadata struct {
-	// DOTTYKeys contains ssh keys managed by DOTTY
+	// DOTTYKeys contains ssh keys managed through DigitalOcean
 	DOTTYKeys []string `json:"dotty_keys,omitempty"`
 	// DOTTYStatus represents the state of the dotty agent valid states are "installed", "running", or "stopped"
 	DOTTYStatus AgentStatus `json:"dotty_status,omitempty"`

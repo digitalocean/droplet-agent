@@ -2,6 +2,7 @@ package sysaccess
 
 import (
 	"fmt"
+	"github.com/digitalocean/droplet-agent/internal/config"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +14,8 @@ import (
 
 const (
 	defaultAuthorizedKeysFile = "%h/.ssh/authorized_keys"
-	dottyComment              = "# Added and Managed by DigitalOcean TTY service (DOTTY)"
+	dottyPrevComment              = "# Added and Managed by DigitalOcean TTY service (DOTTY)" // for backward compatibility
+	dottyComment              = "# Added and Managed by " + config.AppFullName
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
 )
