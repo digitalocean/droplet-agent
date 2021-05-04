@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/log"
 
-	"github.com/digitalocean/dotty-agent/internal/sysaccess/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 
 	"github.com/golang/mock/gomock"
 )

@@ -1,4 +1,4 @@
-module github.com/digitalocean/dotty-agent
+module github.com/digitalocean/droplet-agent
 
 go 1.15
 

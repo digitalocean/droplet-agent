@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/log"
 
-	"github.com/digitalocean/dotty-agent/internal/sysutil"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 )
 
 func Test_sshHelperImpl_authorizedKeysFile(t *testing.T) {

@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata/actioner"
-	"github.com/digitalocean/dotty-agent/internal/netutil"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
+	"github.com/digitalocean/droplet-agent/internal/netutil"
 	"golang.org/x/time/rate"
 )
 

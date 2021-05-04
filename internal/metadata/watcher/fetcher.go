@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/digitalocean/dotty-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
 )
 
 type metadataFetcher interface {

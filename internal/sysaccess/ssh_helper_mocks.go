@@ -7,7 +7,7 @@ package sysaccess
 import (
 	reflect "reflect"
 
-	sysutil "github.com/digitalocean/dotty-agent/internal/sysutil"
+	sysutil "github.com/digitalocean/droplet-agent/internal/sysutil"
 	gomock "github.com/golang/mock/gomock"
 )
 

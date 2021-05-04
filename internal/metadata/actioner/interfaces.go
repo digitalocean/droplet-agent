@@ -1,6 +1,6 @@
 package actioner
 
-import "github.com/digitalocean/dotty-agent/internal/metadata"
+import "github.com/digitalocean/droplet-agent/internal/metadata"
 
 // MetadataActioner performs action on a metadata update
 type MetadataActioner interface {

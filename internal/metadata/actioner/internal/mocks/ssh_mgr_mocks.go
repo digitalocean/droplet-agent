@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	sysaccess "github.com/digitalocean/dotty-agent/internal/sysaccess"
+	sysaccess "github.com/digitalocean/droplet-agent/internal/sysaccess"
 	gomock "github.com/golang/mock/gomock"
 )
 

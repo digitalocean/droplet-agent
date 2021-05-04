@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/digitalocean/dotty-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/golang/mock/gomock"
 )
 

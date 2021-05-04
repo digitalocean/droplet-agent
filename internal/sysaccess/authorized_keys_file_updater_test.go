@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/log"
 
-	"github.com/digitalocean/dotty-agent/internal/sysutil"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/digitalocean/dotty-agent/internal/sysaccess/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 )
 
 type recorder struct {

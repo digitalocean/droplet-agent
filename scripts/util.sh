@@ -66,7 +66,7 @@ function github_release_exist() {
   version=${1:-}
   [ -z "$version" ] && abort "version is required. Usage: ${FUNCNAME[0]} <version>"
 
-  github_release_url=$(printf "https://github.com/digitalocean/dotty-agent/releases/tag/%s" "${version}")
+  github_release_url=$(printf "https://github.com/digitalocean/droplet-agent/releases/tag/%s" "${version}")
   status_code=$(http_status_for "${github_release_url}")
   case $status_code in
   404)

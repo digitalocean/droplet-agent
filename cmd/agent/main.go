@@ -7,13 +7,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/config"
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata"
-	"github.com/digitalocean/dotty-agent/internal/metadata/actioner"
-	"github.com/digitalocean/dotty-agent/internal/metadata/status"
-	"github.com/digitalocean/dotty-agent/internal/metadata/watcher"
-	"github.com/digitalocean/dotty-agent/internal/sysaccess"
+	"github.com/digitalocean/droplet-agent/internal/config"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
+	"github.com/digitalocean/droplet-agent/internal/metadata/status"
+	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 func main() {

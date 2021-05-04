@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"sync/atomic"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata"
-	"github.com/digitalocean/dotty-agent/internal/sysaccess"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 // NewDOTTYKeysActioner returns a new DOTTY keys actioner

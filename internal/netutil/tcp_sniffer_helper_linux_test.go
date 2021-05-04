@@ -11,7 +11,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/digitalocean/dotty-agent/internal/netutil/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/netutil/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"golang.org/x/net/bpf"
 	"golang.org/x/sys/unix"

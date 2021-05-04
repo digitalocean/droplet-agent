@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata/watcher"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 )
 
 func newMetadataWatcher() watcher.MetadataWatcher {

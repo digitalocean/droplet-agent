@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/digitalocean/dotty-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
 )
 
 //Possible Errors
