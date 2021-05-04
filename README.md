@@ -9,8 +9,8 @@
 
 Droplet Agent is the daemon that runs on customer droplets to enable some features such as web console access.
 
-* [Installing][#installing]
-* [Contributing][#contributing]
+* [Installing](#installing)
+* [Contributing](#contributing)
 
 ## Installing
 
