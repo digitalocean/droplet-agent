@@ -1,6 +1,6 @@
 # Contributing
 
-Anyone is welcome to contribute to DoTTY Agent.
+Anyone is welcome to contribute to Droplet Agent.
 
 Before doing so, it is recommended that you open a new [Issue](https://github.com/digitalocean/dotty-agent/issues) 
 describing the change you intend to implement, to receive some feedback and validation on it. However, you're also 
