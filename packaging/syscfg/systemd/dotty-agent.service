@@ -1,0 +1,18 @@
+[Unit]
+Description=The DigitalOcean TTY Service Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Environment=TERM=xterm-256color
+ExecStart=/opt/digitalocean/bin/dotty-agent -debug -syslog
+Restart=always
+TimeoutStopSec=90
+KillMode=process
+
+OOMScoreAdjust=-900
+SyslogIdentifier=DoTTYAgent
+
+[Install]
+WantedBy=multi-user.target
