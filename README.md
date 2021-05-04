@@ -17,8 +17,12 @@ Droplet Agent is the daemon that runs on DigitalOcean's customer droplets to ena
 To build the agent, do the following:
 1. `cd ./cmd/agent`
 2. `GOOS=<target OS> go build -o droplet-agent`
-This will generate the `droplet-agent` binary. Upload that binary to your droplet and run:
-   `./droplet-agent -debug`
+
+This will generate the `droplet-agent` binary. 
+
+Upload that binary to your droplet and run:
+
+`./droplet-agent -debug`
 
 The Droplet Agent should now be running on your droplet.
 
