@@ -7,7 +7,7 @@
                 /_/                        /____/                  
 </pre>
 
-Droplet Agent is the daemon that runs on customer droplets to enable some features such as web console access.
+Droplet Agent is the daemon that runs on DigitalOcean's customer droplets to enable some features such as web console access.
 
 * [Installing](#installing)
 * [Contributing](#contributing)
