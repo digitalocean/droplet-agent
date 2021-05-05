@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package watcher
 
 import "github.com/digitalocean/dotty-agent/internal/metadata/actioner"
