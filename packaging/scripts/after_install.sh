@@ -3,7 +3,7 @@
 
 set -ue
 
-SVC_NAME=dotty-agent
+SVC_NAME=droplet-agent
 INSTALL_DIR=/opt/digitalocean/${SVC_NAME}
 CRON_SCHEDULE=/etc/cron.hourly
 CRON=${CRON_SCHEDULE}/${SVC_NAME}
@@ -34,7 +34,6 @@ main() {
   patch_updates
 }
 
-# TODO: remove this once agent binary handles the cronjobs
 patch_updates() {
   # make sure we have the latest
   [ -f "${CRON}" ] && rm -f "${CRON}"
@@ -43,7 +42,7 @@ patch_updates() {
 
   cat <<-EOF >"${CRON}"
 	#!/bin/sh
-	/bin/bash ${script} >/var/log/dotty.update.log 2>&1
+	/bin/bash ${script} >/var/log/droplet-agent.update.log 2>&1
 	EOF
 
   chmod +x "${CRON}"

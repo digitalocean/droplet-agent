@@ -8,7 +8,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	metadata "github.com/digitalocean/dotty-agent/internal/metadata"
+	metadata "github.com/digitalocean/droplet-agent/internal/metadata"
 	gomock "github.com/golang/mock/gomock"
 )
 

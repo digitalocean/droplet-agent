@@ -3,7 +3,7 @@ package netutil
 import (
 	"syscall"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/log"
 	"golang.org/x/net/bpf"
 )
 

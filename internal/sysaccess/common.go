@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/sysutil"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 )
 
 // Possible errors

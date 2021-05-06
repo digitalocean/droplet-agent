@@ -1,6 +1,6 @@
 package watcher
 
-import "github.com/digitalocean/dotty-agent/internal/metadata/actioner"
+import "github.com/digitalocean/droplet-agent/internal/metadata/actioner"
 
 // MetadataWatcher watches for metadata changes of the given droplet,
 // It notifies every registered actioner when it detects any metadata changes.

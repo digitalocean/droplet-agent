@@ -7,16 +7,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/config"
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata"
-	"github.com/digitalocean/dotty-agent/internal/metadata/actioner"
-	"github.com/digitalocean/dotty-agent/internal/metadata/status"
-	"github.com/digitalocean/dotty-agent/internal/metadata/watcher"
-	"github.com/digitalocean/dotty-agent/internal/sysaccess"
+	"github.com/digitalocean/droplet-agent/internal/config"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
+	"github.com/digitalocean/droplet-agent/internal/metadata/status"
+	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 func main() {
+	log.Info("Launching %s", config.AppFullName)
 	cfg := config.Init()
 
 	log.Info("Config Loaded. Agent Starting (version:%s)", cfg.Version)
@@ -67,11 +68,11 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 	setStatus(updater, metadata.StoppedStatus, false)
 	switch c {
 	case syscall.SIGINT, syscall.SIGTERM:
-		log.Info("[DOTTY Agent] Shutting down")
+		log.Info("[%s] Shutting down", config.AppShortName)
 		bgJobsCancel()
 		metadataWatcher.Shutdown()
 	case syscall.SIGTSTP, syscall.SIGQUIT:
-		log.Info("[DOTTY Agent] Forced to quit! You may lose jobs in progress")
+		log.Info("[%s] Forced to quit! You may lose jobs in progress", config.AppShortName)
 	default:
 		log.Error("unsupported signal, %d", c)
 		os.Exit(1)

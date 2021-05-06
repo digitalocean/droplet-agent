@@ -7,15 +7,15 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
-repo="dotty-agent" # update.sh will always run off the stable branch by default
+repo="droplet-agent" # update.sh will always run off the stable branch by default
 architecture="unknown"
 pkg_url="unknown"
 tmp_dir="unknown"
 remote_ver="unknown"
 exit_status=0
 
-[ "${UNSTABLE}" != 0 ] && repo="dotty-agent-unstable"
-[ "${BETA}" != 0 ] && repo="dotty-agent-beta"
+[ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
+[ "${BETA}" != 0 ] && repo="droplet-agent-beta"
 
 find_latest_pkg() {
   repo=${1:-}
@@ -25,7 +25,7 @@ find_latest_pkg() {
   files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   latest_pkg=$(echo "${sorted_files}" | tail -1)
-  remote_ver=$(echo "${latest_pkg}" | grep -oP '(?<=dotty-agent.)\d.\d.\d')
+  remote_ver=$(echo "${latest_pkg}" | grep -oP '(?<=droplet-agent.)\d.\d.\d')
   echo "latest version: ${remote_ver}"
   pkg_url="${REPO_HOST}/signed/${repo}/${platform}/${architecture}/${latest_pkg}"
 }
@@ -48,7 +48,7 @@ update_rpm() {
   # update rpm
   find_latest_pkg "${repo}" "rpm"
   #get installed version
-  local_ver=$(rpm -q dotty-agent --qf '%{VERSION}')
+  local_ver=$(rpm -q droplet-agent --qf '%{VERSION}')
   printf "local version:%s\nremote version:%s\n" "${local_ver}" "${remote_ver}"
   if [ "${local_ver}" = "${remote_ver}" ]; then
     echo "No need to update"
@@ -59,7 +59,7 @@ update_rpm() {
   newer_ver=$(echo "${sorted_vers}" | tail -1)
 
   if [ "${newer_ver}" = "${remote_ver}" ]; then
-    echo "Upgrading dotty-agent to ver:${remote_ver}"
+    echo "Upgrading droplet-agent to ver:${remote_ver}"
 
     if ! command -v gpg &>/dev/null; then
       echo "Installing GNUPG"
@@ -69,27 +69,27 @@ update_rpm() {
     echo "Ensuring gpg key is ready..."
     curl -sL "${REPO_GPG_KEY}" | gpg --import
 
-    tmp_dir=$(mktemp -d -t dotty-XXXXXXXXXX)
+    tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"
     echo "Temporary directory: $(pwd)"
     echo "Downloading ${pkg_url}"
-    curl "${pkg_url}" --output ./dotty.rpm.signed
+    curl "${pkg_url}" --output ./droplet-agent.rpm.signed
     echo -n "Verifying package signature..."
-    gpg --verify dotty.rpm.signed >/dev/null 2>&1
+    gpg --verify droplet-agent.rpm.signed >/dev/null 2>&1
     echo "OK"
     echo "Extracting package"
-    gpg --output dotty.rpm --decrypt dotty.rpm.signed
-    rpm -i dotty.rpm --force
+    gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
+    rpm -i droplet-agent.rpm --force
   fi
 
-  echo "Finished upgrading dotty-agent"
+  echo "Finished upgrading droplet-agent"
 }
 
 update_deb() {
   # update deb
   find_latest_pkg "${repo}" "deb"
   #get installed version
-  local_ver=$(dpkg -s dotty-agent | grep Version | cut -f 2 -d: | tr -d '[:space:]')
+  local_ver=$(dpkg -s droplet-agent | grep Version | cut -f 2 -d: | tr -d '[:space:]')
   printf "local version:%s\nremote version:%s\n" "${local_ver}" "${remote_ver}"
   if [ "${local_ver}" = "${remote_ver}" ]; then
     echo "No need to update"
@@ -100,7 +100,7 @@ update_deb() {
   newer_ver=$(echo "${sorted_vers}" | tail -1)
 
   if [ "${newer_ver}" = "${remote_ver}" ]; then
-    echo "Upgrading dotty-agent to ver:${remote_ver}"
+    echo "Upgrading droplet-agent to ver:${remote_ver}"
 
     if ! command -v gpg &>/dev/null; then
       echo "Installing GNUPG"
@@ -111,25 +111,25 @@ update_deb() {
     echo "Ensuring gpg key is ready..."
     wget -qO- "${REPO_GPG_KEY}" | gpg --import
 
-    tmp_dir=$(mktemp -d -t dotty-XXXXXXXXXX)
+    tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"
     echo "Temporary directory: $(pwd)"
     echo "Downloading ${pkg_url}"
-    wget -O ./dotty.deb.signed "${pkg_url}"
+    wget -O ./droplet-agent.deb.signed "${pkg_url}"
     echo -n "Verifying package signature..."
-    gpg --verify dotty.deb.signed >/dev/null 2>&1
+    gpg --verify droplet-agent.deb.signed >/dev/null 2>&1
     echo "OK"
     echo "Extracting package"
-    gpg --output dotty.deb --decrypt dotty.deb.signed
-    dpkg -i dotty.deb
+    gpg --output droplet-agent.deb --decrypt droplet-agent.deb.signed
+    dpkg -i droplet-agent.deb
   fi
 
-  echo "Finished upgrading dotty-agent"
+  echo "Finished upgrading droplet-agent"
 }
 
 script_cleanup() {
   if [ "${exit_status}" -ne 0 ]; then
-    echo "dotty-agent update failed"
+    echo "droplet-agent update failed"
   fi
   if [ "${tmp_dir}" != "unknown" ]; then
     echo "Removing temporary files"

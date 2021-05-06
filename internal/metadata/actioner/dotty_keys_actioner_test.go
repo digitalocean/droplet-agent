@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/digitalocean/dotty-agent/internal/sysaccess"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
-	"github.com/digitalocean/dotty-agent/internal/metadata"
-	"github.com/digitalocean/dotty-agent/internal/metadata/actioner/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata/actioner/internal/mocks"
 	"github.com/golang/mock/gomock"
 )
 

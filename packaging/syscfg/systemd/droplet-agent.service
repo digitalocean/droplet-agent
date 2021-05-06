@@ -1,18 +1,18 @@
 [Unit]
-Description=The DigitalOcean TTY Service Agent
+Description=The DigitalOcean Droplet Agent
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 User=root
 Environment=TERM=xterm-256color
-ExecStart=/opt/digitalocean/bin/dotty-agent -debug -syslog
+ExecStart=/opt/digitalocean/bin/droplet-agent -debug -syslog
 Restart=always
 TimeoutStopSec=90
 KillMode=process
 
 OOMScoreAdjust=-900
-SyslogIdentifier=DoTTYAgent
+SyslogIdentifier=DropletAgent
 
 [Install]
 WantedBy=multi-user.target

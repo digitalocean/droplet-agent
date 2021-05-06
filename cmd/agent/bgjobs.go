@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/digitalocean/dotty-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/log"
 
-	"github.com/digitalocean/dotty-agent/internal/sysaccess"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 func bgJobsRemoveExpiredDOTTYKeys(ctx context.Context, sshMgr *sysaccess.SSHManager, interval time.Duration) {

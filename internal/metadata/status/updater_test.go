@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/digitalocean/dotty-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/golang/mock/gomock"
 )
 
@@ -82,7 +82,7 @@ func newRequest(t *testing.T, body []byte) *http.Request {
 		t.Fatalf("could not create http request: %s", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("User-Agent", "DoTTY/1.0.1")
+	req.Header.Set("User-Agent", "Droplet-Agent/1.0.1")
 
 	return req
 }
