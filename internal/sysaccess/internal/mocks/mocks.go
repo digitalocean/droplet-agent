@@ -13,30 +13,45 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MocksysManager is a mock of sysManager interface
+// MocksysManager is a mock of sysManager interface.
 type MocksysManager struct {
 	ctrl     *gomock.Controller
 	recorder *MocksysManagerMockRecorder
 }
 
-// MocksysManagerMockRecorder is the mock recorder for MocksysManager
+// MocksysManagerMockRecorder is the mock recorder for MocksysManager.
 type MocksysManagerMockRecorder struct {
 	mock *MocksysManager
 }
 
-// NewMocksysManager creates a new mock instance
+// NewMocksysManager creates a new mock instance.
 func NewMocksysManager(ctrl *gomock.Controller) *MocksysManager {
 	mock := &MocksysManager{ctrl: ctrl}
 	mock.recorder = &MocksysManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MocksysManager) EXPECT() *MocksysManagerMockRecorder {
 	return m.recorder
 }
 
-// GetUserByName mocks base method
+// CreateFileForWrite mocks base method.
+func (m *MocksysManager) CreateFileForWrite(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateFileForWrite", file, user, perm)
+	ret0, _ := ret[0].(io.WriteCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateFileForWrite indicates an expected call of CreateFileForWrite.
+func (mr *MocksysManagerMockRecorder) CreateFileForWrite(file, user, perm interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileForWrite", reflect.TypeOf((*MocksysManager)(nil).CreateFileForWrite), file, user, perm)
+}
+
+// GetUserByName mocks base method.
 func (m *MocksysManager) GetUserByName(username string) (*sysutil.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByName", username)
@@ -45,13 +60,13 @@ func (m *MocksysManager) GetUserByName(username string) (*sysutil.User, error) {
 	return ret0, ret1
 }
 
-// GetUserByName indicates an expected call of GetUserByName
+// GetUserByName indicates an expected call of GetUserByName.
 func (mr *MocksysManagerMockRecorder) GetUserByName(username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByName", reflect.TypeOf((*MocksysManager)(nil).GetUserByName), username)
 }
 
-// MkDirIfNonExist mocks base method
+// MkDirIfNonExist mocks base method.
 func (m *MocksysManager) MkDirIfNonExist(dir string, user *sysutil.User, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MkDirIfNonExist", dir, user, perm)
@@ -59,28 +74,56 @@ func (m *MocksysManager) MkDirIfNonExist(dir string, user *sysutil.User, perm os
 	return ret0
 }
 
-// MkDirIfNonExist indicates an expected call of MkDirIfNonExist
+// MkDirIfNonExist indicates an expected call of MkDirIfNonExist.
 func (mr *MocksysManagerMockRecorder) MkDirIfNonExist(dir, user, perm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MkDirIfNonExist", reflect.TypeOf((*MocksysManager)(nil).MkDirIfNonExist), dir, user, perm)
 }
 
-// CreateFileIfNonExist mocks base method
-func (m *MocksysManager) CreateFileIfNonExist(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error) {
+// ReadFile mocks base method.
+func (m *MocksysManager) ReadFile(filename string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateFileIfNonExist", file, user, perm)
-	ret0, _ := ret[0].(io.WriteCloser)
+	ret := m.ctrl.Call(m, "ReadFile", filename)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateFileIfNonExist indicates an expected call of CreateFileIfNonExist
-func (mr *MocksysManagerMockRecorder) CreateFileIfNonExist(file, user, perm interface{}) *gomock.Call {
+// ReadFile indicates an expected call of ReadFile.
+func (mr *MocksysManagerMockRecorder) ReadFile(filename interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileIfNonExist", reflect.TypeOf((*MocksysManager)(nil).CreateFileIfNonExist), file, user, perm)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MocksysManager)(nil).ReadFile), filename)
 }
 
-// RunCmd mocks base method
+// RemoveFile mocks base method.
+func (m *MocksysManager) RemoveFile(name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveFile", name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveFile indicates an expected call of RemoveFile.
+func (mr *MocksysManagerMockRecorder) RemoveFile(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFile", reflect.TypeOf((*MocksysManager)(nil).RemoveFile), name)
+}
+
+// RenameFile mocks base method.
+func (m *MocksysManager) RenameFile(oldpath, newpath string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RenameFile", oldpath, newpath)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RenameFile indicates an expected call of RenameFile.
+func (mr *MocksysManagerMockRecorder) RenameFile(oldpath, newpath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenameFile", reflect.TypeOf((*MocksysManager)(nil).RenameFile), oldpath, newpath)
+}
+
+// RunCmd mocks base method.
 func (m *MocksysManager) RunCmd(name string, arg ...string) (*sysutil.CmdResult, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{name}
@@ -93,52 +136,9 @@ func (m *MocksysManager) RunCmd(name string, arg ...string) (*sysutil.CmdResult,
 	return ret0, ret1
 }
 
-// RunCmd indicates an expected call of RunCmd
+// RunCmd indicates an expected call of RunCmd.
 func (mr *MocksysManagerMockRecorder) RunCmd(name interface{}, arg ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{name}, arg...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCmd", reflect.TypeOf((*MocksysManager)(nil).RunCmd), varargs...)
-}
-
-// ReadFile mocks base method
-func (m *MocksysManager) ReadFile(filename string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadFile", filename)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ReadFile indicates an expected call of ReadFile
-func (mr *MocksysManagerMockRecorder) ReadFile(filename interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MocksysManager)(nil).ReadFile), filename)
-}
-
-// RenameFile mocks base method
-func (m *MocksysManager) RenameFile(oldpath, newpath string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RenameFile", oldpath, newpath)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RenameFile indicates an expected call of RenameFile
-func (mr *MocksysManagerMockRecorder) RenameFile(oldpath, newpath interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenameFile", reflect.TypeOf((*MocksysManager)(nil).RenameFile), oldpath, newpath)
-}
-
-// RemoveFile mocks base method
-func (m *MocksysManager) RemoveFile(name string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveFile", name)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RemoveFile indicates an expected call of RemoveFile
-func (mr *MocksysManagerMockRecorder) RemoveFile(name interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFile", reflect.TypeOf((*MocksysManager)(nil).RemoveFile), name)
 }
