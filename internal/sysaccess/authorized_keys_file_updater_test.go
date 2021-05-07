@@ -109,7 +109,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys(gomock.Any(), gomock.Any()).Return([]string{})
-				sysMgr.EXPECT().CreateFileIfNonExist(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, createFileErr)
+				sysMgr.EXPECT().CreateFileForWrite(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, createFileErr)
 			},
 			[]*SSHKey{
 				validKey1,
@@ -125,7 +125,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(authorizedKeyFile+".dotty", validUser1, os.FileMode(0600)).Return(nil, createFileErr)
+				sysMgr.EXPECT().CreateFileForWrite(authorizedKeyFile+".dotty", validUser1, os.FileMode(0600)).Return(nil, createFileErr)
 			},
 			[]*SSHKey{
 				validKey1,
@@ -143,7 +143,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
 				sysMgr.EXPECT().RenameFile(gomock.Any(), gomock.Any()).Return(errors.New("rename-error"))
 				sysMgr.EXPECT().RemoveFile(tmpFile).Return(nil)
@@ -167,7 +167,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
 			},
