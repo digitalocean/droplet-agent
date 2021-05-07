@@ -48,8 +48,8 @@ func (s *SysManager) MkDirIfNonExist(dir string, user *User, perm os.FileMode) e
 	return s.mkdir(dir, user, perm)
 }
 
-// CreateFileIfNonExist creates a file for write if it does not exist
-func (s *SysManager) CreateFileIfNonExist(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
+// CreateFileForWrite creates a file for write
+func (s *SysManager) CreateFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
 	return s.createFileForWrite(file, user, perm)
 }
 
