@@ -180,6 +180,32 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				expectedRes: "line1\nline2\n",
 			},
 		},
+		{
+			"should read existing keys and attempt to merge",
+			func(sysMgr *mocks.MocksysManager, sshHelper *MocksshHelper, recorder *recorder) {
+				tmpFile := authorizedKeyFile + ".dotty"
+				localKeysRaw := []byte("local1\nlocal2\nlocal3\n\n\n")
+				localKeys := []string{
+					"local1", "local2", "local3",
+				}
+				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
+				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
+				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
+				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(localKeysRaw, nil)
+				sshHelper.EXPECT().prepareAuthorizedKeys(localKeys, []*SSHKey{validKey1}).Return([]string{"local1", "local2", "local3", "line1", "line2"})
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
+				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
+			},
+			[]*SSHKey{
+				validKey1,
+			},
+			nil,
+			&recorder{
+				closeCalled: 1,
+				expectedRes: "local1\nlocal2\nlocal3\nline1\nline2\n",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
