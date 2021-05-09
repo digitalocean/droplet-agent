@@ -21,21 +21,22 @@ type authorizedKeysFileUpdater interface {
 type updaterImpl struct {
 	sshMgr *SSHManager
 
-	userLocks sync.Map
+	keysFileLocks sync.Map
 }
 
 func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error {
-
-	userLockRaw, _ := u.userLocks.LoadOrStore(osUsername, &sync.Mutex{})
-	userLock := userLockRaw.(*sync.Mutex)
-	userLock.Lock()
-	defer userLock.Unlock()
-
 	osUser, err := u.sshMgr.sysMgr.GetUserByName(osUsername)
 	if err != nil {
 		return err
 	}
 	authorizedKeysFile := u.sshMgr.authorizedKeysFile(osUser)
+
+	// We must make sure we are exclusively accessing the authorized_keys file
+	keysFileLockRaw, _ := u.keysFileLocks.LoadOrStore(authorizedKeysFile, &sync.Mutex{})
+	keysFileLock := keysFileLockRaw.(*sync.Mutex)
+	keysFileLock.Lock()
+	defer keysFileLock.Unlock()
+
 	dir := filepath.Dir(authorizedKeysFile)
 	if err = u.sshMgr.sysMgr.MkDirIfNonExist(dir, osUser, 0700); err != nil {
 		return err
