@@ -82,7 +82,7 @@ func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
 }
 
 func (o *osOperatorImpl) createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
-	f, err := o.osOpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	f, err := o.osOpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return nil, fmt.Errorf("%w: open file failed: %v", ErrCreateFileFailed, err)
 	}

@@ -5,16 +5,21 @@ package sysaccess
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
+	"reflect"
+	"runtime"
+	"sort"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
+	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/golang/mock/gomock"
-
-	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 )
 
 type recorder struct {
@@ -109,7 +114,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys(gomock.Any(), gomock.Any()).Return([]string{})
-				sysMgr.EXPECT().CreateFileIfNonExist(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, createFileErr)
+				sysMgr.EXPECT().CreateFileForWrite(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, createFileErr)
 			},
 			[]*SSHKey{
 				validKey1,
@@ -125,7 +130,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(authorizedKeyFile+".dotty", validUser1, os.FileMode(0600)).Return(nil, createFileErr)
+				sysMgr.EXPECT().CreateFileForWrite(authorizedKeyFile+".dotty", validUser1, os.FileMode(0600)).Return(nil, createFileErr)
 			},
 			[]*SSHKey{
 				validKey1,
@@ -143,7 +148,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
 				sysMgr.EXPECT().RenameFile(gomock.Any(), gomock.Any()).Return(errors.New("rename-error"))
 				sysMgr.EXPECT().RemoveFile(tmpFile).Return(nil)
@@ -167,7 +172,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
-				sysMgr.EXPECT().CreateFileIfNonExist(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
 			},
@@ -178,6 +183,32 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 			&recorder{
 				closeCalled: 1,
 				expectedRes: "line1\nline2\n",
+			},
+		},
+		{
+			"should read existing keys and attempt to merge",
+			func(sysMgr *mocks.MocksysManager, sshHelper *MocksshHelper, recorder *recorder) {
+				tmpFile := authorizedKeyFile + ".dotty"
+				localKeysRaw := []byte("local1\nlocal2\nlocal3\n\n\n")
+				localKeys := []string{
+					"local1", "local2", "local3",
+				}
+				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
+				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
+				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
+				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(localKeysRaw, nil)
+				sshHelper.EXPECT().prepareAuthorizedKeys(localKeys, []*SSHKey{validKey1}).Return([]string{"local1", "local2", "local3", "line1", "line2"})
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
+				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
+			},
+			[]*SSHKey{
+				validKey1,
+			},
+			nil,
+			&recorder{
+				closeCalled: 1,
+				expectedRes: "local1\nlocal2\nlocal3\nline1\nline2\n",
 			},
 		},
 	}
@@ -216,4 +247,106 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_updaterImpl_updateAuthorizedKeysFile_threadSafe(t *testing.T) {
+	t.Run("updateAuthorizedKeysFile must be thread safe", func(t *testing.T) {
+
+		fakeKeys := []*SSHKey{{}}
+
+		mockCtl := gomock.NewController(t)
+		defer mockCtl.Finish()
+
+		sysMgrMock := mocks.NewMocksysManager(mockCtl)
+		sshHelperMock := NewMocksshHelper(mockCtl)
+
+		userNum := 5
+		concurrentUpdatePerUser := 50
+
+		runtime.GOMAXPROCS(userNum * concurrentUpdatePerUser)
+
+		expectedRecords := make([][]string, userNum)
+		recorders := make([][]*recorder, userNum)
+		for i := range recorders {
+			expectedRecords[i] = make([]string, concurrentUpdatePerUser)
+			recorders[i] = make([]*recorder, concurrentUpdatePerUser)
+			content := "key,"
+			for j := range recorders[i] {
+				recorders[i][j] = &recorder{}
+				content += "key,"
+				expectedRecords[i][j] = content
+			}
+		}
+
+		for i := 0; i != userNum; i++ {
+			// set up expected calls for each user
+			strUser := fmt.Sprintf("user_%d", i)
+			user := &sysutil.User{
+				Name:    strUser,
+				UID:     i,
+				GID:     1,
+				HomeDir: fmt.Sprintf("/home/%s", strUser),
+				Shell:   "/bin/bash",
+			}
+			sysMgrMock.EXPECT().GetUserByName(strUser).Return(user, nil).Times(concurrentUpdatePerUser)
+
+			keysFile := fmt.Sprintf("/home/%s/.ssh/authorized_keys", strUser)
+			sshHelperMock.EXPECT().authorizedKeysFile(user).Return(keysFile).Times(concurrentUpdatePerUser)
+			sysMgrMock.EXPECT().MkDirIfNonExist(filepath.Dir(keysFile), user, os.FileMode(0700)).Return(nil).Times(concurrentUpdatePerUser)
+
+			tmpFilePath := keysFile + ".dotty"
+			sysMgrMock.EXPECT().RunCmd("restorecon", tmpFilePath).Return(nil, nil).Times(concurrentUpdatePerUser)
+			sysMgrMock.EXPECT().RenameFile(tmpFilePath, keysFile).Return(nil).Times(concurrentUpdatePerUser)
+
+			originalFile := ""
+			for j := 0; j != concurrentUpdatePerUser; j++ {
+				originalFile += "key\n"
+				localKeys := strings.Split(strings.TrimRight(originalFile, "\n"), "\n")
+				sysMgrMock.EXPECT().ReadFile(keysFile).Return([]byte(originalFile), nil)
+				sshHelperMock.EXPECT().prepareAuthorizedKeys(localKeys, fakeKeys).Return(append(localKeys, "key"))
+				sysMgrMock.EXPECT().CreateFileForWrite(tmpFilePath, user, os.FileMode(0600)).Return(recorders[i][j], nil)
+			}
+
+		}
+
+		sshMgr := &SSHManager{
+			sysMgr:    sysMgrMock,
+			sshHelper: sshHelperMock,
+		}
+		u := &updaterImpl{
+			sshMgr: sshMgr,
+		}
+
+		var wg sync.WaitGroup
+		var errs []error
+		var errLock sync.Mutex
+		for i := 0; i != userNum; i++ {
+			strUser := fmt.Sprintf("user_%d", i)
+			for j := 0; j != concurrentUpdatePerUser; j++ {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					if e := u.updateAuthorizedKeysFile(strUser, fakeKeys); e != nil {
+						errLock.Lock()
+						errs = append(errs, e)
+						errLock.Unlock()
+					}
+				}()
+			}
+		}
+		wg.Wait()
+		if len(errs) != 0 {
+			t.Errorf("Unexpected Errors: %+v", errs)
+		}
+		for i := range recorders {
+			records := make([]string, 0, concurrentUpdatePerUser)
+			for j := range recorders[i] {
+				records = append(records, strings.ReplaceAll(recorders[i][j].String(), "\n", ","))
+			}
+			sort.Strings(records)
+			if !reflect.DeepEqual(expectedRecords[i], records) {
+				t.Errorf("user_%d, unexpected result!, want\n %+v \ngot\n %+v", i, expectedRecords[i], records)
+			}
+		}
+	})
 }

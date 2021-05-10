@@ -10,30 +10,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockauthorizedKeysFileUpdater is a mock of authorizedKeysFileUpdater interface
+// MockauthorizedKeysFileUpdater is a mock of authorizedKeysFileUpdater interface.
 type MockauthorizedKeysFileUpdater struct {
 	ctrl     *gomock.Controller
 	recorder *MockauthorizedKeysFileUpdaterMockRecorder
 }
 
-// MockauthorizedKeysFileUpdaterMockRecorder is the mock recorder for MockauthorizedKeysFileUpdater
+// MockauthorizedKeysFileUpdaterMockRecorder is the mock recorder for MockauthorizedKeysFileUpdater.
 type MockauthorizedKeysFileUpdaterMockRecorder struct {
 	mock *MockauthorizedKeysFileUpdater
 }
 
-// NewMockauthorizedKeysFileUpdater creates a new mock instance
+// NewMockauthorizedKeysFileUpdater creates a new mock instance.
 func NewMockauthorizedKeysFileUpdater(ctrl *gomock.Controller) *MockauthorizedKeysFileUpdater {
 	mock := &MockauthorizedKeysFileUpdater{ctrl: ctrl}
 	mock.recorder = &MockauthorizedKeysFileUpdaterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockauthorizedKeysFileUpdater) EXPECT() *MockauthorizedKeysFileUpdaterMockRecorder {
 	return m.recorder
 }
 
-// updateAuthorizedKeysFile mocks base method
+// updateAuthorizedKeysFile mocks base method.
 func (m *MockauthorizedKeysFileUpdater) updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "updateAuthorizedKeysFile", osUsername, dottyKeys)
@@ -41,7 +41,7 @@ func (m *MockauthorizedKeysFileUpdater) updateAuthorizedKeysFile(osUsername stri
 	return ret0
 }
 
-// updateAuthorizedKeysFile indicates an expected call of updateAuthorizedKeysFile
+// updateAuthorizedKeysFile indicates an expected call of updateAuthorizedKeysFile.
 func (mr *MockauthorizedKeysFileUpdaterMockRecorder) updateAuthorizedKeysFile(osUsername, dottyKeys interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "updateAuthorizedKeysFile", reflect.TypeOf((*MockauthorizedKeysFileUpdater)(nil).updateAuthorizedKeysFile), osUsername, dottyKeys)

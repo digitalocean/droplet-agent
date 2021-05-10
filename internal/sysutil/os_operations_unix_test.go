@@ -251,7 +251,7 @@ func Test_osOperatorImpl_createFileForWrite(t *testing.T) {
 			&callRecorder{
 				openFileCalled: true,
 				openFileName:   file,
-				openFileFlag:   os.O_WRONLY | os.O_CREATE | os.O_EXCL,
+				openFileFlag:   os.O_WRONLY | os.O_CREATE | os.O_TRUNC,
 				openFilePerm:   perm,
 			},
 			ErrCreateFileFailed,
@@ -264,7 +264,7 @@ func Test_osOperatorImpl_createFileForWrite(t *testing.T) {
 			&callRecorder{
 				openFileCalled:      true,
 				openFileName:        file,
-				openFileFlag:        os.O_WRONLY | os.O_CREATE | os.O_EXCL,
+				openFileFlag:        os.O_WRONLY | os.O_CREATE | os.O_TRUNC,
 				openFilePerm:        perm,
 				openFileCloseCalled: true,
 
@@ -284,7 +284,7 @@ func Test_osOperatorImpl_createFileForWrite(t *testing.T) {
 			&callRecorder{
 				openFileCalled: true,
 				openFileName:   file,
-				openFileFlag:   os.O_WRONLY | os.O_CREATE | os.O_EXCL,
+				openFileFlag:   os.O_WRONLY | os.O_CREATE | os.O_TRUNC,
 				openFilePerm:   perm,
 
 				chownCalled: true,

@@ -38,7 +38,7 @@ type sshKeyInfo struct {
 type sysManager interface {
 	GetUserByName(username string) (*sysutil.User, error)
 	MkDirIfNonExist(dir string, user *sysutil.User, perm os.FileMode) error
-	CreateFileIfNonExist(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error)
+	CreateFileForWrite(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error)
 	RunCmd(name string, arg ...string) (*sysutil.CmdResult, error)
 	ReadFile(filename string) ([]byte, error)
 	RenameFile(oldpath, newpath string) error

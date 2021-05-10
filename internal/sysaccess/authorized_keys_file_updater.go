@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 )
 
@@ -19,6 +19,8 @@ type authorizedKeysFileUpdater interface {
 
 type updaterImpl struct {
 	sshMgr *SSHManager
+
+	keysFileLocks sync.Map
 }
 
 func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error {
@@ -27,6 +29,13 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*S
 		return err
 	}
 	authorizedKeysFile := u.sshMgr.authorizedKeysFile(osUser)
+
+	// We must make sure we are exclusively accessing the authorized_keys file
+	keysFileLockRaw, _ := u.keysFileLocks.LoadOrStore(authorizedKeysFile, &sync.Mutex{})
+	keysFileLock := keysFileLockRaw.(*sync.Mutex)
+	keysFileLock.Lock()
+	defer keysFileLock.Unlock()
+
 	dir := filepath.Dir(authorizedKeysFile)
 	if err = u.sshMgr.sysMgr.MkDirIfNonExist(dir, osUser, 0700); err != nil {
 		return err
@@ -49,7 +58,7 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*S
 func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []string) (retErr error) {
 	log.Debug("updating [%s]", authorizedKeysFile)
 	tmpFilePath := authorizedKeysFile + ".dotty"
-	tmpFile, err := u.sshMgr.sysMgr.CreateFileIfNonExist(tmpFilePath, user, 0600)
+	tmpFile, err := u.sshMgr.sysMgr.CreateFileForWrite(tmpFilePath, user, 0600)
 	if err != nil {
 		return fmt.Errorf("%w: failed to create tmp file: %v", ErrWriteAuthorizedKeysFileFailed, err)
 	}

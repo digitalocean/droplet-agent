@@ -6,51 +6,36 @@ package mocks
 
 import (
 	reflect "reflect"
-	syscall "syscall"
 
 	gomock "github.com/golang/mock/gomock"
 	bpf "golang.org/x/net/bpf"
+	unix "golang.org/x/sys/unix"
 )
 
-// MockdependentFns is a mock of dependentFns interface
+// MockdependentFns is a mock of dependentFns interface.
 type MockdependentFns struct {
 	ctrl     *gomock.Controller
 	recorder *MockdependentFnsMockRecorder
 }
 
-// MockdependentFnsMockRecorder is the mock recorder for MockdependentFns
+// MockdependentFnsMockRecorder is the mock recorder for MockdependentFns.
 type MockdependentFnsMockRecorder struct {
 	mock *MockdependentFns
 }
 
-// NewMockdependentFns creates a new mock instance
+// NewMockdependentFns creates a new mock instance.
 func NewMockdependentFns(ctrl *gomock.Controller) *MockdependentFns {
 	mock := &MockdependentFns{ctrl: ctrl}
 	mock.recorder = &MockdependentFnsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockdependentFns) EXPECT() *MockdependentFnsMockRecorder {
 	return m.recorder
 }
 
-// SockCreate mocks base method
-func (m *MockdependentFns) SockCreate(domain, typ, proto int) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SockCreate", domain, typ, proto)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SockCreate indicates an expected call of SockCreate
-func (mr *MockdependentFnsMockRecorder) SockCreate(domain, typ, proto interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SockCreate", reflect.TypeOf((*MockdependentFns)(nil).SockCreate), domain, typ, proto)
-}
-
-// BPFAssemble mocks base method
+// BPFAssemble mocks base method.
 func (m *MockdependentFns) BPFAssemble(insts []bpf.Instruction) ([]bpf.RawInstruction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BPFAssemble", insts)
@@ -59,29 +44,13 @@ func (m *MockdependentFns) BPFAssemble(insts []bpf.Instruction) ([]bpf.RawInstru
 	return ret0, ret1
 }
 
-// BPFAssemble indicates an expected call of BPFAssemble
+// BPFAssemble indicates an expected call of BPFAssemble.
 func (mr *MockdependentFnsMockRecorder) BPFAssemble(insts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BPFAssemble", reflect.TypeOf((*MockdependentFns)(nil).BPFAssemble), insts)
 }
 
-// Syscall6 mocks base method
-func (m *MockdependentFns) Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (uintptr, uintptr, syscall.Errno) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Syscall6", trap, a1, a2, a3, a4, a5, a6)
-	ret0, _ := ret[0].(uintptr)
-	ret1, _ := ret[1].(uintptr)
-	ret2, _ := ret[2].(syscall.Errno)
-	return ret0, ret1, ret2
-}
-
-// Syscall6 indicates an expected call of Syscall6
-func (mr *MockdependentFnsMockRecorder) Syscall6(trap, a1, a2, a3, a4, a5, a6 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Syscall6", reflect.TypeOf((*MockdependentFns)(nil).Syscall6), trap, a1, a2, a3, a4, a5, a6)
-}
-
-// Close mocks base method
+// Close mocks base method.
 func (m *MockdependentFns) Close(fd int) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Close", fd)
@@ -89,8 +58,39 @@ func (m *MockdependentFns) Close(fd int) error {
 	return ret0
 }
 
-// Close indicates an expected call of Close
+// Close indicates an expected call of Close.
 func (mr *MockdependentFnsMockRecorder) Close(fd interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockdependentFns)(nil).Close), fd)
+}
+
+// SockCreate mocks base method.
+func (m *MockdependentFns) SockCreate(domain, typ, proto int) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SockCreate", domain, typ, proto)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SockCreate indicates an expected call of SockCreate.
+func (mr *MockdependentFnsMockRecorder) SockCreate(domain, typ, proto interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SockCreate", reflect.TypeOf((*MockdependentFns)(nil).SockCreate), domain, typ, proto)
+}
+
+// Syscall6 mocks base method.
+func (m *MockdependentFns) Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (uintptr, uintptr, unix.Errno) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Syscall6", trap, a1, a2, a3, a4, a5, a6)
+	ret0, _ := ret[0].(uintptr)
+	ret1, _ := ret[1].(uintptr)
+	ret2, _ := ret[2].(unix.Errno)
+	return ret0, ret1, ret2
+}
+
+// Syscall6 indicates an expected call of Syscall6.
+func (mr *MockdependentFnsMockRecorder) Syscall6(trap, a1, a2, a3, a4, a5, a6 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Syscall6", reflect.TypeOf((*MockdependentFns)(nil).Syscall6), trap, a1, a2, a3, a4, a5, a6)
 }
