@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 )
 
