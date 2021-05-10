@@ -278,7 +278,6 @@ func Test_updaterImpl_updateAuthorizedKeysFile_threadSafe(t *testing.T) {
 			}
 		}
 
-
 		for i := 0; i != userNum; i++ {
 			// set up expected calls for each user
 			strUser := fmt.Sprintf("user_%d", i)
@@ -346,7 +345,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile_threadSafe(t *testing.T) {
 			}
 			sort.Strings(records)
 			if !reflect.DeepEqual(expectedRecords[i], records) {
-				t.Errorf("user_%d, unexpected result!, want\n %+v \ngot\n %+v",i, expectedRecords[i], records)
+				t.Errorf("user_%d, unexpected result!, want\n %+v \ngot\n %+v", i, expectedRecords[i], records)
 			}
 		}
 	})
