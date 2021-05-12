@@ -6,7 +6,7 @@ jobs:
     name: Imports
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v2.3.4
     - name: check
       uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
       with:
@@ -17,7 +17,7 @@ jobs:
     name: Errcheck
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v2.3.4
     - name: check
       uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
       with:
@@ -28,7 +28,7 @@ jobs:
     name: Shadow
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v2.3.4
     - name: check
       uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
       with:
@@ -39,7 +39,7 @@ jobs:
     name: StaticCheck
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v2.3.4
     - name: check
       uses: grandcolline/golang-github-actions@4356d0458ea4bfdb55fcb296437812acef970f9b
       with:
