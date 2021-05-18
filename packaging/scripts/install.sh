@@ -147,7 +147,7 @@ install_pkg() {
   echo "${gpg_key}" | gpg --import
   gpg_key_fprs=$(wget -qO- "${REPO_GPG_KEY_FPRS}" || curl -sL "${REPO_GPG_KEY_FPRS}")
   for fpr in ${gpg_key_fprs}; do
-    echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
+    echo -e "5\ny\n" | gpg --no-tty --command-fd 0 --expert --edit-key "$fpr" trust
   done
 
   tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
