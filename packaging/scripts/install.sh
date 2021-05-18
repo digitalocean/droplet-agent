@@ -9,6 +9,7 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
+REPO_GPG_KEY_FPRS=${REPO_HOST}/gpg.key.fpr
 
 repo="droplet-agent"
 [ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
@@ -128,6 +129,15 @@ install_deps() {
 
 }
 
+ensure_valid_package() {
+  file=${1:-}
+  [ -z "${file}" ] && abort "signed file must be provided. Usage: ensure_valid_package <signed_file>"
+  verifyOutput=$(mktemp gpg_verifyXXXXXX)
+  gpg --status-fd 3 --verify "${file}" 3>"${verifyOutput}" || exit 1
+  grep -E -q '^\[GNUPG:] TRUST_(ULTIMATE|FULLY)' "${verifyOutput}"
+}
+
+
 install_pkg() {
   platform=${1:-}
   [ -z "${platform}" ] && abort "Destination repository is required. Usage: install_pkg <platform>"
@@ -135,6 +145,10 @@ install_pkg() {
   echo "Importing GPG public key"
   gpg_key=$(wget -qO- "${REPO_GPG_KEY}" || curl -sL "${REPO_GPG_KEY}")
   echo "${gpg_key}" | gpg --import
+  gpg_key_fprs=$(wget -qO- "${REPO_GPG_KEY_FPRS}" || curl -sL "${REPO_GPG_KEY_FPRS}")
+  for fpr in ${gpg_key_fprs}; do
+    echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
+  done
 
   tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
   cd "${tmp_dir}"
@@ -145,7 +159,7 @@ install_pkg() {
   rpm)
     curl "${pkg_url}" --output ./droplet-agent.rpm.signed
     echo "Verifying package signature..."
-    gpg --verify droplet-agent.rpm.signed >/dev/null 2>&1
+    ensure_valid_package droplet-agent.rpm.signed
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
@@ -156,7 +170,7 @@ install_pkg() {
   deb)
     wget -O ./droplet-agent.deb.signed "${pkg_url}"
     echo "Verifying package signature..."
-    gpg --verify droplet-agent.deb.signed >/dev/null 2>&1
+    ensure_valid_package droplet-agent.deb.signed
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.deb --decrypt droplet-agent.deb.signed
