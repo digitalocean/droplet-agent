@@ -113,13 +113,13 @@ install_deps() {
   echo "Checking dependencies for installing droplet-agent"
   case "${platform}" in
   rpm)
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       yum install -y gpgme
     fi
     ;;
   deb)
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       apt-get -qq update || true
       apt-get install -y gnupg2
