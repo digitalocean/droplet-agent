@@ -9,7 +9,7 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
-REPO_GPG_KEY_FPRS=${REPO_HOST}/gpg.key.fpr
+REPO_GPG_OWNERTRUST=${REPO_HOST}/gpg.ownertrust
 
 repo="droplet-agent"
 [ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
@@ -133,10 +133,9 @@ ensure_valid_package() {
   file=${1:-}
   [ -z "${file}" ] && abort "signed file must be provided. Usage: ensure_valid_package <signed_file>"
   verifyOutput=$(mktemp gpg_verifyXXXXXX)
-  gpg --status-fd 3 --verify "${file}" 3>"${verifyOutput}" || exit 1
+  gpg --no-tty --status-fd 3 --verify "${file}" 3>"${verifyOutput}" || exit 1
   grep -E -q '^\[GNUPG:] TRUST_(ULTIMATE|FULLY)' "${verifyOutput}"
 }
-
 
 install_pkg() {
   platform=${1:-}
@@ -145,10 +144,8 @@ install_pkg() {
   echo "Importing GPG public key"
   gpg_key=$(wget -qO- "${REPO_GPG_KEY}" || curl -sL "${REPO_GPG_KEY}")
   echo "${gpg_key}" | gpg --import
-  gpg_key_fprs=$(wget -qO- "${REPO_GPG_KEY_FPRS}" || curl -sL "${REPO_GPG_KEY_FPRS}")
-  for fpr in ${gpg_key_fprs}; do
-    echo -e "5\ny\n" | gpg --no-tty --command-fd 0 --expert --edit-key "$fpr" trust
-  done
+  gpg_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}" || curl -sL "${REPO_GPG_OWNERTRUST}")
+  echo "${gpg_ownertrust}" | gpg --import-ownertrust
 
   tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
   cd "${tmp_dir}"
