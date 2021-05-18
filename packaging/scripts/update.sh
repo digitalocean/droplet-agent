@@ -87,7 +87,7 @@ update_rpm() {
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
-    rpm -i droplet-agent.rpm --force
+    rpm -U droplet-agent.rpm --force
   fi
 
   echo "Finished upgrading droplet-agent"
