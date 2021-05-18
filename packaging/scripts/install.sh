@@ -100,7 +100,7 @@ find_latest_pkg() {
   platform=${2:-}
   [ -z "${repo}" ] || [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <repo> <platform>"
   repo_tree=$(curl -sSL ${REPO_HOST} || wget -qO- ${REPO_HOST})
-  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | tr ' ' '\n')
+  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | grep -v "*.sum" | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   latest_pkg=$(echo "${sorted_files}" | tail -1)
   echo "latest version: ${latest_pkg}"
