@@ -7,6 +7,7 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
+REPO_GPG_OWNERTRUST=${REPO_HOST}/gpg.ownertrust
 repo="droplet-agent" # update.sh will always run off the stable branch by default
 architecture="unknown"
 pkg_url="unknown"
@@ -22,7 +23,7 @@ find_latest_pkg() {
   platform=${2:-}
   [ -z "${repo}" ] || [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <repo> <platform>"
   repo_tree=$(curl -sSL ${REPO_HOST} || wget -qO- ${REPO_HOST})
-  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | tr ' ' '\n')
+  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | grep -v '\b.sum$' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   latest_pkg=$(echo "${sorted_files}" | tail -1)
   remote_ver=$(echo "${latest_pkg}" | grep -oP '(?<=droplet-agent.)\d.\d.\d')
@@ -61,13 +62,20 @@ update_rpm() {
   if [ "${newer_ver}" = "${remote_ver}" ]; then
     echo "Upgrading droplet-agent to ver:${remote_ver}"
 
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       yum install -y gpgme
     fi
 
     echo "Ensuring gpg key is ready..."
     curl -sL "${REPO_GPG_KEY}" | gpg --import
+    echo "Ensuring gpg key is trusted..."
+    gpg_key_ownertrust=$(curl -sL "${REPO_GPG_OWNERTRUST}")
+    for item in ${gpg_key_ownertrust}; do
+      fpr=$(echo "$item" | cut -d ':' -f 1)
+      echo "trusting ${fpr}"
+      echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
+    done
 
     tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"
@@ -79,7 +87,7 @@ update_rpm() {
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
-    rpm -i droplet-agent.rpm --force
+    rpm -U droplet-agent.rpm --force
   fi
 
   echo "Finished upgrading droplet-agent"
@@ -110,6 +118,13 @@ update_deb() {
 
     echo "Ensuring gpg key is ready..."
     wget -qO- "${REPO_GPG_KEY}" | gpg --import
+    echo "Ensuring gpg key is trusted..."
+    gpg_key_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}")
+    for item in ${gpg_key_ownertrust}; do
+      fpr=$(echo "$item" | cut -d ':' -f 1)
+      echo "trusting ${fpr}"
+      echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
+    done
 
     tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"

@@ -9,6 +9,7 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
+REPO_GPG_OWNERTRUST=${REPO_HOST}/gpg.ownertrust
 
 repo="droplet-agent"
 [ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
@@ -99,7 +100,7 @@ find_latest_pkg() {
   platform=${2:-}
   [ -z "${repo}" ] || [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <repo> <platform>"
   repo_tree=$(curl -sSL ${REPO_HOST} || wget -qO- ${REPO_HOST})
-  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | tr ' ' '\n')
+  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | grep -v '\b.sum$' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   latest_pkg=$(echo "${sorted_files}" | tail -1)
   echo "latest version: ${latest_pkg}"
@@ -112,13 +113,13 @@ install_deps() {
   echo "Checking dependencies for installing droplet-agent"
   case "${platform}" in
   rpm)
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       yum install -y gpgme
     fi
     ;;
   deb)
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       apt-get -qq update || true
       apt-get install -y gnupg2
@@ -128,6 +129,14 @@ install_deps() {
 
 }
 
+ensure_valid_package() {
+  file=${1:-}
+  [ -z "${file}" ] && abort "signed file must be provided. Usage: ensure_valid_package <signed_file>"
+  verifyOutput=$(mktemp gpg_verifyXXXXXX)
+  gpg --no-tty --status-fd 3 --verify "${file}" 3>"${verifyOutput}" || exit 1
+  grep -E -q '^\[GNUPG:] TRUST_(ULTIMATE|FULLY)' "${verifyOutput}"
+}
+
 install_pkg() {
   platform=${1:-}
   [ -z "${platform}" ] && abort "Destination repository is required. Usage: install_pkg <platform>"
@@ -135,6 +144,8 @@ install_pkg() {
   echo "Importing GPG public key"
   gpg_key=$(wget -qO- "${REPO_GPG_KEY}" || curl -sL "${REPO_GPG_KEY}")
   echo "${gpg_key}" | gpg --import
+  gpg_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}" || curl -sL "${REPO_GPG_OWNERTRUST}")
+  echo "${gpg_ownertrust}" | gpg --import-ownertrust
 
   tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
   cd "${tmp_dir}"
@@ -145,7 +156,7 @@ install_pkg() {
   rpm)
     curl "${pkg_url}" --output ./droplet-agent.rpm.signed
     echo "Verifying package signature..."
-    gpg --verify droplet-agent.rpm.signed >/dev/null 2>&1
+    ensure_valid_package droplet-agent.rpm.signed
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
@@ -156,7 +167,7 @@ install_pkg() {
   deb)
     wget -O ./droplet-agent.deb.signed "${pkg_url}"
     echo "Verifying package signature..."
-    gpg --verify droplet-agent.deb.signed >/dev/null 2>&1
+    ensure_valid_package droplet-agent.deb.signed
     echo "OK"
     echo "Extracting package"
     gpg --output droplet-agent.deb --decrypt droplet-agent.deb.signed
