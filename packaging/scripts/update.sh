@@ -110,7 +110,7 @@ update_deb() {
   if [ "${newer_ver}" = "${remote_ver}" ]; then
     echo "Upgrading droplet-agent to ver:${remote_ver}"
 
-    if ! command -v gpg &>/dev/null; then
+    if ! command -v gpg >/dev/null 2>&1; then
       echo "Installing GNUPG"
       apt-get -qq update || true
       apt-get install -y gnupg2
