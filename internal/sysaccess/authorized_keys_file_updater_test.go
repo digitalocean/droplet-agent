@@ -149,7 +149,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
-				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
+				sysMgr.EXPECT().CopyFileAttribute(authorizedKeyFile, tmpFile).Return(nil)
 				sysMgr.EXPECT().RenameFile(gomock.Any(), gomock.Any()).Return(errors.New("rename-error"))
 				sysMgr.EXPECT().RemoveFile(tmpFile).Return(nil)
 			},
@@ -173,7 +173,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
-				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
+				sysMgr.EXPECT().CopyFileAttribute(authorizedKeyFile, tmpFile).Return(nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
 			},
 			[]*SSHKey{
@@ -199,7 +199,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(localKeysRaw, nil)
 				sshHelper.EXPECT().prepareAuthorizedKeys(localKeys, []*SSHKey{validKey1}).Return([]string{"local1", "local2", "local3", "line1", "line2"})
 				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
-				sysMgr.EXPECT().RunCmd("restorecon", tmpFile).Return(nil, nil)
+				sysMgr.EXPECT().CopyFileAttribute(authorizedKeyFile, tmpFile).Return(nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
 			},
 			[]*SSHKey{
@@ -295,7 +295,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile_threadSafe(t *testing.T) {
 			sysMgrMock.EXPECT().MkDirIfNonExist(filepath.Dir(keysFile), user, os.FileMode(0700)).Return(nil).Times(concurrentUpdatePerUser)
 
 			tmpFilePath := keysFile + ".dotty"
-			sysMgrMock.EXPECT().RunCmd("restorecon", tmpFilePath).Return(nil, nil).Times(concurrentUpdatePerUser)
+			sysMgrMock.EXPECT().CopyFileAttribute(keysFile, tmpFilePath).Return(nil).Times(concurrentUpdatePerUser)
 			sysMgrMock.EXPECT().RenameFile(tmpFilePath, keysFile).Return(nil).Times(concurrentUpdatePerUser)
 
 			originalFile := ""
