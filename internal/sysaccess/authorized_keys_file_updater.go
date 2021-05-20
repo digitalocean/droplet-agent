@@ -74,7 +74,9 @@ func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []
 		_, _ = fmt.Fprintf(tmpFile, "%s\n", l)
 	}
 
-	_, _ = u.sshMgr.sysMgr.RunCmd("restorecon", tmpFilePath)
+	if err := u.sshMgr.sysMgr.CopyFileAttribute(authorizedKeysFile, tmpFilePath); err != nil {
+		log.Error("failed to apply file attribute: %v", err)
+	}
 
 	if err := u.sshMgr.sysMgr.RenameFile(tmpFilePath, authorizedKeysFile); err != nil {
 		return fmt.Errorf("%w:failed to rename:%v", ErrWriteAuthorizedKeysFileFailed, err)

@@ -36,6 +36,20 @@ func (m *MocksysManager) EXPECT() *MocksysManagerMockRecorder {
 	return m.recorder
 }
 
+// CopyFileAttribute mocks base method.
+func (m *MocksysManager) CopyFileAttribute(from, to string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CopyFileAttribute", from, to)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyFileAttribute indicates an expected call of CopyFileAttribute.
+func (mr *MocksysManagerMockRecorder) CopyFileAttribute(from, to interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyFileAttribute", reflect.TypeOf((*MocksysManager)(nil).CopyFileAttribute), from, to)
+}
+
 // CreateFileForWrite mocks base method.
 func (m *MocksysManager) CreateFileForWrite(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error) {
 	m.ctrl.T.Helper()
@@ -121,24 +135,4 @@ func (m *MocksysManager) RenameFile(oldpath, newpath string) error {
 func (mr *MocksysManagerMockRecorder) RenameFile(oldpath, newpath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenameFile", reflect.TypeOf((*MocksysManager)(nil).RenameFile), oldpath, newpath)
-}
-
-// RunCmd mocks base method.
-func (m *MocksysManager) RunCmd(name string, arg ...string) (*sysutil.CmdResult, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{name}
-	for _, a := range arg {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "RunCmd", varargs...)
-	ret0, _ := ret[0].(*sysutil.CmdResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RunCmd indicates an expected call of RunCmd.
-func (mr *MocksysManagerMockRecorder) RunCmd(name interface{}, arg ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{name}, arg...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCmd", reflect.TypeOf((*MocksysManager)(nil).RunCmd), varargs...)
 }

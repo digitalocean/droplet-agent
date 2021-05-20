@@ -39,7 +39,7 @@ type sysManager interface {
 	GetUserByName(username string) (*sysutil.User, error)
 	MkDirIfNonExist(dir string, user *sysutil.User, perm os.FileMode) error
 	CreateFileForWrite(file string, user *sysutil.User, perm os.FileMode) (io.WriteCloser, error)
-	RunCmd(name string, arg ...string) (*sysutil.CmdResult, error)
+	CopyFileAttribute(from, to string) error
 	ReadFile(filename string) ([]byte, error)
 	RenameFile(oldpath, newpath string) error
 	RemoveFile(name string) error
