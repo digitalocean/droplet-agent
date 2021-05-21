@@ -70,12 +70,8 @@ update_rpm() {
     echo "Ensuring gpg key is ready..."
     curl -sL "${REPO_GPG_KEY}" | gpg --import
     echo "Ensuring gpg key is trusted..."
-    gpg_key_ownertrust=$(curl -sL "${REPO_GPG_OWNERTRUST}")
-    for item in ${gpg_key_ownertrust}; do
-      fpr=$(echo "$item" | cut -d ':' -f 1)
-      echo "trusting ${fpr}"
-      echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
-    done
+    gpg_ownertrust=$(curl -sL "${REPO_GPG_OWNERTRUST}")
+    echo "${gpg_ownertrust}" | gpg --import-ownertrust
 
     tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"
@@ -119,12 +115,8 @@ update_deb() {
     echo "Ensuring gpg key is ready..."
     wget -qO- "${REPO_GPG_KEY}" | gpg --import
     echo "Ensuring gpg key is trusted..."
-    gpg_key_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}")
-    for item in ${gpg_key_ownertrust}; do
-      fpr=$(echo "$item" | cut -d ':' -f 1)
-      echo "trusting ${fpr}"
-      echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key "$fpr" trust
-    done
+    gpg_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}")
+    echo "${gpg_ownertrust}" | gpg --import-ownertrust
 
     tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
     cd "${tmp_dir}"
