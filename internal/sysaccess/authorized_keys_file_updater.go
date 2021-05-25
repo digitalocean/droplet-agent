@@ -75,7 +75,7 @@ func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []
 	}
 
 	if err := u.sshMgr.sysMgr.CopyFileAttribute(authorizedKeysFile, tmpFilePath); err != nil {
-		log.Error("failed to apply file attribute: %v", err)
+		return fmt.Errorf("%w:failed to apply file attribute :%v", ErrWriteAuthorizedKeysFileFailed, err)
 	}
 
 	if err := u.sshMgr.sysMgr.RenameFile(tmpFilePath, authorizedKeysFile); err != nil {
