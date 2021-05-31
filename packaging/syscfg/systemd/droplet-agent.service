@@ -7,7 +7,7 @@ Wants=network-online.target
 User=root
 Environment=TERM=xterm-256color
 ExecStart=/opt/digitalocean/bin/droplet-agent -debug -syslog
-Restart=always
+Restart=on-failure
 TimeoutStopSec=90
 KillMode=process
 
