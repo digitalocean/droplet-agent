@@ -56,6 +56,7 @@ ldflags = '\
 SYSINIT_CONF="packaging/syscfg/init/droplet-agent.conf"
 SYSTEMD_CONF="packaging/syscfg/systemd/droplet-agent.service"
 UPDATE_SCRIPT="packaging/scripts/update.sh"
+SWITCH_SCRIPT="packaging/scripts/switch.sh"
 
 ###########
 ## Paths ##
@@ -160,6 +161,7 @@ $(base_linux_package): $(binary)
 		--config-files /etc/systemd/system/droplet-agent.service \
 		$<=/opt/digitalocean/bin/droplet-agent \
 		$(UPDATE_SCRIPT)=/opt/digitalocean/droplet-agent/scripts/update.sh \
+		$(SWITCH_SCRIPT)=/opt/digitalocean/droplet-agent/scripts/switch.sh \
 		$(SYSINIT_CONF)=/etc/init/droplet-agent.conf \
 		$(SYSTEMD_CONF)=/etc/systemd/system/droplet-agent.service
 
