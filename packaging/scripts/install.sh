@@ -1,6 +1,12 @@
 #!/bin/sh
 #   curl -sSL https://repos-droplet.digitalocean.com/install.sh | sudo bash
 #   wget -qO- https://repos-droplet.digitalocean.com/install.sh | sudo bash
+#
+# To use the BETA branch of droplet-agent pass the BETA=1 flag to the script
+#   curl -sSL https://repos-droplet.digitalocean.com/install.sh | sudo BETA=1 bash
+#
+# To use the UNSTABLE branch of droplet-agent pass the UNSTABLE=1 flag to the script
+#   curl -sSL https://repos-droplet.digitalocean.com/install.sh | sudo UNSTABLE=1 bash
 
 set -ue
 
@@ -9,22 +15,22 @@ BETA=${BETA:-0}
 
 REPO_HOST="https://repos-droplet.digitalocean.com"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
-REPO_GPG_OWNERTRUST=${REPO_HOST}/gpg.ownertrust
 
-repo="droplet-agent"
-[ "${UNSTABLE}" != 0 ] && repo="droplet-agent-unstable"
-[ "${BETA}" != 0 ] && repo="droplet-agent-beta"
+branch="droplet-agent"
+[ "${UNSTABLE}" != 0 ] && branch="droplet-agent-unstable"
+[ "${BETA}" != 0 ] && branch="droplet-agent-beta"
 
 RETRY_CRON_SCHEDULE=/etc/cron.hourly
 RETRY_CRON=${RETRY_CRON_SCHEDULE}/droplet-agent-install
-cron_install_log=/var/log/droplet_agent.install.cron.log
 
 dist="unknown"
 architecture="unknown"
-pkg_url="unknown"
-tmp_dir="unknown"
 exit_status=0
 no_retry="false"
+repo_name=droplet-agent
+deb_list=/etc/apt/sources.list.d/${repo_name}.list
+deb_keyfile=/usr/share/keyrings/${repo_name}-keyring.gpg
+rpm_repo=/etc/yum.repos.d/${repo_name}.repo
 
 main() {
   [ "$(id -u)" != "0" ] &&
@@ -38,14 +44,10 @@ main() {
 
   case "${dist}" in
   debian | ubuntu)
-    install_deps "deb"
-    find_latest_pkg ${repo} "deb"
-    install_pkg "deb"
+    install_apt
     ;;
   centos | fedora)
-    install_deps "rpm"
-    find_latest_pkg ${repo} "rpm"
-    install_pkg "rpm"
+    install_yum
     ;;
   *)
     not_supported
@@ -88,23 +90,6 @@ script_cleanup() {
     echo "DigitalOcean Droplet Agent is successfully installed"
     remove_retry_install || true
   fi
-  if [ ${tmp_dir} != "unknown" ]; then
-    echo "Removing temporary files"
-    rm -rf ${tmp_dir}
-    echo "Done"
-  fi
-}
-
-find_latest_pkg() {
-  repo=${1:-}
-  platform=${2:-}
-  [ -z "${repo}" ] || [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <repo> <platform>"
-  repo_tree=$(curl -sSL ${REPO_HOST} || wget -qO- ${REPO_HOST})
-  files=$(echo "${repo_tree}" | grep -oP '(?<=Key>signed/'"${repo}"'/'"${platform}"'/'"${architecture}"'/)[^<]+' | grep -v '\b.sum$' | tr ' ' '\n')
-  sorted_files=$(echo "${files}" | sort -V)
-  latest_pkg=$(echo "${sorted_files}" | tail -1)
-  echo "latest version: ${latest_pkg}"
-  pkg_url="${REPO_HOST}/signed/${repo}/${platform}/${architecture}/${latest_pkg}"
 }
 
 install_deps() {
@@ -113,10 +98,7 @@ install_deps() {
   echo "Checking dependencies for installing droplet-agent"
   case "${platform}" in
   rpm)
-    if ! command -v gpg >/dev/null 2>&1; then
-      echo "Installing GNUPG"
-      yum install -y gpgme
-    fi
+    yum install -y gpgme ca-certificates
     ;;
   deb)
     if ! command -v gpg >/dev/null 2>&1; then
@@ -124,67 +106,51 @@ install_deps() {
       apt-get -qq update || true
       apt-get install -y gnupg2
     fi
+    apt-get -qq install -y ca-certificates apt-utils apt-transport-https
     ;;
   esac
 
 }
 
-ensure_valid_package() {
-  file=${1:-}
-  [ -z "${file}" ] && abort "signed file must be provided. Usage: ensure_valid_package <signed_file>"
-  verifyOutput=$(mktemp gpg_verifyXXXXXX)
-  gpg --no-tty --status-fd 3 --verify "${file}" 3>"${verifyOutput}" || exit 1
-  grep -E -q '^\[GNUPG:] TRUST_(ULTIMATE|FULLY)' "${verifyOutput}"
-}
+install_apt() {
+  export DEBIAN_FRONTEND=noninteractive
+  # forcefully remove any existing installations
+  apt-get purge -y droplet-agent >/dev/null 2>&1 || :
 
-install_pkg() {
-  platform=${1:-}
-  [ -z "${platform}" ] && abort "Destination repository is required. Usage: install_pkg <platform>"
-
+  echo "Setting up droplet-agent apt repository..."
+  install_deps "deb"
   echo "Importing GPG public key"
-  gpg_key=$(wget -qO- "${REPO_GPG_KEY}" || curl -sL "${REPO_GPG_KEY}")
-  echo "${gpg_key}" | gpg --import
-  gpg_ownertrust=$(wget -qO- "${REPO_GPG_OWNERTRUST}" || curl -sL "${REPO_GPG_OWNERTRUST}")
-  echo "${gpg_ownertrust}" | gpg --import-ownertrust
+  wget -qO- "${REPO_GPG_KEY}" | gpg --dearmor >"${deb_keyfile}"
+  echo "deb [signed-by=${deb_keyfile}] ${REPO_HOST}/apt/${branch} main main" >"${deb_list}"
 
-  tmp_dir=$(mktemp -d -t droplet-agent-XXXXXXXXXX)
-  cd "${tmp_dir}"
-  echo "Temporary directory: $(pwd)"
+  echo "Installing droplet-agent"
+  apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
+  apt-get -qq install -y droplet-agent
+  apt-get -qq install -y cron
+}
 
-  echo "Downloading ${pkg_url}"
-  case "${platform}" in
-  rpm)
-    curl "${pkg_url}" --output ./droplet-agent.rpm.signed
-    echo "Verifying package signature..."
-    ensure_valid_package droplet-agent.rpm.signed
-    echo "OK"
-    echo "Extracting package"
-    gpg --output droplet-agent.rpm --decrypt droplet-agent.rpm.signed
-    rpm -i droplet-agent.rpm
-    yum install -y cronie >${cron_install_log} 2>&1 &
-    cron_ins_pid=$!
-    ;;
-  deb)
-    wget -O ./droplet-agent.deb.signed "${pkg_url}"
-    echo "Verifying package signature..."
-    ensure_valid_package droplet-agent.deb.signed
-    echo "OK"
-    echo "Extracting package"
-    gpg --output droplet-agent.deb --decrypt droplet-agent.deb.signed
-    dpkg -i droplet-agent.deb
-    apt-get install -y cron >${cron_install_log} 2>&1 &
-    cron_ins_pid=$!
-    ;;
-  esac
+install_yum() {
+  # forcefully remove any existing installations
+  yum remove -y droplet-agent || :
 
-  echo "Checking crond..."
-  wait ${cron_ins_pid}
-  stat=$?
-  if [ $stat -eq 0 ]; then
-    echo "Crond is ready"
-  else
-    echo "Crond is not ready, please check more detail at ${cron_install_log}"
-  fi
+  echo "Setting up droplet-agent yum repository..."
+  install_deps "rpm"
+  cat <<-EOF >${rpm_repo}
+	[${repo_name}]
+	name=DigitalOcean Droplet Agent
+	baseurl=${REPO_HOST}/yum/${branch}/\$basearch
+	repo_gpgcheck=0
+	gpgcheck=1
+	enabled=1
+	gpgkey=${REPO_GPG_KEY}
+	sslverify=0
+	sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+	metadata_expire=300
+	EOF
+
+  yum --disablerepo="*" --enablerepo="${repo_name}" makecache
+  yum install -y droplet-agent
+  yum install -y cronie
 }
 
 check_dist() {
