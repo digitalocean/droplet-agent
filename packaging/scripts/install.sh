@@ -58,6 +58,17 @@ main() {
 patch_retry_install() {
   [ -f "${RETRY_CRON}" ] && rm -f "${RETRY_CRON}"
   mkdir -p ${RETRY_CRON_SCHEDULE}
+  if ! command -v crontab >/dev/null 2>&1; then
+    echo "cron not installed, installing"
+    if command -v apt-get >/dev/null 2>&1; then
+      apt-get -qq install -y cron
+    elif command -v yum >/dev/null 2>&1; then
+      yum install -y cronie
+    else
+      echo "not supported os"
+      return 1
+    fi
+  fi
 
   cat <<'EOF' >"${RETRY_CRON}"
 #!/bin/sh
@@ -126,7 +137,6 @@ install_apt() {
   echo "Installing droplet-agent"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
   apt-get -qq install -y droplet-agent
-  apt-get -qq install -y cron
 }
 
 install_yum() {
@@ -150,7 +160,6 @@ install_yum() {
 
   yum --disablerepo="*" --enablerepo="${repo_name}" makecache
   yum install -y droplet-agent
-  yum install -y cronie
 }
 
 check_dist() {
