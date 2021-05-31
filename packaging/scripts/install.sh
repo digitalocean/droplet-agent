@@ -118,7 +118,7 @@ install_deps() {
       apt-get install -y gnupg2
     fi
     if apt-get -qq install -y ca-certificates apt-utils apt-transport-https; then
-      apt-get -qq update || true
+      apt-get -qq update
       apt-get -qq install -y ca-certificates apt-utils apt-transport-https
     fi
     ;;
