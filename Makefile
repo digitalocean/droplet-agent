@@ -174,6 +174,7 @@ $(deb_package): $(base_linux_package)
 		--verbose \
 		--input-type deb \
 		--force \
+		--depends cron \
 		-p $@ \
 		$<
 	# print information about the compiled deb package
@@ -187,6 +188,7 @@ $(rpm_package): $(base_linux_package)
 		--verbose \
 		--output-type rpm \
 		--input-type deb \
+		--depends cronie \
 		--rpm-posttrans packaging/scripts/after_install.sh \
 		--force \
 		-p $@ \
