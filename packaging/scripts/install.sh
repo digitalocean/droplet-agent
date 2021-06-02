@@ -170,6 +170,8 @@ install_yum() {
 
   yum --disablerepo="*" --enablerepo="${repo_name}" makecache
   yum install -y droplet-agent
+  # to ensure crond service is started
+  systemctl start crond.service || true
 }
 
 check_dist() {
