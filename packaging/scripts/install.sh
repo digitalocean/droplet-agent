@@ -13,7 +13,8 @@ set -ue
 UNSTABLE=${UNSTABLE:-0}
 BETA=${BETA:-0}
 
-REPO_HOST="https://repos-droplet.digitalocean.com"
+REPO_DOMAIN="repos-droplet.digitalocean.com"
+REPO_HOST="https://${REPO_DOMAIN}"
 REPO_GPG_KEY=${REPO_HOST}/gpg.key
 
 branch="droplet-agent"
@@ -29,6 +30,7 @@ exit_status=0
 no_retry="false"
 repo_name=droplet-agent
 deb_list=/etc/apt/sources.list.d/${repo_name}.list
+deb_pref=/etc/apt/preferences.d/${repo_name}.pref
 deb_keyfile=/usr/share/keyrings/${repo_name}-keyring.gpg
 rpm_repo=/etc/yum.repos.d/${repo_name}.repo
 
@@ -136,10 +138,15 @@ install_apt() {
   echo "Importing GPG public key"
   wget -qO- "${REPO_GPG_KEY}" | gpg --dearmor >"${deb_keyfile}"
   echo "deb [signed-by=${deb_keyfile}] ${REPO_HOST}/apt/${branch} main main" >"${deb_list}"
+  cat <<-EOF >${deb_pref}
+	Package: *
+	Pin: origin ${REPO_DOMAIN}
+	Pin-Priority: 100
+	EOF
 
   echo "Installing droplet-agent"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
-  apt-get -qq install -y droplet-agent
+  apt-get -qq install -y droplet-agent droplet-agent-keyring
 }
 
 install_yum() {
