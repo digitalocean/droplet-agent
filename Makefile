@@ -69,7 +69,10 @@ gofiles            := $(shell find . -type f -iname '*.go' ! -path './vendor/*')
 shellscripts       := $(shell find . -type f -iname '*.sh' ! -path './vendor/*' ! -path './.git/*')
 binary             := $(out)/$(project)-$(GOOS)-$(GOARCH) # the name of the binary built with local resources
 base_linux_package := $(package_dir)/$(pkg_project).$(VERSION).$(PKG_ARCH).BASE.deb
-deb_package        := $(package_dir)/$(pkg_project).$(VERSION).$(PKG_ARCH).deb
+# note: to be compliant with repository's naming requirement:
+# deb files should end with _version_arch.deb
+# rpm files should end with -version-release.arch.rpm
+deb_package        := $(package_dir)/$(pkg_project)_$(VERSION)_$(PKG_ARCH).deb
 rpm_package        := $(package_dir)/$(pkg_project).$(VERSION).$(PKG_ARCH).rpm
 tar_package        := $(package_dir)/$(pkg_project).$(VERSION).$(PKG_ARCH).tar.gz
 
@@ -171,6 +174,7 @@ $(deb_package): $(base_linux_package)
 		--verbose \
 		--input-type deb \
 		--force \
+		--depends cron \
 		-p $@ \
 		$<
 	# print information about the compiled deb package
@@ -184,6 +188,7 @@ $(rpm_package): $(base_linux_package)
 		--verbose \
 		--output-type rpm \
 		--input-type deb \
+		--depends cronie \
 		--rpm-posttrans packaging/scripts/after_install.sh \
 		--force \
 		-p $@ \
