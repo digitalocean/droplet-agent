@@ -8,7 +8,7 @@
 # To use the UNSTABLE branch of droplet-agent pass the UNSTABLE=1 flag to the script
 #   curl -sSL https://repos-droplet.digitalocean.com/install.sh | sudo UNSTABLE=1 bash
 
-set -ue
+set -u
 
 UNSTABLE=${UNSTABLE:-0}
 BETA=${BETA:-0}
@@ -38,7 +38,7 @@ main() {
   [ "$(id -u)" != "0" ] &&
     abort "This script must be executed as root."
 
-  trap 'exit_status=$?; script_cleanup; exit $exit_status' EXIT
+  trap 'script_cleanup; exit $exit_status' EXIT
 
   check_do
   check_dist
@@ -46,10 +46,30 @@ main() {
 
   case "${dist}" in
   debian | ubuntu)
-    install_apt
+    i=1
+    until [ "$i" -ge 6 ]; do
+      echo "Installing Droplet Agent, ${i} attempt"
+      install_apt
+      exit_status=$?
+      if [ ${exit_status} -eq 0 ]; then
+        break
+      fi
+      i=$((i+1))
+      sleep 60
+    done
     ;;
   centos | fedora)
-    install_yum
+    i=1
+    until [ "$i" -ge 6 ]; do
+      echo "Installing Droplet Agent, ${i} attempt"
+      install_yum
+      exit_status=$?
+      if [ ${exit_status} -eq 0 ]; then
+        break
+      fi
+      i=$((i+1))
+      sleep 60
+    done
     ;;
   *)
     not_supported
@@ -128,7 +148,8 @@ install_deps() {
 
 }
 
-install_apt() {
+install_apt() (
+  set -e
   export DEBIAN_FRONTEND=noninteractive
   # forcefully remove any existing installations
   apt-get purge -y droplet-agent >/dev/null 2>&1 || :
@@ -147,9 +168,10 @@ install_apt() {
   echo "Installing droplet-agent"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
   apt-get -qq install -y droplet-agent droplet-agent-keyring
-}
+)
 
-install_yum() {
+install_yum() (
+  set -e
   # forcefully remove any existing installations
   yum remove -y droplet-agent || :
 
@@ -172,7 +194,7 @@ install_yum() {
   yum install -y droplet-agent
   # to ensure crond service is started
   systemctl start crond.service || true
-}
+)
 
 check_dist() {
   echo "Verifying compatibility with script..."
