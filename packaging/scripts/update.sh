@@ -3,7 +3,9 @@
 
 main() {
   # add some jitter to prevent overloading the remote repo server
-  sleep $((RANDOM % 900))
+  delay=$((RANDOM % 120))
+  echo "Waiting ${delay} seconds"
+  sleep ${delay}
 
   if command -v apt-get 2 &>/dev/null; then
     export DEBIAN_FRONTEND="noninteractive"
