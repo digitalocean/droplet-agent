@@ -258,13 +258,14 @@ check_do() {
 
 not_supported() {
   no_retry="true"
+  exit_status=1
   cat <<-EOF
 
 	This script does not support the OS/Distribution on this machine.
 	If you feel that this is an error contact support@digitalocean.com
 
 	EOF
-  exit 1
+  exit ${exit_status}
 }
 
 # abort with an error message
