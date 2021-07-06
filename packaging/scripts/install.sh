@@ -58,7 +58,7 @@ main() {
       sleep 60
     done
     ;;
-  centos | fedora)
+  centos | fedora | rocky)
     i=1
     until [ "$i" -ge 6 ]; do
       echo "Installing Droplet Agent, ${i} attempt"
@@ -209,7 +209,7 @@ check_dist() {
   dist=$(echo "${dist}" | tr '[:upper:]' '[:lower:]')
 
   case "${dist}" in
-  debian | ubuntu | centos | fedora)
+  debian | ubuntu | centos | fedora | rocky)
     echo "OK"
     ;;
   *)
