@@ -17,7 +17,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
-
+//Test CI deploy
 func main() {
 	log.Info("Launching %s", config.AppFullName)
 	cfg := config.Init()
