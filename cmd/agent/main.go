@@ -19,6 +19,7 @@ import (
 )
 
 func main() {
+	log.Info("Hello World! //This line will be deleted")
 	log.Info("Launching %s", config.AppFullName)
 	cfg := config.Init()
 
