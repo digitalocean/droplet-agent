@@ -146,8 +146,8 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
 				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
-				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
-				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
+				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return([]byte{}, nil)
+				sshHelper.EXPECT().prepareAuthorizedKeys([]string{""}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().CopyFileAttribute(authorizedKeyFile, tmpFile).Return(nil)
 				sysMgr.EXPECT().RenameFile(gomock.Any(), gomock.Any()).Return(errors.New("rename-error"))
@@ -170,8 +170,8 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
 				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
-				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
-				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
+				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return([]byte{}, nil)
+				sshHelper.EXPECT().prepareAuthorizedKeys([]string{""}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
 				sysMgr.EXPECT().CopyFileAttribute(authorizedKeyFile, tmpFile).Return(nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
@@ -209,6 +209,28 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 			&recorder{
 				closeCalled: 1,
 				expectedRes: "local1\nlocal2\nlocal3\nline1\nline2\n",
+			},
+		},
+		{
+			"should skip copying file attribute if original file not exists",
+			func(sysMgr *mocks.MocksysManager, sshHelper *MocksshHelper, recorder *recorder) {
+				tmpFile := authorizedKeyFile + ".dotty"
+
+				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
+				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
+				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
+				sysMgr.EXPECT().ReadFile(authorizedKeyFile).Return(nil, os.ErrNotExist)
+				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
+				sysMgr.EXPECT().CreateFileForWrite(tmpFile, validUser1, os.FileMode(0600)).Return(recorder, nil)
+				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)
+			},
+			[]*SSHKey{
+				validKey1,
+			},
+			nil,
+			&recorder{
+				closeCalled: 1,
+				expectedRes: "line1\nline2\n",
 			},
 		},
 	}
