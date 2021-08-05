@@ -97,11 +97,11 @@ func setStatus(updater status.Updater, agentStatus metadata.AgentStatus, retry b
 		log.Debug("setting status")
 		err := fn()
 		if err == nil {
+			log.Info("Agent status set to [%s]", string(agentStatus))
 			return
 		}
 
 		time.Sleep(sleepTime)
 		log.Error("error setting status: %s, retrying", err)
 	}
-	log.Info("Agent status set to [%s]", string(agentStatus))
 }
