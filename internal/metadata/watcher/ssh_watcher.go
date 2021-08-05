@@ -93,7 +93,7 @@ func (w *sshWatcher) Shutdown() {
 	log.Info("[SSH Watcher] Shutting down")
 	close(w.done)
 
-	log.Debug("[SSH Watcher] Shutting down all actioners")
+	log.Info("[SSH Watcher] Shutting down all actioners")
 
 	var wg sync.WaitGroup
 	for _, a := range w.registeredActioners {
