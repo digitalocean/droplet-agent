@@ -18,7 +18,7 @@ loop:
 	for {
 		select {
 		case <-ctx.Done():
-			log.Debug("[authorized_keys files updater] agent closing")
+			log.Info("[authorized_keys files updater] agent closing")
 			break loop
 		case <-ticker.C:
 			log.Debug("[authorized_keys files updater] attempting to remove expired keys")

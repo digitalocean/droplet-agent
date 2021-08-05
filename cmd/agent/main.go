@@ -103,4 +103,5 @@ func setStatus(updater status.Updater, agentStatus metadata.AgentStatus, retry b
 		time.Sleep(sleepTime)
 		log.Error("error setting status: %s, retrying", err)
 	}
+	log.Info("Agent status set to [%s]", string(agentStatus))
 }

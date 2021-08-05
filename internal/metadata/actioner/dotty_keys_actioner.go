@@ -45,7 +45,7 @@ func (da *dottyKeysActioner) do(metadata *metadata.Metadata) {
 		log.Error("[DOTTY-Keys Actioner] failed to update keys: %v", err)
 		return
 	}
-	log.Debug("[DOTTY-Keys Actioner] Keys updated")
+	log.Info("[DOTTY-Keys Actioner] Keys updated")
 }
 
 func (da *dottyKeysActioner) Do(metadata *metadata.Metadata) {
