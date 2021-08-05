@@ -28,9 +28,6 @@ function main() {
   if spaces_version_exist "${latest_ver}"; then
     abort "${latest_ver} already deployed"
   fi
-  if github_release_exist "${latest_ver}"; then
-    abort "${latest_ver} already released"
-  fi
   echo "Okay to deployed"
 }
 
