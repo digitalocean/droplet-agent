@@ -1,14 +1,13 @@
+# github.com/bits-and-blooms/bitset v1.2.0
+github.com/bits-and-blooms/bitset
 # github.com/golang/mock v1.5.0
 ## explicit
 github.com/golang/mock/gomock
-# github.com/opencontainers/selinux v1.8.1
+# github.com/opencontainers/selinux v1.8.4
 ## explicit
 github.com/opencontainers/selinux/go-selinux
 github.com/opencontainers/selinux/pkg/pwalk
-# github.com/pkg/errors v0.9.1
-github.com/pkg/errors
-# github.com/willf/bitset v1.1.11
-github.com/willf/bitset
+github.com/opencontainers/selinux/pkg/pwalkdir
 # golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 ## explicit
 golang.org/x/crypto/blowfish
