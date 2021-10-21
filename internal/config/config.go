@@ -19,6 +19,7 @@ type Conf struct {
 	UseSyslog                   bool
 	DebugMode                   bool
 	AuthorizedKeysCheckInterval time.Duration
+	CustomSSHDPort              int
 }
 
 // Init initializes the agent's configuration
@@ -28,6 +29,7 @@ func Init() *Conf {
 		Version:                     version,
 		UseSyslog:                   cliArgs.useSyslog,
 		DebugMode:                   cliArgs.debugMode,
+		CustomSSHDPort:              cliArgs.sshdPort,
 		AuthorizedKeysCheckInterval: backgroundJobIntervalSeconds * time.Second,
 	}
 }
