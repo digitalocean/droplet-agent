@@ -4,6 +4,8 @@ package sysaccess
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +21,7 @@ const (
 	dottyComment              = "# Added and Managed by " + config.AppFullName
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
+	defaultSSHDPort           = 22
 )
 
 // SSHManager provides functions for managing SSH access
@@ -27,6 +30,7 @@ type SSHManager struct {
 	authorizedKeysFileUpdater
 
 	authorizedKeysFilePattern string // same as the AuthorizedKeysFile in sshd_config, default to %h/.ssh/authorized_keys
+	sshdPort                  int
 
 	sysMgr sysManager
 
@@ -35,14 +39,23 @@ type SSHManager struct {
 }
 
 // NewSSHManager constructs a new SSHManager object
-func NewSSHManager() (*SSHManager, error) {
+func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
+	defaultOpts := &sshMgrOpts{
+		customSSHDPort:    0,
+		customSSHDCfgFile: "",
+	}
+	for _, opt := range opts {
+		opt(defaultOpts)
+	}
 	ret := &SSHManager{
 		sysMgr:     sysutil.NewSysManager(),
 		cachedKeys: make(map[string][]*SSHKey),
+		sshdPort:   defaultOpts.customSSHDPort,
 	}
 	ret.sshHelper = &sshHelperImpl{
-		mgr:     ret,
-		timeNow: time.Now,
+		mgr:               ret,
+		timeNow:           time.Now,
+		customSSHDCfgFile: defaultOpts.customSSHDCfgFile,
 	}
 	ret.authorizedKeysFileUpdater = &updaterImpl{sshMgr: ret}
 
@@ -134,34 +147,121 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	return nil
 }
 
+// parseSSHDConfig parses the sshd_config file and retrieves configurations needed by the agent, which are:
+//  - AuthorizedKeysFile : to know how to locate the authorized_keys file
+//  - Port | ListenAddress : to know which port sshd is currently binding to
+// NOTES:
+//  - the port specified in the command line arguments (--sshd_port) when launching the agent has the highest priority,
+//    if given, parseSSHDConfig will skip parsing port numbers specified in the sshd_config
+//  - only 1 port is currently supported, if there are multiple ports presented, for example, multiple "Port" entries
+//    or more ports are found from `ListenAddress` entry/entries, the agent will only take the first one found, and this
+//    *MAY NOT* be the right one. If this happens to be the case, please explicit specify which port the agent should
+//    watch via the command line argument "--sshd_port"
 func (s *SSHManager) parseSSHDConfig() error {
-	s.authorizedKeysFilePattern = defaultAuthorizedKeysFile
+	defer func() {
+		if s.authorizedKeysFilePattern == "" {
+			log.Info("Did not find AuthorizedKeysFile pattern from sshd_config, using default pattern:%s", defaultAuthorizedKeysFile)
+			s.authorizedKeysFilePattern = defaultAuthorizedKeysFile
+		}
+		if s.sshdPort == 0 {
+			log.Info("Did not find sshd port from sshd_config, using default port:%d", defaultSSHDPort)
+			s.sshdPort = defaultSSHDPort
+		}
+	}()
+
 	sshdConfigBytes, err := s.sysMgr.ReadFile(s.sshdConfigFile())
 	if err != nil {
 		return fmt.Errorf("%w:%s", ErrSSHDConfigParseFailed, err.Error())
 	}
 	sshdConfigs := strings.Split(string(sshdConfigBytes), "\n")
-sshdParsing:
+	jobDoneCnt := 0
+	var errsEncountered []error
 	for _, line := range sshdConfigs {
-		line = strings.TrimLeft(line, "\t ")
-		if !strings.HasPrefix(line, "AuthorizedKeysFile ") {
+		line = strings.ReplaceAll(line, "#", " #")
+		line = strings.ReplaceAll(line, "\t", " ")
+		line = strings.TrimLeft(line, " ")
+		var e error
+		if strings.HasPrefix(line, "AuthorizedKeysFile ") {
+			e = s.parseAuthorizedKeysFile(line)
+		} else if s.sshdPort == 0 && (strings.HasPrefix(line, "Port") || strings.HasPrefix(line, "ListenAddress")) {
+			e = s.parseSSHDPort(line)
+		} else {
 			continue
 		}
-		keyFiles := strings.Split(line, " ")
-		if len(keyFiles) < 2 {
-			return fmt.Errorf("%w: invalid format of AuthorizedKeysFile", ErrSSHDConfigParseFailed)
+		if e == nil {
+			jobDoneCnt++
+		} else {
+			errsEncountered = append(errsEncountered, e)
 		}
-		for i := 1; i != len(keyFiles); i++ {
-			keyFile := strings.Trim(keyFiles[i], "\t")
-			if keyFile == "" {
-				continue
-			}
-			if keyFile[0] != '/' {
-				keyFile = "%h/" + keyFile
-			}
-			s.authorizedKeysFilePattern = keyFile
-			break sshdParsing
+		if jobDoneCnt == 2 {
+			break
 		}
+	}
+	if len(errsEncountered) != 0 {
+		log.Error("errors encountered while parsing sshd_config: %v", errsEncountered)
+	}
+	return nil
+}
+
+func (s *SSHManager) parseAuthorizedKeysFile(line string) error {
+	keyFiles := strings.Split(line, " ")
+	if len(keyFiles) < 2 {
+		return fmt.Errorf("%w: invalid format of AuthorizedKeysFile", ErrSSHDConfigParseFailed)
+	}
+	for i := 1; i != len(keyFiles); i++ {
+		keyFile := keyFiles[i]
+		if keyFile == "" {
+			continue
+		}
+		if keyFile == "#" {
+			break
+		}
+		if keyFile[0] != '/' {
+			keyFile = "%h/" + keyFile
+		}
+		s.authorizedKeysFilePattern = keyFile
+		return nil
+	}
+	return fmt.Errorf("%w: failed to parse AuthorizedKeysFile", ErrSSHDConfigParseFailed)
+}
+
+func (s *SSHManager) parseSSHDPort(line string) error {
+	items := strings.Split(line, " ")
+	if len(items) < 2 {
+		return fmt.Errorf("%w: invalid configuration when parsing sshd port", ErrSSHDConfigParseFailed)
+	}
+	cfg := ""
+	for i := 1; i != len(items); i++ {
+		if items[i] == "#" {
+			break
+		}
+		if items[i] != "" {
+			cfg = items[i]
+			break
+		}
+	}
+	if cfg == "" {
+		return fmt.Errorf("%w: failed to find configuration for %v", ErrSSHDConfigParseFailed, items[0])
+	}
+	switch items[0] {
+	case "Port":
+		portTmp, err := strconv.Atoi(cfg)
+		if err != nil {
+			return fmt.Errorf("%w: invalid Port:%v", ErrSSHDConfigParseFailed, err)
+		}
+		s.sshdPort = portTmp
+	case "ListenAddress":
+		_, port, err := net.SplitHostPort(cfg)
+		if err != nil {
+			// failed to fetch the port from the config due to either missing port number or an invalid config,
+			// but either case, we skip parsing this line
+			break
+		}
+		portTmp, err := strconv.Atoi(port)
+		if err != nil {
+			return fmt.Errorf("%w: invalid Port in address:%v", ErrSSHDConfigParseFailed, err)
+		}
+		s.sshdPort = portTmp
 	}
 	return nil
 }
