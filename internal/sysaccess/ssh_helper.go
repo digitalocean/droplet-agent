@@ -28,6 +28,8 @@ type sshHelper interface {
 type sshHelperImpl struct {
 	mgr     *SSHManager
 	timeNow func() time.Time
+
+	customSSHDCfgFile string
 }
 
 func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
