@@ -15,7 +15,7 @@ import (
 )
 
 func TestSSHManager_parseSSHDConfig(t *testing.T) {
-	//log.Mute()
+	log.Mute()
 	tests := []struct {
 		name                   string
 		prepare                func(s *SSHManager)
