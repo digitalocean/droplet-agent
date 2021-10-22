@@ -17,6 +17,7 @@ var (
 	ErrInvalidKey                    = errors.New("invalid ssh key")
 	ErrReadAuthorizedKeysFileFailed  = errors.New("failed to read authorized_keys file")
 	ErrWriteAuthorizedKeysFileFailed = errors.New("failed to write authorized_keys file")
+	ErrInvalidPortNumber             = errors.New("invalid port number")
 )
 
 // SSHKey contains information of a ssh key operated by DOTTY

@@ -63,6 +63,9 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !validPort(ret.sshdPort) {
+		return nil, fmt.Errorf("%w:[%d]", ErrInvalidPortNumber, ret.sshdPort)
+	}
 
 	return ret, nil
 }
@@ -269,4 +272,8 @@ func (s *SSHManager) parseSSHDPort(line string) error {
 		s.sshdPort = portTmp
 	}
 	return nil
+}
+
+func validPort(port int) bool  {
+	return port > 0 && port <= 65535
 }
