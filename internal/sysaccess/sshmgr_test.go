@@ -15,53 +15,196 @@ import (
 )
 
 func TestSSHManager_parseSSHDConfig(t *testing.T) {
+	log.Mute()
 	tests := []struct {
 		name                   string
+		prepare                func(s *SSHManager)
 		sshdCfg                string
 		sshdCfgReadErr         error
 		wantAuthorizedKeysFile string
+		wantSSHDPort           int
 		wantErr                error
 	}{
 		{
 			"should return ErrSSHDConfigParseFailed if failed to read sshd_config file",
+			nil,
 			"",
 			errors.New("read-err"),
 			defaultAuthorizedKeysFile,
+			defaultSSHDPort,
 			ErrSSHDConfigParseFailed,
 		},
 		{
+			"should use default values if not configured in sshd_config",
+			nil,
+			"\t# useless line 1 \n \t\t\t # non related config 123",
+			nil,
+			defaultAuthorizedKeysFile,
+			defaultSSHDPort,
+			nil,
+		},
+		{
 			"should skip unrelated lines",
-			"\t# unrelated line 1  \n# AuthorizedKeysFile /wrong/key/file\n\t   AuthorizedKeysFile /etc/ssh/sshd.conf/%u    ",
+			nil,
+			"\t# unrelated line 1  \n# AuthorizedKeysFile /wrong/key/file\n\t   AuthorizedKeysFile /etc/ssh/sshd.conf/%u    \nPort 114",
 			nil,
 			"/etc/ssh/sshd.conf/%u",
+			114,
 			nil,
 		},
 		{
 			"should correctly support the case of consecutive spaces",
+			nil,
 			"\t   \tAuthorizedKeysFile     /etc/ssh/sshd.conf/%u",
 			nil,
 			"/etc/ssh/sshd.conf/%u",
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"invalid config result in default AuthorizedKeysFile pattern",
+			nil,
+			"AuthorizedKeysFile # /etc/ssh/sshd.conf/%u",
+			nil,
+			defaultAuthorizedKeysFile,
+			defaultSSHDPort,
 			nil,
 		},
 		{
 			"should correctly support \\t separator",
-			"\t   \tAuthorizedKeysFile \t\t/etc/ssh/sshd.conf/%u",
+			nil,
+			"\t   \tAuthorizedKeysFile\t\t/etc/ssh/sshd.conf/%u",
 			nil,
 			"/etc/ssh/sshd.conf/%u",
+			defaultSSHDPort,
 			nil,
 		},
 		{
 			"should only fetch the first pattern",
+			nil,
 			"AuthorizedKeysFile /etc/ssh/sshd.conf/%u %h/second/ssh/keys",
 			nil,
 			"/etc/ssh/sshd.conf/%u",
+			defaultSSHDPort,
 			nil,
 		},
 		{
 			"should translate relative path",
+			nil,
 			"AuthorizedKeysFile .ssh/authorized_keys",
 			nil,
 			"%h/.ssh/authorized_keys",
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"should ignore comment",
+			nil,
+			"AuthorizedKeysFile /etc/ssh/sshd.conf/%u\t# this is a comment",
+			nil,
+			"/etc/ssh/sshd.conf/%u",
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"comment can start right after the AuthorizedKeysFile config without a separator",
+			nil,
+			"AuthorizedKeysFile /etc/ssh/sshd.conf/%u# this is a comment",
+			nil,
+			"/etc/ssh/sshd.conf/%u",
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"ignore port setting in sshd_config if preset",
+			func(s *SSHManager) {
+				s.sshdPort = 114
+			},
+			"Port 1030",
+			nil,
+			defaultAuthorizedKeysFile,
+			114,
+			nil,
+		},
+		{
+			"should correctly parse port from Port config",
+			nil,
+			"Port 114",
+			nil,
+			defaultAuthorizedKeysFile,
+			114,
+			nil,
+		},
+		{
+			"use the first one if multiple Port presented",
+			nil,
+			"Port 114 \t\n Port 1030 \t\n Port 215",
+			nil,
+			defaultAuthorizedKeysFile,
+			114,
+			nil,
+		},
+		{
+			"should support parsing port from ListenAddress ipv4 address",
+			nil,
+			"ListenAddress 0.0.0.0:1030",
+			nil,
+			defaultAuthorizedKeysFile,
+			1030,
+			nil,
+		},
+		{
+			"should support parsing port from ListenAddress ipv6 address",
+			nil,
+			"ListenAddress [2605:2700:0:3::4713:93e3]:215",
+			nil,
+			defaultAuthorizedKeysFile,
+			215,
+			nil,
+		},
+		{
+			"should skip if ListenAddress ipv6 does not contain a port",
+			nil,
+			"ListenAddress 2605:2700:0:3::4713:93e3",
+			nil,
+			defaultAuthorizedKeysFile,
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"should skip if ListenAddress ipv4 does not contain a port",
+			nil,
+			"ListenAddress 192.168.0.1",
+			nil,
+			defaultAuthorizedKeysFile,
+			defaultSSHDPort,
+			nil,
+		},
+		{
+			"take the first occurrence if multiple ListenAddress presented",
+			nil,
+			"ListenAddress [2605:2700:0:3::4713:93e3]:215 \n\tListenAddress 0.0.0.0:1030 \n",
+			nil,
+			defaultAuthorizedKeysFile,
+			215,
+			nil,
+		},
+		{
+			"take the first occurrence if both Port and ListenAddress presented",
+			nil,
+			"ListenAddress [2605:2700:0:3::4713:93e3]:215 \n\tPort 114 \n",
+			nil,
+			defaultAuthorizedKeysFile,
+			215,
+			nil,
+		},
+		{
+			"should ignore invalid config",
+			nil,
+			"Port invalid \n Port# another invalid \n \nListenAddress [::]:not_a_valid_port\n ListenAddress [::]:114",
+			nil,
+			defaultAuthorizedKeysFile,
+			114,
 			nil,
 		},
 	}
@@ -75,12 +218,18 @@ func TestSSHManager_parseSSHDConfig(t *testing.T) {
 				sysMgr: sysMgrMock,
 			}
 			s.sshHelper = &sshHelperImpl{mgr: s}
+			if tt.prepare != nil {
+				tt.prepare(s)
+			}
 
 			if err := s.parseSSHDConfig(); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("parseSSHDConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if s.authorizedKeysFilePattern != tt.wantAuthorizedKeysFile {
-				t.Errorf("parseSSHDConfig() AuthorizedKeysFile got = %v, want %v", s.authorizedKeysFilePattern, tt.wantAuthorizedKeysFile)
+				t.Errorf("parseSSHDConfig() AuthorizedKeysFile got = [%v], want [%v]", s.authorizedKeysFilePattern, tt.wantAuthorizedKeysFile)
+			}
+			if s.sshdPort != tt.wantSSHDPort {
+				t.Errorf("parseSSHDConfig() SSHD Port got = [%v], want [%v]", s.sshdPort, tt.wantSSHDPort)
 			}
 		})
 	}

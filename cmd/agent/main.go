@@ -28,8 +28,14 @@ func main() {
 		log.EnableDebug()
 		log.Info("Debug mode enabled")
 	}
-
-	sshMgr, err := sysaccess.NewSSHManager()
+	var sshMgrOpts []sysaccess.SSHManagerOpt
+	if cfg.CustomSSHDPort != 0 {
+		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDPort(cfg.CustomSSHDPort))
+	}
+	if cfg.CustomSSHDCfgFile != "" {
+		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDCfg(cfg.CustomSSHDCfgFile))
+	}
+	sshMgr, err := sysaccess.NewSSHManager(sshMgrOpts...)
 	if err != nil {
 		log.Fatal("failed to initialize SSHManager: %v", err)
 	}
