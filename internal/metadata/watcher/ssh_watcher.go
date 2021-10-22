@@ -26,7 +26,7 @@ var tcpPacketPattern = &netutil.TCPPacketIdentifier{
 }
 
 // NewSSHWatcher creates a new metadata watcher that is based on watching port knocking messages on port 22
-func NewSSHWatcher() MetadataWatcher {
+func NewSSHWatcher(cfg *Conf) MetadataWatcher {
 	ret := &sshWatcher{
 		fetcher:             newMetadataFetcher(),
 		sniffer:             netutil.NewTCPPacketSniffer(),

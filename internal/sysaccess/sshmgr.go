@@ -147,6 +147,11 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	return nil
 }
 
+// SSHDPort returns the port sshd is binding to
+func (s *SSHManager) SSHDPort() int {
+	return s.sshdPort
+}
+
 // parseSSHDConfig parses the sshd_config file and retrieves configurations needed by the agent, which are:
 //  - AuthorizedKeysFile : to know how to locate the authorized_keys file
 //  - Port | ListenAddress : to know which port sshd is currently binding to

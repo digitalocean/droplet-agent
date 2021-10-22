@@ -41,7 +41,7 @@ func main() {
 	}
 
 	dottyKeysActioner := actioner.NewDOTTYKeysActioner(sshMgr)
-	metadataWatcher := newMetadataWatcher()
+	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
 	metadataWatcher.RegisterActioner(dottyKeysActioner)
 	updater := status.NewStatusUpdater()
 

@@ -7,7 +7,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 )
 
-func newMetadataWatcher() watcher.MetadataWatcher {
+func newMetadataWatcher(cfg *watcher.Conf) watcher.MetadataWatcher {
 	log.Info("Launching SSH Port Knocking Watcher")
-	return watcher.NewSSHWatcher()
+	return watcher.NewSSHWatcher(cfg)
 }
