@@ -274,6 +274,6 @@ func (s *SSHManager) parseSSHDPort(line string) error {
 	return nil
 }
 
-func validPort(port int) bool  {
+func validPort(port int) bool {
 	return port > 0 && port <= 65535
 }
