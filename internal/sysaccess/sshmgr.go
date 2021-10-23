@@ -66,7 +66,7 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 	if !validPort(ret.sshdPort) {
 		return nil, fmt.Errorf("%w:[%d]", ErrInvalidPortNumber, ret.sshdPort)
 	}
-
+	log.Info("SSH Manager Initialized. sshd_config:[%s], sshd_port:[%d]", ret.sshdConfigFile(), ret.sshdPort)
 	return ret, nil
 }
 
