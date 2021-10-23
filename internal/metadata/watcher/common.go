@@ -15,3 +15,8 @@ var (
 	ErrFetchMetadataFailed  = errors.New("failed to fetch rmetadata")
 	ErrNoRegisteredActioner = errors.New("no registered actioners")
 )
+
+// Conf contains configurations for a watcher
+type Conf struct {
+	SSHPort int
+}

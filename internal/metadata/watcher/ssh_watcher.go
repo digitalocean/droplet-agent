@@ -13,25 +13,18 @@ import (
 )
 
 const (
-	sshPort  = 22
 	doSeqNum = 68796879 // DODO -- 'D' = 68, 'O' = 79 in ASCII
 	doAckNum = 848489   // TTY  -- 'T' = 84, 'Y' = 89
 )
 
-var tcpPacketPattern = &netutil.TCPPacketIdentifier{
-	TargetPort: sshPort,
-	SeqNum:     doSeqNum,
-	AckNum:     doAckNum,
-	TCPFlag:    netutil.TCPFlagSYN,
-}
-
 // NewSSHWatcher creates a new metadata watcher that is based on watching port knocking messages on port 22
-func NewSSHWatcher() MetadataWatcher {
+func NewSSHWatcher(cfg *Conf) MetadataWatcher {
 	ret := &sshWatcher{
 		fetcher:             newMetadataFetcher(),
 		sniffer:             netutil.NewTCPPacketSniffer(),
 		limiter:             rate.NewLimiter(rate.Every(time.Second/maxFetchPerSecond), 1),
 		registeredActioners: nil,
+		sshdPort:            uint16(cfg.SSHPort),
 		done:                make(chan struct{}),
 	}
 	return ret
@@ -42,6 +35,7 @@ type sshWatcher struct {
 	sniffer             netutil.TCPPacketSniffer
 	limiter             *rate.Limiter
 	registeredActioners []actioner.MetadataActioner
+	sshdPort            uint16
 
 	done chan struct{}
 }
@@ -55,7 +49,12 @@ func (w *sshWatcher) RegisterActioner(actioner actioner.MetadataActioner) {
 // Run launches the watcher
 func (w *sshWatcher) Run() error {
 	log.Info("[SSH Watcher] Running")
-	packetChan, err := w.sniffer.Capture(tcpPacketPattern)
+	packetChan, err := w.sniffer.Capture(&netutil.TCPPacketIdentifier{
+		TargetPort: w.sshdPort,
+		SeqNum:     doSeqNum,
+		AckNum:     doAckNum,
+		TCPFlag:    netutil.TCPFlagSYN,
+	})
 	if err != nil {
 		return err
 	}

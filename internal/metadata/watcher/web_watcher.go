@@ -24,7 +24,7 @@ type webBasedWatcher struct {
 }
 
 // NewWebBasedWatcher creates a new metadata watcher that is based on a webserver
-func NewWebBasedWatcher() MetadataWatcher {
+func NewWebBasedWatcher(_ *Conf) MetadataWatcher {
 	ret := &webBasedWatcher{
 		metadataFetcher: newMetadataFetcher(),
 		limiter:         rate.NewLimiter(rate.Every(time.Second/maxFetchPerSecond), 1),

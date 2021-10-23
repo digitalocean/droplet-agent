@@ -63,7 +63,10 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if !validPort(ret.sshdPort) {
+		return nil, fmt.Errorf("%w:[%d]", ErrInvalidPortNumber, ret.sshdPort)
+	}
+	log.Info("SSH Manager Initialized. sshd_config:[%s], sshd_port:[%d]", ret.sshdConfigFile(), ret.sshdPort)
 	return ret, nil
 }
 
@@ -145,6 +148,11 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		}
 	}
 	return nil
+}
+
+// SSHDPort returns the port sshd is binding to
+func (s *SSHManager) SSHDPort() int {
+	return s.sshdPort
 }
 
 // parseSSHDConfig parses the sshd_config file and retrieves configurations needed by the agent, which are:
@@ -264,4 +272,8 @@ func (s *SSHManager) parseSSHDPort(line string) error {
 		s.sshdPort = portTmp
 	}
 	return nil
+}
+
+func validPort(port int) bool {
+	return port > 0 && port <= 65535
 }
