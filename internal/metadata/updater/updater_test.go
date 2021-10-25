@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestAgentInfoUpdater_Update(t *testing.T) {
+func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 	info := &metadata.Metadata{
 		DOTTYStatus: metadata.RunningStatus,
 		SSHInfo:     &metadata.SSHInfo{
@@ -65,7 +65,7 @@ func TestAgentInfoUpdater_Update(t *testing.T) {
 			defer ctrl.Finish()
 			client := NewMockhttpClient(ctrl)
 			tt.expectations(client)
-			m := &AgentInfoUpdater{
+			m := &agentInfoUpdaterImpl{
 				client: client,
 			}
 			if err := m.Update(info); (err != nil) != tt.wantErr {

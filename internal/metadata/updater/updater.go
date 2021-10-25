@@ -11,12 +11,11 @@ import (
 )
 
 // NewAgentInfoUpdater creates a new agent info updater
-func NewAgentInfoUpdater() *AgentInfoUpdater {
-	return &AgentInfoUpdater{client: &http.Client{}}
+func NewAgentInfoUpdater() AgentInfoUpdater {
+	return &agentInfoUpdaterImpl{client: &http.Client{}}
 }
 
-// AgentInfoUpdater updates the droplet agent related fields in the droplet's metadata
-type AgentInfoUpdater struct {
+type agentInfoUpdaterImpl struct {
 	client httpClient
 }
 
@@ -24,7 +23,7 @@ type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func (u *AgentInfoUpdater) Update(md *metadata.Metadata) error {
+func (u *agentInfoUpdaterImpl) Update(md *metadata.Metadata) error {
 	metadataURL := fmt.Sprintf("%s/v1.json", metadata.BaseURL)
 
 	body, err := json.Marshal(md)

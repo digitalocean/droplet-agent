@@ -26,7 +26,7 @@ type Metadata struct {
 	DOTTYKeys []string `json:"dotty_keys,omitempty"`
 	// DOTTYStatus represents the state of the dotty agent valid states are "installed", "running", or "stopped"
 	DOTTYStatus AgentStatus `json:"dotty_status,omitempty"`
-	SSHInfo *SSHInfo `json:"ssh_info,omitempty"`
+	SSHInfo     *SSHInfo    `json:"ssh_info,omitempty"`
 }
 
 // SSHInfo contains the information of the sshd service running on the droplet
