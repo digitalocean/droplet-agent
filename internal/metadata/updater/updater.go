@@ -6,8 +6,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"net/http"
+
+	"github.com/digitalocean/droplet-agent/internal/metadata"
 )
 
 // NewAgentInfoUpdater creates a new agent info updater

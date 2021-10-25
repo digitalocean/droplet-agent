@@ -6,17 +6,18 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/mockutils"
 	"github.com/golang/mock/gomock"
-	"net/http"
-	"testing"
 )
 
 func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 	info := &metadata.Metadata{
 		DOTTYStatus: metadata.RunningStatus,
-		SSHInfo:     &metadata.SSHInfo{
+		SSHInfo: &metadata.SSHInfo{
 			Port:     256,
 			HostKeys: nil,
 		},
@@ -40,7 +41,7 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 		{
 			"unsuccessful response code",
 			func(client *MockhttpClient) {
-				reqMatcher :=  &mockutils.HTTPRequestMatcher{
+				reqMatcher := &mockutils.HTTPRequestMatcher{
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 
@@ -51,7 +52,7 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 		{
 			"error from http client",
 			func(client *MockhttpClient) {
-				reqMatcher :=  &mockutils.HTTPRequestMatcher{
+				reqMatcher := &mockutils.HTTPRequestMatcher{
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 				client.EXPECT().Do(reqMatcher).Return(nil, errors.New("something went wrong"))

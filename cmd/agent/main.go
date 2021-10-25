@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +14,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
+	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
