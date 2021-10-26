@@ -187,16 +187,16 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 					if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
 						// if sshd_config is being renamed or removed, wait until it appears again
 						log.Debug("[WatchSSHDConfig] sshd_config was renamed or removed, waiting until it's back")
-						w.Remove(sshdCfgFile)
+						_ = w.Remove(sshdCfgFile)
 						for {
-							if _, e := os.Stat(sshdCfgFile); e == nil {
+							if _, err := os.Stat(sshdCfgFile); err == nil {
 								break
 							}
 							time.Sleep(fileCheckInterval)
 						}
 						log.Debug("[WatchSSHDConfig] sshd_config is back. Signaling the change")
 						ret <- true
-						w.Add(sshdCfgFile)
+						_ = w.Add(sshdCfgFile)
 					} else if ev.Op&fsnotify.Write == fsnotify.Write {
 						log.Debug("[WatchSSHDConfig] sshd_config modified, signaling the change")
 						ret <- true
@@ -217,13 +217,14 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 	}()
 	e = w.Add(sshdCfgFile)
 	if e != nil {
-		w.Close()
+		_ = w.Close()
 		return nil, e
 	}
 	s.fsWatcher = w
 	return ret, nil
 }
 
+// Close properly shutdowns the SSH manager
 func (s *SSHManager) Close() error {
 	if s.fsWatcher != nil {
 		return s.fsWatcher.Close()
