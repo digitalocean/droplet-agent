@@ -1,46 +1,33 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package status
+package updater
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 )
 
-//Possible Errors
-var (
-	ErrUpdateMetadataFailed = errors.New("failed to update status")
-)
+// NewAgentInfoUpdater creates a new agent info updater
+func NewAgentInfoUpdater() AgentInfoUpdater {
+	return &agentInfoUpdaterImpl{client: &http.Client{}}
+}
 
-// Updater updates the metadata for the Droplet agent status of the droplet
-type Updater interface {
-	Update(status metadata.AgentStatus) error
+type agentInfoUpdaterImpl struct {
+	client httpClient
 }
 
 type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// NewStatusUpdater creates a new status updater using the passed in http client
-func NewStatusUpdater() Updater {
-	return &statusUpdaterImpl{
-		http: &http.Client{},
-	}
-}
-
-type statusUpdaterImpl struct {
-	http httpClient
-}
-
-func (m *statusUpdaterImpl) Update(status metadata.AgentStatus) error {
+func (u *agentInfoUpdaterImpl) Update(md *metadata.Metadata) error {
 	metadataURL := fmt.Sprintf("%s/v1.json", metadata.BaseURL)
 
-	body, err := json.Marshal(&metadata.Metadata{DOTTYStatus: status})
+	body, err := json.Marshal(md)
 	if err != nil {
 		return fmt.Errorf("%w:%v", ErrUpdateMetadataFailed, err)
 	}
@@ -52,7 +39,7 @@ func (m *statusUpdaterImpl) Update(status metadata.AgentStatus) error {
 
 	req.Header.Set("User-Agent", "Droplet-Agent/1.0.1")
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	resp, err := m.http.Do(req)
+	resp, err := u.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w:%v", ErrUpdateMetadataFailed, err)
 	}

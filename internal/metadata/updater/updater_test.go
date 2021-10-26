@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package status
+package updater
 
 import (
 	"bytes"
@@ -10,22 +10,28 @@ import (
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/metadata"
+	"github.com/digitalocean/droplet-agent/internal/mockutils"
 	"github.com/golang/mock/gomock"
 )
 
-func Test_statusUpdaterImpl_Update(t *testing.T) {
+func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
+	info := &metadata.Metadata{
+		DOTTYStatus: metadata.RunningStatus,
+		SSHInfo: &metadata.SSHInfo{
+			Port:     256,
+			HostKeys: nil,
+		},
+	}
 	tests := []struct {
 		name         string
-		status       metadata.AgentStatus
 		expectations func(client *MockhttpClient)
 		wantErr      bool
 	}{
 		{
 			"successful response",
-			metadata.RunningStatus,
 			func(client *MockhttpClient) {
-				reqMatcher := &HTTPRequestMatcher{
-					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\"}")),
+				reqMatcher := &mockutils.HTTPRequestMatcher{
+					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 
 				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 202}, nil)
@@ -34,10 +40,9 @@ func Test_statusUpdaterImpl_Update(t *testing.T) {
 		},
 		{
 			"unsuccessful response code",
-			metadata.RunningStatus,
 			func(client *MockhttpClient) {
-				reqMatcher := &HTTPRequestMatcher{
-					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\"}")),
+				reqMatcher := &mockutils.HTTPRequestMatcher{
+					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 
 				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 404}, nil)
@@ -46,12 +51,10 @@ func Test_statusUpdaterImpl_Update(t *testing.T) {
 		},
 		{
 			"error from http client",
-			metadata.RunningStatus,
 			func(client *MockhttpClient) {
-				reqMatcher := &HTTPRequestMatcher{
-					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\"}")),
+				reqMatcher := &mockutils.HTTPRequestMatcher{
+					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
-
 				client.EXPECT().Do(reqMatcher).Return(nil, errors.New("something went wrong"))
 			},
 			true,
@@ -63,10 +66,10 @@ func Test_statusUpdaterImpl_Update(t *testing.T) {
 			defer ctrl.Finish()
 			client := NewMockhttpClient(ctrl)
 			tt.expectations(client)
-			m := &statusUpdaterImpl{
-				http: client,
+			m := &agentInfoUpdaterImpl{
+				client: client,
 			}
-			if err := m.Update(tt.status); (err != nil) != tt.wantErr {
+			if err := m.Update(info); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

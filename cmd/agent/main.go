@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
-	"github.com/digitalocean/droplet-agent/internal/metadata/status"
+	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
@@ -43,17 +44,20 @@ func main() {
 	dottyKeysActioner := actioner.NewDOTTYKeysActioner(sshMgr)
 	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
 	metadataWatcher.RegisterActioner(dottyKeysActioner)
-	updater := status.NewStatusUpdater()
+	infoUpdater := updater.NewAgentInfoUpdater()
 
 	// Launch background jobs
 	bgJobsCtx, bgJobsCancel := context.WithCancel(context.Background())
 	go bgJobsRemoveExpiredDOTTYKeys(bgJobsCtx, sshMgr, cfg.AuthorizedKeysCheckInterval)
 
 	// handle shutdown
-	go handleShutdown(bgJobsCancel, metadataWatcher, updater)
+	go handleShutdown(bgJobsCancel, metadataWatcher, infoUpdater)
 
-	// set status to running
-	go setStatus(updater, metadata.RunningStatus, true)
+	// report agent status and ssh info
+	go updateMetadata(infoUpdater, &metadata.Metadata{
+		DOTTYStatus: metadata.RunningStatus,
+		SSHInfo:     &metadata.SSHInfo{Port: sshMgr.SSHDPort()},
+	}, true)
 
 	// launch the watcher
 	if err := metadataWatcher.Run(); err != nil {
@@ -63,7 +67,7 @@ func main() {
 	}
 }
 
-func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, updater status.Updater) {
+func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, infoUpdater updater.AgentInfoUpdater) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGINT,
@@ -73,7 +77,7 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 	)
 
 	c := <-signalChan
-	setStatus(updater, metadata.StoppedStatus, false)
+	updateMetadata(infoUpdater, &metadata.Metadata{DOTTYStatus: metadata.StoppedStatus}, false)
 	switch c {
 	case syscall.SIGINT, syscall.SIGTERM:
 		log.Info("[%s] Shutting down", config.AppShortName)
@@ -87,27 +91,28 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 	}
 }
 
-func setStatus(updater status.Updater, agentStatus metadata.AgentStatus, retry bool) {
-	fn := func() error { return updater.Update(agentStatus) }
+func updateMetadata(infoUpdater updater.AgentInfoUpdater, md *metadata.Metadata, retry bool) {
+	fn := func() error { return infoUpdater.Update(md) }
 	sleepTime := time.Second * 5
 
 	if !retry {
 		err := fn()
 		if err != nil {
-			log.Error("error setting status: %s", err)
+			log.Error("error updating droplet metadata: %s", err)
 		}
 		return
 	}
 
 	for {
-		log.Debug("setting status")
+		log.Debug("updating metadata")
 		err := fn()
 		if err == nil {
-			log.Info("Agent status set to [%s]", string(agentStatus))
+			jsonMD, _ := json.Marshal(md)
+			log.Info("droplet metadata updated to [%s]", string(jsonMD))
 			return
 		}
 
 		time.Sleep(sleepTime)
-		log.Error("error setting status: %s, retrying", err)
+		log.Error("error updating droplet metadata: %s, retrying", err)
 	}
 }
