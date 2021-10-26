@@ -194,10 +194,11 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 							}
 							time.Sleep(fileCheckInterval)
 						}
+						log.Debug("[WatchSSHDConfig] sshd_config is back. Signaling the change")
 						ret <- true
 						w.Add(sshdCfgFile)
 					} else if ev.Op&fsnotify.Write == fsnotify.Write {
-						log.Debug("[WatchSSHDConfig] sshd_config modified")
+						log.Debug("[WatchSSHDConfig] sshd_config modified, signaling the change")
 						ret <- true
 					} else {
 						log.Debug("[WatchSSHDConfig] event ignored")
