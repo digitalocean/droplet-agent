@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,6 +24,7 @@ const (
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
 	defaultSSHDPort           = 22
+	fileCheckInterval         = 5 * time.Second
 )
 
 // SSHManager provides functions for managing SSH access
@@ -174,14 +176,33 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 		for {
 			select {
 			case ev, ok := <-w.Events:
+				log.Debug("[WatchSSHDConfig] Event received. [%s]", ev.String())
 				if !ok {
 					// watcher closed
 					log.Info("[WatchSSHDConfig] Events channel closed. Watcher quit")
 					return
 				}
-				if (ev.Op&fsnotify.Write == fsnotify.Write) && ev.Name == sshdCfgFile {
+				if ev.Name == sshdCfgFile {
 					log.Info("[WatchSSHDConfig] modification detected.")
-					ret <- true
+					if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
+						// if sshd_config is being renamed or removed, wait until it appears again
+						log.Debug("[WatchSSHDConfig] sshd_config was renamed or removed, waiting until it's back")
+						w.Remove(sshdCfgFile)
+						for {
+							if _, e := os.Stat(sshdCfgFile); e == nil {
+								break
+							}
+							time.Sleep(fileCheckInterval)
+						}
+						ret <- true
+						w.Add(sshdCfgFile)
+					} else if ev.Op&fsnotify.Write == fsnotify.Write {
+						log.Debug("[WatchSSHDConfig] sshd_config modified")
+						ret <- true
+					} else {
+						log.Debug("[WatchSSHDConfig] event ignored")
+						continue
+					}
 				}
 			case fsErr, ok := <-w.Errors:
 				if !ok {
