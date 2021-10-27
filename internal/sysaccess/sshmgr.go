@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -182,28 +181,8 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 					log.Info("[WatchSSHDConfig] Events channel closed. Watcher quit")
 					return
 				}
-				if ev.Name == sshdCfgFile {
-					log.Info("[WatchSSHDConfig] modification detected.")
-					if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
-						// if sshd_config is being renamed or removed, wait until it appears again
-						log.Debug("[WatchSSHDConfig] sshd_config was renamed or removed, waiting until it's back")
-						_ = w.Remove(sshdCfgFile)
-						for {
-							if _, err := os.Stat(sshdCfgFile); err == nil {
-								break
-							}
-							time.Sleep(fileCheckInterval)
-						}
-						log.Debug("[WatchSSHDConfig] sshd_config is back. Signaling the change")
-						ret <- true
-						_ = w.Add(sshdCfgFile)
-					} else if ev.Op&fsnotify.Write == fsnotify.Write {
-						log.Debug("[WatchSSHDConfig] sshd_config modified, signaling the change")
-						ret <- true
-					} else {
-						log.Debug("[WatchSSHDConfig] event ignored")
-						continue
-					}
+				if s.sshdCfgModified(w, sshdCfgFile, &ev) {
+					ret <- true
 				}
 			case fsErr, ok := <-w.Errors:
 				if !ok {

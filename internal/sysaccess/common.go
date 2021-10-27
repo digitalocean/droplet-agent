@@ -44,4 +44,5 @@ type sysManager interface {
 	ReadFile(filename string) ([]byte, error)
 	RenameFile(oldpath, newpath string) error
 	RemoveFile(name string) error
+	FileExists(name string) (bool, error)
 }

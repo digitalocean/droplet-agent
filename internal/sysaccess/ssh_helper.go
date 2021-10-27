@@ -5,6 +5,7 @@ package sysaccess
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"os"
 	"strings"
 	"time"
@@ -23,6 +24,12 @@ type sshHelper interface {
 	removeExpiredKeys(originalKeys map[string][]*SSHKey) (filteredKeys map[string][]*SSHKey)
 	areSameKeys(keys1, keys2 []*SSHKey) bool
 	validateKey(k *SSHKey) error
+	sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsnotify.Event) bool
+}
+
+type fsWatcher interface {
+	Add(name string) error
+	Remove(name string) error
 }
 
 type sshHelperImpl struct {
@@ -128,6 +135,41 @@ func (s *sshHelperImpl) areSameKeys(keys1, keys2 []*SSHKey) bool {
 		}
 	}
 	return true
+}
+
+func (s *sshHelperImpl) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsnotify.Event) bool {
+	if ev.Name != sshdCfgFile {
+		return false
+	}
+	log.Info("[WatchSSHDConfig] sshd_config events detected.")
+	if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
+		// if sshd_config is being renamed or removed, wait until it appears again
+		log.Debug("[WatchSSHDConfig] sshd_config was renamed or removed, waiting until it's back")
+		if err := w.Remove(sshdCfgFile); err != nil {
+			log.Error("[WatchSSHDConfig] failed to stop monitoring old sshd_config: %v", err)
+		}
+		// the reasons for having the wait loop here are:
+		// - when the sshd_config is removed or not presented in the configured path,
+		//   restarting the droplet-agent will result in failure, therefore, to prevent a
+		//   restart burst to the systemd, we wait until the file is ready
+		// - removing the sshd_config will not impact the sshd service until it is restarted,
+		//   therefore, we don't necessarily need to restart the droplet-agent service unless
+		//   a new sshd_config file is presented
+		for {
+			if exists, _ := s.mgr.sysMgr.FileExists(sshdCfgFile); exists {
+				break
+			}
+			time.Sleep(fileCheckInterval)
+		}
+		log.Debug("[WatchSSHDConfig] sshd_config ready")
+		_ = w.Add(sshdCfgFile)
+		return true
+	} else if ev.Op&fsnotify.Write == fsnotify.Write {
+		log.Debug("[WatchSSHDConfig] sshd_config modified")
+		return true
+	}
+	log.Debug("[WatchSSHDConfig] sshd_config not modified, event ignored")
+	return false
 }
 
 func dottyKeyFmt(key *SSHKey, now time.Time) string {
