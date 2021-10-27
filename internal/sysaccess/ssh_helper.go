@@ -151,7 +151,10 @@ func (s *sshHelperImpl) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsn
 		return false
 	}
 	log.Info("[WatchSSHDConfig] sshd_config events detected.")
-	if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
+	if ev.Op&fsnotify.Write == fsnotify.Write {
+		log.Debug("[WatchSSHDConfig] sshd_config modified")
+		return true
+	} else if ev.Op&(fsnotify.Rename|fsnotify.Remove) != 0 {
 		// if sshd_config is being renamed or removed, wait until it appears again
 		log.Debug("[WatchSSHDConfig] sshd_config was renamed or removed, waiting until it's back")
 		if err := w.Remove(sshdCfgFile); err != nil {
@@ -168,13 +171,10 @@ func (s *sshHelperImpl) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsn
 			if exists, _ := s.mgr.sysMgr.FileExists(sshdCfgFile); exists {
 				break
 			}
-			time.Sleep(fileCheckInterval)
+			s.mgr.sysMgr.Sleep(fileCheckInterval)
 		}
 		log.Debug("[WatchSSHDConfig] sshd_config ready")
 		_ = w.Add(sshdCfgFile)
-		return true
-	} else if ev.Op&fsnotify.Write == fsnotify.Write {
-		log.Debug("[WatchSSHDConfig] sshd_config modified")
 		return true
 	}
 	log.Debug("[WatchSSHDConfig] sshd_config not modified, event ignored")

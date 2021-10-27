@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // NewSysManager returns a new SysManager Object
@@ -64,6 +65,10 @@ func (s *SysManager) FileExists(name string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func (s *SysManager) Sleep(d time.Duration) {
+	time.Sleep(d)
 }
 
 // RunCmd runs a command and return the result

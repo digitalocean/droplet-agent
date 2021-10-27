@@ -8,6 +8,7 @@ import (
 	io "io"
 	os "os"
 	reflect "reflect"
+	time "time"
 
 	sysutil "github.com/digitalocean/droplet-agent/internal/sysutil"
 	gomock "github.com/golang/mock/gomock"
@@ -150,4 +151,16 @@ func (m *MocksysManager) RenameFile(oldpath, newpath string) error {
 func (mr *MocksysManagerMockRecorder) RenameFile(oldpath, newpath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenameFile", reflect.TypeOf((*MocksysManager)(nil).RenameFile), oldpath, newpath)
+}
+
+// Sleep mocks base method.
+func (m *MocksysManager) Sleep(d time.Duration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Sleep", d)
+}
+
+// Sleep indicates an expected call of Sleep.
+func (mr *MocksysManagerMockRecorder) Sleep(d interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sleep", reflect.TypeOf((*MocksysManager)(nil).Sleep), d)
 }

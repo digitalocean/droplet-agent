@@ -5,6 +5,9 @@ package sysaccess
 import (
 	"encoding/json"
 	"errors"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
+	"github.com/fsnotify/fsnotify"
+	"github.com/golang/mock/gomock"
 	"os"
 	"reflect"
 	"strings"
@@ -693,6 +696,151 @@ func Test_sshHelperImpl_validateKey(t *testing.T) {
 			}
 			if !reflect.DeepEqual(tt.wantKey, tt.key) {
 				t.Errorf("validateKey() got = %v, want = %v", tt.key, tt.wantKey)
+			}
+		})
+	}
+}
+
+func Test_sshHelperImpl_sshdCfgModified(t *testing.T) {
+	sshdCfgFile := "/path/to/sshd_config"
+	tests := []struct {
+		name    string
+		ev      *fsnotify.Event
+		prepare func(w *MockfsWatcher, sysMgr *mocks.MocksysManager)
+		want    bool
+	}{
+		{
+			"return false if not an event related to the sshd_config",
+			&fsnotify.Event{Name: "not/sshd_cfg/file"},
+			nil,
+			false,
+		},
+		{
+			"return false if operation is not write, rename, or remove",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   ^(fsnotify.Write | fsnotify.Rename | fsnotify.Remove),
+			},
+			nil,
+			false,
+		},
+		{
+			"return true if is a Write operation",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Write,
+			},
+			nil,
+			true,
+		},
+		{
+			"return true if contains a Write operation",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Write | fsnotify.Create,
+			},
+			nil,
+			true,
+		},
+		{
+			"handle rename operation properly",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Rename,
+			},
+			func(w *MockfsWatcher, sysMgr *mocks.MocksysManager) {
+				gomock.InOrder(
+					w.EXPECT().Remove(sshdCfgFile).Return(nil),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(true, nil),
+					w.EXPECT().Add(sshdCfgFile).Return(nil),
+				)
+			},
+			true,
+		},
+		{
+			"handle remove operation properly",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Remove,
+			},
+			func(w *MockfsWatcher, sysMgr *mocks.MocksysManager) {
+				gomock.InOrder(
+					w.EXPECT().Remove(sshdCfgFile).Return(nil),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(true, nil),
+					w.EXPECT().Add(sshdCfgFile).Return(nil),
+				)
+			},
+			true,
+		},
+		{
+			"should ignore errors when removing the file hook",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Rename,
+			},
+			func(w *MockfsWatcher, sysMgr *mocks.MocksysManager) {
+				gomock.InOrder(
+					w.EXPECT().Remove(sshdCfgFile).Return(errors.New("oops")),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(true, nil),
+					w.EXPECT().Add(sshdCfgFile).Return(nil),
+				)
+			},
+			true,
+		},
+		{
+			"should ignore errors when re-adding the file hook",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Rename,
+			},
+			func(w *MockfsWatcher, sysMgr *mocks.MocksysManager) {
+				gomock.InOrder(
+					w.EXPECT().Remove(sshdCfgFile).Return(nil),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(true, nil),
+					w.EXPECT().Add(sshdCfgFile).Return(errors.New("oops")),
+				)
+			},
+			true,
+		},
+		{
+			"should retry with interval until sshd_config is back in place",
+			&fsnotify.Event{
+				Name: sshdCfgFile,
+				Op:   fsnotify.Rename,
+			},
+			func(w *MockfsWatcher, sysMgr *mocks.MocksysManager) {
+				gomock.InOrder(
+					w.EXPECT().Remove(sshdCfgFile).Return(nil),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(false, errors.New("oops")),
+					sysMgr.EXPECT().Sleep(fileCheckInterval),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(false, nil),
+					sysMgr.EXPECT().Sleep(fileCheckInterval),
+					sysMgr.EXPECT().FileExists(sshdCfgFile).Return(true, nil),
+					w.EXPECT().Add(sshdCfgFile).Return(nil),
+				)
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+
+			sysMgrMock := mocks.NewMocksysManager(mockCtl)
+			fsWatcherMock := NewMockfsWatcher(mockCtl)
+
+			if tt.prepare != nil {
+				tt.prepare(fsWatcherMock, sysMgrMock)
+			}
+
+			s := &sshHelperImpl{
+				mgr: &SSHManager{
+					sysMgr: sysMgrMock,
+				},
+			}
+			if got := s.sshdCfgModified(fsWatcherMock, sshdCfgFile, tt.ev); got != tt.want {
+				t.Errorf("sshdCfgModified() = %v, want %v", got, tt.want)
 			}
 		})
 	}
