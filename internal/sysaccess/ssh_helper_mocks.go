@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	sysutil "github.com/digitalocean/droplet-agent/internal/sysutil"
+	fsnotify "github.com/fsnotify/fsnotify"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -62,6 +63,23 @@ func (mr *MocksshHelperMockRecorder) authorizedKeysFile(user interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "authorizedKeysFile", reflect.TypeOf((*MocksshHelper)(nil).authorizedKeysFile), user)
 }
 
+// newFSWatcher mocks base method.
+func (m *MocksshHelper) newFSWatcher() (fsWatcher, <-chan fsnotify.Event, <-chan error, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "newFSWatcher")
+	ret0, _ := ret[0].(fsWatcher)
+	ret1, _ := ret[1].(<-chan fsnotify.Event)
+	ret2, _ := ret[2].(<-chan error)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// newFSWatcher indicates an expected call of newFSWatcher.
+func (mr *MocksshHelperMockRecorder) newFSWatcher() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "newFSWatcher", reflect.TypeOf((*MocksshHelper)(nil).newFSWatcher))
+}
+
 // prepareAuthorizedKeys mocks base method.
 func (m *MocksshHelper) prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string {
 	m.ctrl.T.Helper()
@@ -90,6 +108,20 @@ func (mr *MocksshHelperMockRecorder) removeExpiredKeys(originalKeys interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "removeExpiredKeys", reflect.TypeOf((*MocksshHelper)(nil).removeExpiredKeys), originalKeys)
 }
 
+// sshdCfgModified mocks base method.
+func (m *MocksshHelper) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsnotify.Event) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "sshdCfgModified", w, sshdCfgFile, ev)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// sshdCfgModified indicates an expected call of sshdCfgModified.
+func (mr *MocksshHelperMockRecorder) sshdCfgModified(w, sshdCfgFile, ev interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "sshdCfgModified", reflect.TypeOf((*MocksshHelper)(nil).sshdCfgModified), w, sshdCfgFile, ev)
+}
+
 // sshdConfigFile mocks base method.
 func (m *MocksshHelper) sshdConfigFile() string {
 	m.ctrl.T.Helper()
@@ -116,4 +148,69 @@ func (m *MocksshHelper) validateKey(k *SSHKey) error {
 func (mr *MocksshHelperMockRecorder) validateKey(k interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "validateKey", reflect.TypeOf((*MocksshHelper)(nil).validateKey), k)
+}
+
+// MockfsWatcher is a mock of fsWatcher interface.
+type MockfsWatcher struct {
+	ctrl     *gomock.Controller
+	recorder *MockfsWatcherMockRecorder
+}
+
+// MockfsWatcherMockRecorder is the mock recorder for MockfsWatcher.
+type MockfsWatcherMockRecorder struct {
+	mock *MockfsWatcher
+}
+
+// NewMockfsWatcher creates a new mock instance.
+func NewMockfsWatcher(ctrl *gomock.Controller) *MockfsWatcher {
+	mock := &MockfsWatcher{ctrl: ctrl}
+	mock.recorder = &MockfsWatcherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockfsWatcher) EXPECT() *MockfsWatcherMockRecorder {
+	return m.recorder
+}
+
+// Add mocks base method.
+func (m *MockfsWatcher) Add(name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Add", name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Add indicates an expected call of Add.
+func (mr *MockfsWatcherMockRecorder) Add(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockfsWatcher)(nil).Add), name)
+}
+
+// Close mocks base method.
+func (m *MockfsWatcher) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockfsWatcherMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockfsWatcher)(nil).Close))
+}
+
+// Remove mocks base method.
+func (m *MockfsWatcher) Remove(name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Remove", name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Remove indicates an expected call of Remove.
+func (mr *MockfsWatcherMockRecorder) Remove(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockfsWatcher)(nil).Remove), name)
 }

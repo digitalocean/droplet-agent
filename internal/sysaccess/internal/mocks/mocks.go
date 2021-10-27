@@ -65,6 +65,21 @@ func (mr *MocksysManagerMockRecorder) CreateFileForWrite(file, user, perm interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileForWrite", reflect.TypeOf((*MocksysManager)(nil).CreateFileForWrite), file, user, perm)
 }
 
+// FileExists mocks base method.
+func (m *MocksysManager) FileExists(name string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FileExists", name)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FileExists indicates an expected call of FileExists.
+func (mr *MocksysManagerMockRecorder) FileExists(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileExists", reflect.TypeOf((*MocksysManager)(nil).FileExists), name)
+}
+
 // GetUserByName mocks base method.
 func (m *MocksysManager) GetUserByName(username string) (*sysutil.User, error) {
 	m.ctrl.T.Helper()
