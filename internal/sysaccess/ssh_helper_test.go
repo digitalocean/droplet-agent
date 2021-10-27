@@ -702,6 +702,7 @@ func Test_sshHelperImpl_validateKey(t *testing.T) {
 }
 
 func Test_sshHelperImpl_sshdCfgModified(t *testing.T) {
+	log.Mute()
 	sshdCfgFile := "/path/to/sshd_config"
 	tests := []struct {
 		name    string
