@@ -4,7 +4,6 @@ package sysaccess
 
 import (
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"net"
 	"strconv"
 	"strings"
@@ -35,7 +34,7 @@ type SSHManager struct {
 	sshdPort                  int
 
 	sysMgr    sysManager
-	fsWatcher *fsnotify.Watcher
+	fsWatcher fsWatcher
 
 	cachedKeys       map[string][]*SSHKey
 	cachedKeysOpLock sync.Mutex
@@ -164,7 +163,7 @@ func (s *SSHManager) SSHDPort() int {
 func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 	sshdCfgFile := s.sshdConfigFile()
 	log.Info("[WatchSSHDConfig] watching file: %s", sshdCfgFile)
-	w, e := fsnotify.NewWatcher()
+	w, evChan, errChan , e := s.newFSWatcher()
 	if e != nil {
 		log.Error("[WatchSSHDConfig] failed to launch watcher: %v", e)
 		return nil, e
@@ -174,7 +173,7 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 		defer close(ret)
 		for {
 			select {
-			case ev, ok := <-w.Events:
+			case ev, ok := <-evChan:
 				log.Debug("[WatchSSHDConfig] Event received. [%s]", ev.String())
 				if !ok {
 					// watcher closed
@@ -184,7 +183,7 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 				if s.sshdCfgModified(w, sshdCfgFile, &ev) {
 					ret <- true
 				}
-			case fsErr, ok := <-w.Errors:
+			case fsErr, ok := <-errChan:
 				if !ok {
 					// watcher closed
 					log.Info("[WatchSSHDConfig] Errors channel closed. Watcher quit")
