@@ -24,7 +24,7 @@ type sshHelper interface {
 	removeExpiredKeys(originalKeys map[string][]*SSHKey) (filteredKeys map[string][]*SSHKey)
 	areSameKeys(keys1, keys2 []*SSHKey) bool
 	validateKey(k *SSHKey) error
-	newFSWatcher () (fsWatcher, <-chan fsnotify.Event, <-chan error, error)
+	newFSWatcher() (fsWatcher, <-chan fsnotify.Event, <-chan error, error)
 	sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsnotify.Event) bool
 }
 
@@ -139,7 +139,7 @@ func (s *sshHelperImpl) areSameKeys(keys1, keys2 []*SSHKey) bool {
 	return true
 }
 
-func (s *sshHelperImpl) newFSWatcher () (fsWatcher, <-chan fsnotify.Event, <-chan error, error) {
+func (s *sshHelperImpl) newFSWatcher() (fsWatcher, <-chan fsnotify.Event, <-chan error, error) {
 	w, e := fsnotify.NewWatcher()
 	if e != nil {
 		return nil, nil, nil, e

@@ -55,7 +55,7 @@ func (s *SysManager) CreateFileForWrite(file string, user *User, perm os.FileMod
 }
 
 // FileExists checks whether a file exists or not
-func (s *SysManager) FileExists(name string) (bool, error)  {
+func (s *SysManager) FileExists(name string) (bool, error) {
 	_, err := os.Stat(name)
 	if err == nil {
 		return true, nil

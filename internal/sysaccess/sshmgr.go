@@ -163,7 +163,7 @@ func (s *SSHManager) SSHDPort() int {
 func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 	sshdCfgFile := s.sshdConfigFile()
 	log.Info("[WatchSSHDConfig] watching file: %s", sshdCfgFile)
-	w, evChan, errChan , e := s.newFSWatcher()
+	w, evChan, errChan, e := s.newFSWatcher()
 	if e != nil {
 		log.Error("[WatchSSHDConfig] failed to launch watcher: %v", e)
 		return nil, e
