@@ -33,8 +33,9 @@ type SSHManager struct {
 	authorizedKeysFilePattern string // same as the AuthorizedKeysFile in sshd_config, default to %h/.ssh/authorized_keys
 	sshdPort                  int
 
-	sysMgr    sysManager
-	fsWatcher fsWatcher
+	sysMgr            sysManager
+	fsWatcher         fsWatcher
+	fsWatcherQuitHook func()
 
 	cachedKeys       map[string][]*SSHKey
 	cachedKeysOpLock sync.Mutex
@@ -168,8 +169,11 @@ func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
 		log.Error("[WatchSSHDConfig] failed to launch watcher: %v", e)
 		return nil, e
 	}
-	ret := make(chan bool)
+	ret := make(chan bool, 1)
 	go func() {
+		if s.fsWatcherQuitHook != nil {
+			defer s.fsWatcherQuitHook()
+		}
 		defer close(ret)
 		for {
 			select {
