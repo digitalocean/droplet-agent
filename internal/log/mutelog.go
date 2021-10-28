@@ -12,6 +12,7 @@ var muteOnce sync.Once
 func Mute() {
 	muteOnce.Do(func() {
 		logDebug = &muteLogger{}
+		logInfo = &muteLogger{}
 		logErr = &muteLogger{}
 	})
 }
