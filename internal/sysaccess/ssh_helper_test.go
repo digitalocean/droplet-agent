@@ -5,9 +5,6 @@ package sysaccess
 import (
 	"encoding/json"
 	"errors"
-	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
-	"github.com/fsnotify/fsnotify"
-	"github.com/golang/mock/gomock"
 	"os"
 	"reflect"
 	"strings"
@@ -15,8 +12,11 @@ import (
 	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
+	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/golang/mock/gomock"
 )
 
 func Test_sshHelperImpl_authorizedKeysFile(t *testing.T) {

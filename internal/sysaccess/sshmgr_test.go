@@ -5,14 +5,13 @@ package sysaccess
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"reflect"
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/golang/mock/gomock"
 )
 

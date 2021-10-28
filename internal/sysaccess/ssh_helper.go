@@ -5,16 +5,15 @@ package sysaccess
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
-	"golang.org/x/crypto/ssh"
-
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
+
+	"github.com/fsnotify/fsnotify"
+	"golang.org/x/crypto/ssh"
 )
 
 type sshHelper interface {
