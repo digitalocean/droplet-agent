@@ -4,7 +4,9 @@
 
 ## [1.1.0](https://github.com/digitalocean/droplet-agent/tree/1.1.0) (2021-10-28)
 ### Added
-- Support for custom sshd port. 
+- Support for custom sshd port. If the sshd service is running on a port different from the default one (22), the agent 
+will try to fetch the target port by parsing the `sshd_config`. The port number can also be specified via the 
+command line argument `sshd_port` when launching the agent. 
 
 ### Related PRs
 - Support Custom SSHD Port #5: Monitor sshd_config changes [\#41](https://github.com/digitalocean/droplet-agent/pull/41) ([house-lee](https://github.com/house-lee))
