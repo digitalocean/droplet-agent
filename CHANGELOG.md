@@ -1,0 +1,39 @@
+# Changelog
+
+## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
+
+## [1.1.0](https://github.com/digitalocean/droplet-agent/tree/1.1.0) (2021-10-28)
+### Added
+- Support for custom sshd port. 
+
+### Related PRs
+- Support Custom SSHD Port #5: Monitor sshd_config changes [\#41](https://github.com/digitalocean/droplet-agent/pull/41) ([house-lee](https://github.com/house-lee))
+- Support Custom SSHD Port \#4: Vendor fsnotify [\#40](https://github.com/digitalocean/droplet-agent/pull/40) ([house-lee](https://github.com/house-lee))
+- Support Custom SSHD Port \#3: Report Port Number to Metadta [\#39](https://github.com/digitalocean/droplet-agent/pull/39) ([house-lee](https://github.com/house-lee))
+- Support Custom SSHD Port \#2: SSH Watcher [\#38](https://github.com/digitalocean/droplet-agent/pull/38) ([house-lee](https://github.com/house-lee))
+- Support Custom SSHD Port \#1 [\#37](https://github.com/digitalocean/droplet-agent/pull/37) ([house-lee](https://github.com/house-lee))
+
+## [1.0.0](https://github.com/digitalocean/droplet-agent/tree/1.0.0) (2021-08-05)
+Launch of the droplet-agent
+
+### Related PRs
+- Adjust log level [\#30](https://github.com/digitalocean/droplet-agent/pull/30) ([house-lee](https://github.com/house-lee))
+- check version should not check against github [\#29](https://github.com/digitalocean/droplet-agent/pull/29) ([house-lee](https://github.com/house-lee))
+- Fix new user missing authorized keys [\#28](https://github.com/digitalocean/droplet-agent/pull/28) ([house-lee](https://github.com/house-lee))
+- Add support for rocky linux [\#23](https://github.com/digitalocean/droplet-agent/pull/23) ([house-lee](https://github.com/house-lee))
+- Inline retry when install failed [\#21](https://github.com/digitalocean/droplet-agent/pull/21) ([house-lee](https://github.com/house-lee))
+- Switch to use apt & yum repository for package management [\#18](https://github.com/digitalocean/droplet-agent/pull/18) ([house-lee](https://github.com/house-lee))
+- Stop updating keys if failed to apply SELinux label [\#17](https://github.com/digitalocean/droplet-agent/pull/17) ([house-lee](https://github.com/house-lee))
+- Fix trust key bug in update.sh [\#16](https://github.com/digitalocean/droplet-agent/pull/16) ([house-lee](https://github.com/house-lee))
+- Ingore imports order [\#15](https://github.com/digitalocean/droplet-agent/pull/15) ([senorprogrammer](https://github.com/senorprogrammer))
+- For Linux environment, use `selinux` package instead of calling `restorecon` command [\#14](https://github.com/digitalocean/droplet-agent/pull/14) ([house-lee](https://github.com/house-lee))
+- Should skip the vendor dir [\#13](https://github.com/digitalocean/droplet-agent/pull/13) ([senorprogrammer](https://github.com/senorprogrammer))
+- Include vendor in git repo [\#12](https://github.com/digitalocean/droplet-agent/pull/12) ([house-lee](https://github.com/house-lee))
+- Fix GNUPG check & Bump up version to 0.4.x [\#11](https://github.com/digitalocean/droplet-agent/pull/11) ([house-lee](https://github.com/house-lee))
+- Update readme with test instructions [\#10](https://github.com/digitalocean/droplet-agent/pull/10) ([senorprogrammer](https://github.com/senorprogrammer))
+- trust gpg public keys for given fingerprints [\#9](https://github.com/digitalocean/droplet-agent/pull/9) ([house-lee](https://github.com/house-lee))
+- Use in-memory lock instead of file lock to prevent keys not being able to update [\#6](https://github.com/digitalocean/droplet-agent/pull/6) ([house-lee](https://github.com/house-lee))
+- Add the specs github action [\#5](https://github.com/digitalocean/droplet-agent/pull/5) ([senorprogrammer](https://github.com/senorprogrammer))
+- Add SPDX short identifier to all source files [\#4](https://github.com/digitalocean/droplet-agent/pull/4) ([senorprogrammer](https://github.com/senorprogrammer))
+- Rename dotty agent to droplet agent [\#3](https://github.com/digitalocean/droplet-agent/pull/3) ([house-lee](https://github.com/house-lee))
+- Update the readme and makefile [\#1](https://github.com/digitalocean/droplet-agent/pull/1) ([senorprogrammer](https://github.com/senorprogrammer))
