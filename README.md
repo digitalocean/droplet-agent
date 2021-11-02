@@ -47,10 +47,10 @@ To build a package, assumed the repo is already cloned, go to the repo directory
 `GOOS=<target OS> GOARCH=<go arch> make build <target package>`
 
 NOTES:
-1. As of now, the only supported <target OS> is Linux
+1. As of now, the only supported `<target OS>` is Linux
 2. Supported GOARCH are `amd64` and `386`
-3. Supported <target package> are `deb`, `rpm` and/or `tar`
-4. Multiple packages can be built at the same time by specifying the <target package> list in space separated format.  
+3. Supported `<target package>` are `deb`, `rpm` and/or `tar`
+4. Multiple packages can be built at the same time by specifying the `<target package>` list in space separated format.  
 For example, `GOOS=linux GOARCH=amd64 make build deb rpm tar` will generate `deb`, `rpm`, and `tar` packages
 5. `systemd` is the preferred way for managing the droplet-agent service. Although `initctl` is also supported, it may 
 not support all features provided by the droplet-agent, and should only be used on older system that does not have 
