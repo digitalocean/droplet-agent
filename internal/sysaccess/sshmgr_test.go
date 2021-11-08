@@ -4,13 +4,14 @@ package sysaccess
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
-
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/golang/mock/gomock"
 )
 
@@ -508,6 +509,178 @@ func TestSSHManager_RemoveExpiredKeys(t *testing.T) {
 			if tt.wantCachedKeys != nil && !reflect.DeepEqual(tt.wantCachedKeys, s.cachedKeys) {
 				t.Errorf("RemoveExpiredKeys() didn't update the cached keys,got = %v, want %v", s.cachedKeys, tt.wantCachedKeys)
 			}
+		})
+	}
+}
+
+func TestSSHManager_WatchSSHDConfig(t *testing.T) {
+	log.Mute()
+
+	sshdCfgFile := "/path/to/sshd_config"
+	newWatcherErr := errors.New("fs-watcher-err")
+	watchFileErr := errors.New("failed-to-watch-file")
+	tests := []struct {
+		name    string
+		prepare func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error)
+		trigger func(evChan chan fsnotify.Event, errChan chan error)
+		assert  func(t *testing.T, s *SSHManager, retChan <-chan bool, err error)
+	}{
+		{
+			"should return error if failed to create new fs watcher",
+			func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error) {
+				sh.EXPECT().sshdConfigFile().Return(sshdCfgFile)
+				sh.EXPECT().newFSWatcher().Return(nil, nil, nil, newWatcherErr)
+			},
+			nil,
+			func(t *testing.T, s *SSHManager, retChan <-chan bool, err error) {
+				if err == nil || !errors.Is(err, newWatcherErr) {
+					t.Errorf("WatchSSHDConfig() unexpected error. want %v, got %v", newWatcherErr, err)
+				}
+			},
+		},
+		{
+			"should quit watcher thread and close returned channel if watcher closed",
+			func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error) {
+				sh.EXPECT().sshdConfigFile().Return(sshdCfgFile)
+				sh.EXPECT().newFSWatcher().Return(w, evChan, errChan, nil)
+				w.EXPECT().Add(sshdCfgFile).Return(nil)
+			},
+			func(evChan chan fsnotify.Event, errChan chan error) {
+				close(evChan)
+			},
+			func(t *testing.T, s *SSHManager, retChan <-chan bool, err error) {
+				if err != nil {
+					t.Errorf("WatchSSHDConfig() unexpected error: %v", err)
+					return
+				}
+				chanClosed := false
+				select {
+				case _, ok := <-retChan:
+					if !ok {
+						chanClosed = true
+					}
+				default:
+
+				}
+				if !chanClosed {
+					t.Errorf("WatchSSHDConfig() did not close the returned channel")
+				}
+				if s.fsWatcher == nil {
+					t.Errorf("WatchSSHDConfig() did not properly save the fsWatcher to SSHManager object")
+				}
+			},
+		},
+		{
+			"should quit watcher thread and close returned channel if watcher error channel closed",
+			func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error) {
+				sh.EXPECT().sshdConfigFile().Return(sshdCfgFile)
+				sh.EXPECT().newFSWatcher().Return(w, evChan, errChan, nil)
+				w.EXPECT().Add(sshdCfgFile).Return(nil)
+			},
+			func(evChan chan fsnotify.Event, errChan chan error) {
+				close(errChan)
+			},
+			func(t *testing.T, s *SSHManager, retChan <-chan bool, err error) {
+				if err != nil {
+					t.Errorf("WatchSSHDConfig() unexpected error: %v", err)
+					return
+				}
+				chanClosed := false
+				select {
+				case _, ok := <-retChan:
+					if !ok {
+						chanClosed = true
+					}
+				default:
+
+				}
+				if !chanClosed {
+					t.Errorf("WatchSSHDConfig() did not close the returned channel")
+				}
+				if s.fsWatcher == nil {
+					t.Errorf("WatchSSHDConfig() did not properly save the fsWatcher to SSHManager object")
+				}
+			},
+		},
+		{
+			"return error if failed to monitor sshd_config",
+			func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error) {
+				sh.EXPECT().sshdConfigFile().Return(sshdCfgFile)
+				sh.EXPECT().newFSWatcher().Return(w, evChan, errChan, nil)
+				w.EXPECT().Add(sshdCfgFile).Return(watchFileErr)
+				w.EXPECT().Close().Return(nil)
+			},
+			nil,
+			func(t *testing.T, s *SSHManager, retChan <-chan bool, err error) {
+				if err == nil || !errors.Is(err, watchFileErr) {
+					t.Errorf("WatchSSHDConfig() unexpected error. want %v, got %v", watchFileErr, err)
+				}
+			},
+		},
+		{
+			"return notify via the returned channel if sshd_config modified",
+			func(sh *MocksshHelper, w *MockfsWatcher, evChan chan fsnotify.Event, errChan chan error) {
+				sh.EXPECT().sshdConfigFile().Return(sshdCfgFile)
+				sh.EXPECT().newFSWatcher().Return(w, evChan, errChan, nil)
+				w.EXPECT().Add(sshdCfgFile).Return(nil)
+
+				sh.EXPECT().sshdCfgModified(w, sshdCfgFile, &fsnotify.Event{
+					Name: sshdCfgFile,
+					Op:   fsnotify.Write,
+				}).Return(true).AnyTimes()
+			},
+			func(evChan chan fsnotify.Event, errChan chan error) {
+				evChan <- fsnotify.Event{
+					Name: sshdCfgFile,
+					Op:   fsnotify.Write,
+				}
+				close(evChan)
+			},
+			func(t *testing.T, s *SSHManager, retChan <-chan bool, err error) {
+				if err != nil {
+					t.Errorf("WatchSSHDConfig() unexpected error: %v", err)
+				}
+				select {
+				case r := <-retChan:
+					if r != true {
+						t.Errorf("WatchSSHDConfig() unexpected result")
+					}
+				default:
+					t.Errorf("WatchSSHDConfig() sshd_config modification not notified")
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+			sshHelperMock := NewMocksshHelper(mockCtl)
+			fsWatcherMock := NewMockfsWatcher(mockCtl)
+			evChan := make(chan fsnotify.Event)
+			errChan := make(chan error)
+
+			if tt.prepare != nil {
+				tt.prepare(sshHelperMock, fsWatcherMock, evChan, errChan)
+			}
+
+			waitWatcherThread := make(chan bool)
+			s := &SSHManager{
+				sshHelper: sshHelperMock,
+				fsWatcherQuitHook: func() {
+					close(waitWatcherThread)
+				},
+			}
+			got, err := s.WatchSSHDConfig()
+			if tt.trigger != nil {
+				go tt.trigger(evChan, errChan)
+			} else {
+				go close(waitWatcherThread)
+			}
+			fmt.Println("foo")
+			<-waitWatcherThread
+			fmt.Println("bar")
+			tt.assert(t, s, got, err)
 		})
 	}
 }

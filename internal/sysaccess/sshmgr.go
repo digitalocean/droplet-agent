@@ -22,6 +22,7 @@ const (
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
 	defaultSSHDPort           = 22
+	fileCheckInterval         = 5 * time.Second
 )
 
 // SSHManager provides functions for managing SSH access
@@ -32,7 +33,9 @@ type SSHManager struct {
 	authorizedKeysFilePattern string // same as the AuthorizedKeysFile in sshd_config, default to %h/.ssh/authorized_keys
 	sshdPort                  int
 
-	sysMgr sysManager
+	sysMgr            sysManager
+	fsWatcher         fsWatcher
+	fsWatcherQuitHook func()
 
 	cachedKeys       map[string][]*SSHKey
 	cachedKeysOpLock sync.Mutex
@@ -153,6 +156,62 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 // SSHDPort returns the port sshd is binding to
 func (s *SSHManager) SSHDPort() int {
 	return s.sshdPort
+}
+
+// WatchSSHDConfig watches if sshd_config is modified,
+// if yes, it will close the returned channel so that all subscribers to that
+// channel will be notified
+func (s *SSHManager) WatchSSHDConfig() (<-chan bool, error) {
+	sshdCfgFile := s.sshdConfigFile()
+	log.Info("[WatchSSHDConfig] watching file: %s", sshdCfgFile)
+	w, evChan, errChan, e := s.newFSWatcher()
+	if e != nil {
+		log.Error("[WatchSSHDConfig] failed to launch watcher: %v", e)
+		return nil, e
+	}
+	ret := make(chan bool, 1)
+	go func() {
+		if s.fsWatcherQuitHook != nil {
+			defer s.fsWatcherQuitHook()
+		}
+		defer close(ret)
+		for {
+			select {
+			case ev, ok := <-evChan:
+				log.Debug("[WatchSSHDConfig] Event received. [%s]", ev.String())
+				if !ok {
+					// watcher closed
+					log.Info("[WatchSSHDConfig] Events channel closed. Watcher quit")
+					return
+				}
+				if s.sshdCfgModified(w, sshdCfgFile, &ev) {
+					ret <- true
+				}
+			case fsErr, ok := <-errChan:
+				if !ok {
+					// watcher closed
+					log.Info("[WatchSSHDConfig] Errors channel closed. Watcher quit")
+					return
+				}
+				log.Error("received fs watcher error: %v", fsErr)
+			}
+		}
+	}()
+	e = w.Add(sshdCfgFile)
+	if e != nil {
+		_ = w.Close()
+		return nil, e
+	}
+	s.fsWatcher = w
+	return ret, nil
+}
+
+// Close properly shutdowns the SSH manager
+func (s *SSHManager) Close() error {
+	if s.fsWatcher != nil {
+		return s.fsWatcher.Close()
+	}
+	return nil
 }
 
 // parseSSHDConfig parses the sshd_config file and retrieves configurations needed by the agent, which are:

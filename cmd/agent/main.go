@@ -46,12 +46,15 @@ func main() {
 	metadataWatcher.RegisterActioner(dottyKeysActioner)
 	infoUpdater := updater.NewAgentInfoUpdater()
 
+	// monitor sshd_config
+	go mustMonitorSSHDConfig(sshMgr)
+
 	// Launch background jobs
 	bgJobsCtx, bgJobsCancel := context.WithCancel(context.Background())
 	go bgJobsRemoveExpiredDOTTYKeys(bgJobsCtx, sshMgr, cfg.AuthorizedKeysCheckInterval)
 
 	// handle shutdown
-	go handleShutdown(bgJobsCancel, metadataWatcher, infoUpdater)
+	go handleShutdown(bgJobsCancel, metadataWatcher, infoUpdater, sshMgr)
 
 	// report agent status and ssh info
 	go updateMetadata(infoUpdater, &metadata.Metadata{
@@ -67,7 +70,7 @@ func main() {
 	}
 }
 
-func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, infoUpdater updater.AgentInfoUpdater) {
+func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, infoUpdater updater.AgentInfoUpdater, sshMgr *sysaccess.SSHManager) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGINT,
@@ -83,6 +86,7 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 		log.Info("[%s] Shutting down", config.AppShortName)
 		bgJobsCancel()
 		metadataWatcher.Shutdown()
+		_ = sshMgr.Close()
 	case syscall.SIGTSTP, syscall.SIGQUIT:
 		log.Info("[%s] Forced to quit! You may lose jobs in progress", config.AppShortName)
 	default:
@@ -114,5 +118,20 @@ func updateMetadata(infoUpdater updater.AgentInfoUpdater, md *metadata.Metadata,
 
 		time.Sleep(sleepTime)
 		log.Error("error updating droplet metadata: %s, retrying", err)
+	}
+}
+
+func mustMonitorSSHDConfig(sshMgr *sysaccess.SSHManager) {
+	cfgChanged, err := sshMgr.WatchSSHDConfig()
+	if err != nil {
+		log.Fatal("Failed to watch for sshd_config changes. error: %v", err)
+	}
+	if _, ok := <-cfgChanged; ok {
+		// change detected, terminate the agent
+		// and the systemd will restart it
+		if err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM); err != nil {
+			log.Debug("Failed to send signal to process")
+			os.Exit(2)
+		}
 	}
 }
