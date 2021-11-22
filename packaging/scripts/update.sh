@@ -14,7 +14,7 @@ LOCAL_VER=""
 
 main() {
   # add some jitter to prevent overloading the remote repo server
-  delay=$(( RANDOM % 3 ))
+  delay=$(( RANDOM % 900 ))
   echo "Waiting ${delay} seconds"
   sleep ${delay}
 
