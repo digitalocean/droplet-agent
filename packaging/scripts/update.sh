@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # vim: noexpandtab
 
 set -ue
@@ -14,20 +14,22 @@ LOCAL_VER=""
 
 main() {
   # add some jitter to prevent overloading the remote repo server
-  delay=$((RANDOM % 900))
+  delay=$(( RANDOM % 3 ))
   echo "Waiting ${delay} seconds"
   sleep ${delay}
 
   check_arch
-  if command -v apt-get 2 &>/dev/null; then
+  if command -v apt-get >/dev/null 2>&1; then
     platform="deb"
     do_update=update_deb
-  elif command -v yum 2 &>/dev/null; then
+  elif command -v yum >/dev/null 2>&1; then
     platform="rpm"
     do_update=update_rpm
+  else
+    not_supported
   fi
   prepare "${platform}"
-  find_latest_pkg
+  find_latest_pkg "${platform}"
   if [ "${LOCAL_VER}" = "${LATEST_VER}" ]; then
     echo "No need to update"
     exit 0
@@ -35,12 +37,14 @@ main() {
   ${do_update}
 }
 update_deb() {
+  echo "Updating ${SVC_NAME} deb package"
   export DEBIAN_FRONTEND="noninteractive"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/${SVC_NAME}.list"
   apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq install -y --only-upgrade ${SVC_NAME}
 }
 
 update_rpm() {
+  echo "Updating ${SVC_NAME} rpm package"
   yum -q -y --disablerepo="*" --enablerepo="${SVC_NAME}" makecache
   yum -q -y update ${SVC_NAME}
 }
@@ -85,8 +89,18 @@ prepare() {
 }
 
 find_latest_pkg() {
+  platform=${1:-}
+  [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <platform>"
+
   echo -n "Checking Latest Version..."
-  repo_tree=$(curl -sSL "${REPO_HOST}" || wget -qO- "${REPO_HOST}")
+  case "${platform}" in
+  rpm)
+    repo_tree=$(curl -sSL "${REPO_HOST}")
+    ;;
+  deb)
+    repo_tree=$(wget -qO- "${REPO_HOST}")
+    ;;
+  esac
   files=$(echo "${repo_tree}" | grep -oP '(?<=Key>'"${PKG_PATTERN}"')[^<]+' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   LATEST_VER=$(echo "${sorted_files}" | tail -1 | grep -oP '\d.\d.\d')
