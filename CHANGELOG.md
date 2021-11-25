@@ -2,6 +2,13 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.1.1](https://github.com/digitalocean/droplet-agent/tree/1.1.1) (2021-11-24)
+### Updated
+- Refactored the update script to consume less CPU when checking for newer version.
+
+### Related PRs
+- refactor update.sh: light-weight check version [\#43](https://github.com/digitalocean/droplet-agent/pull/43) ([house-lee](https://github.com/house-lee))
+
 ## [1.1.0](https://github.com/digitalocean/droplet-agent/tree/1.1.0) (2021-10-28)
 ### Added
 - Support for custom sshd port. If the sshd service is running on a port different from the default one (22), the agent 
