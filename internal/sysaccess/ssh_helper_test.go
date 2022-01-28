@@ -524,6 +524,45 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 			},
 		},
 		{
+			"should not remove DOManaged keys",
+			map[string][]*SSHKey{
+				"user1": {
+					&SSHKey{
+						OSUser:    "user1",
+						PublicKey: "expired-key-1",
+						Type: SSHKeyTypeDOManaged,
+						expireAt:  timeNow.Add(-50 * time.Second),
+					},
+				},
+				"user2": {
+					&SSHKey{
+						OSUser:    "user2",
+						PublicKey: "expired-key-2",
+						Type: SSHKeyTypeDOManaged,
+						expireAt:  timeNow.Add(-50 * time.Second),
+					},
+				},
+			},
+			map[string][]*SSHKey{
+				"user1": {
+					&SSHKey{
+						OSUser:    "user1",
+						PublicKey: "expired-key-1",
+						Type: SSHKeyTypeDOManaged,
+						expireAt:  timeNow.Add(-50 * time.Second),
+					},
+				},
+				"user2": {
+					&SSHKey{
+						OSUser:    "user2",
+						PublicKey: "expired-key-2",
+						Type: SSHKeyTypeDOManaged,
+						expireAt:  timeNow.Add(-50 * time.Second),
+					},
+				},
+			},
+		},
+		{
 			"should remove user if all keys expired",
 			map[string][]*SSHKey{
 				"user1": {

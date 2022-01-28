@@ -80,7 +80,7 @@ func (s *sshHelperImpl) removeExpiredKeys(originalKeys map[string][]*SSHKey) (fi
 		}
 		filteredKeys[user] = make([]*SSHKey, 0, len(keys))
 		for _, k := range keys {
-			if timeNow.After(k.expireAt) {
+			if k.Type == SSHKeyTypeDOTTY && timeNow.After(k.expireAt) {
 				// key already expired
 				continue
 			}
