@@ -96,18 +96,18 @@ func (s *sshHelperImpl) validateKey(k *SSHKey) (err error) {
 	if k.OSUser == "" {
 		k.OSUser = defaultOSUser
 	}
-	defer func() {
-		if err == nil {
-			k.expireAt = s.timeNow().Add(time.Duration(k.TTL) * time.Second)
+	if k.Type == SSHKeyTypeDOTTY {
+		if k.TTL <= 0 {
+			return fmt.Errorf("%w: invalid ttl", ErrInvalidKey)
 		}
-	}()
-	if k.TTL <= 0 {
-		return fmt.Errorf("%w: invalid ttl", ErrInvalidKey)
+		k.expireAt = s.timeNow().Add(time.Duration(k.TTL) * time.Second)
 	}
 	k.PublicKey = strings.Trim(k.PublicKey, " \t\r\n")
-	if _, _, _, _, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey)); e != nil {
+	pubKey, _, _, _, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey))
+	if e != nil {
 		return fmt.Errorf("%w: invalid ssh key: %s-%v", ErrInvalidKey, k.PublicKey, e)
 	}
+	k.fingerprint = ssh.FingerprintSHA256(pubKey)
 	return nil
 }
 
