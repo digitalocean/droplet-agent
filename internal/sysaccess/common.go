@@ -20,6 +20,18 @@ var (
 	ErrInvalidPortNumber             = errors.New("invalid port number")
 )
 
+// SSHKeyType indicates the type of the ssh key.
+// There are 2 types currently:
+// - DOTTY: which is the keys used for web console sessions
+// - DoManaged: which is the ssh keys managed through DigitalOcean
+type SSHKeyType int
+
+// constants for the SSH Key types
+const (
+	SSHKeyTypeDOTTY SSHKeyType = iota
+	SSHKeyTypeDOManaged
+)
+
 // SSHKey contains information of a ssh key operated by DOTTY
 type SSHKey struct {
 	OSUser     string `json:"os_user,omitempty"`
@@ -27,7 +39,10 @@ type SSHKey struct {
 	ActorEmail string `json:"actor_email"`
 	TTL        int    `json:"ttl"` // time to live in seconds
 
-	expireAt time.Time // set once when receiving the key, equals to receivedAt + TTL
+	Type SSHKeyType // key type
+
+	fingerprint string
+	expireAt    time.Time // set once when receiving the key, equals to receivedAt + TTL
 }
 
 type sshKeyInfo struct {

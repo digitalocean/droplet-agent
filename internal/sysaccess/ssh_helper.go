@@ -19,7 +19,7 @@ import (
 type sshHelper interface {
 	sshdConfigFile() string
 	authorizedKeysFile(user *sysutil.User) string
-	prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string
+	prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string
 	removeExpiredKeys(originalKeys map[string][]*SSHKey) (filteredKeys map[string][]*SSHKey)
 	areSameKeys(keys1, keys2 []*SSHKey) bool
 	validateKey(k *SSHKey) error
@@ -48,10 +48,10 @@ func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
 	return filePath
 }
 
-func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string {
+func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
 	ret := make([]string, 0, len(localKeys))
 
-	// First, filter out all dotty keys
+	// First, filter out all DO managed keys
 	for _, line := range localKeys {
 		lineDup := strings.Trim(line, " \t")
 		if lineDup == dottyPrevComment || lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
@@ -59,10 +59,10 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, dottyKeys []*S
 		}
 		ret = append(ret, line)
 	}
-	log.Debug("file will contain: [%d] lines of local keys, and [%d] dotty keys", len(ret), len(dottyKeys))
+	log.Debug("file will contain: [%d] lines of local keys, and [%d] dotty keys", len(ret), len(managedKeys))
 
 	// Then append all dotty keys to the end
-	for _, key := range dottyKeys {
+	for _, key := range managedKeys {
 		ret = append(ret, []string{dottyComment, dottyKeyFmt(key, s.timeNow())}...)
 	}
 	return ret
