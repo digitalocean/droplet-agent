@@ -353,7 +353,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, []*SSHKey{key1}).
 					Return(true)
 
-				updater.EXPECT().updateAuthorizedKeysFile(username2, nil).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(nil)
 			},
 			[]*SSHKey{key1},
 			nil,

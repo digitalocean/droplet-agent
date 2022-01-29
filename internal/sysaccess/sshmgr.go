@@ -147,7 +147,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		if _, ok := keyGroups[user]; !ok {
 			// if keys of a user is deleted
 			log.Debug("removing keys for %s", user)
-			if err := s.updateAuthorizedKeysFile(user, nil); err != nil {
+			if err := s.updateAuthorizedKeysFile(user, []*SSHKey{}); err != nil {
 				return err
 			}
 		}
