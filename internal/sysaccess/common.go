@@ -23,13 +23,13 @@ var (
 // SSHKeyType indicates the type of the ssh key.
 // There are 2 types currently:
 // - DOTTY: which is the keys used for web console sessions
-// - DoManaged: which is the ssh keys managed through DigitalOcean
+// - Droplet: which is the droplet ssh keys managed through DigitalOcean
 type SSHKeyType int
 
 // constants for the SSH Key types
 const (
 	SSHKeyTypeDOTTY SSHKeyType = iota
-	SSHKeyTypeDOManaged
+	SSHKeyTypeDroplet
 )
 
 // SSHKey contains information of a ssh key operated by DOTTY
