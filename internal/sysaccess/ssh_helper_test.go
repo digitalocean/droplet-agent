@@ -91,6 +91,12 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 		ActorEmail: "actor4@email.com",
 		TTL:        1800,
 	}
+	dropletKey1 := &SSHKey{
+		OSUser:      "root",
+		PublicKey:   "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=",
+		Type:        SSHKeyTypeDroplet,
+		fingerprint: "SHA256:w8bUbLGaB7nZg0zJisdljWq7HNMr+VOYXXVQU5nT1AI",
+	}
 	type args struct {
 		localKeys []string
 		dottyKeys []*SSHKey
@@ -101,7 +107,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 		want []string
 	}{
 		{
-			"should leave the localKeys intact if dotty_keys is nil",
+			"should remove all DO managed keys if managedKeys is empty",
 			args{
 				localKeys: []string{
 					"# customer key 1",
@@ -110,11 +116,15 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					"",
 					"",
 					"",
+					dropletKeyComment,
+					dropletKeyFmt(dropletKey1),
+					dottyComment,
+					dottyKeyFmt(exampleKey2, timeNow),
 					"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCnMKX2t5cq+TE+CmpkD7Mbdb3CQE81xGzutwQkr91nz/EDDxOsBfYGUAuHH/7eb+JXno2LiU9sWO3w9/muSsP5zDXoZY9xCUuatvJsMBIUWC7O3uGeE0UJWpdkNpXrbo+IuU/1TsoKnDEMd3o5Etyq5rrotZ0/ap/q4JxkFmJCFpGwGMI5H+MWk0UXbVVDV6jn1YsvFuEZl9ju63AyGGfJU05O1HbW8E5VB0tXbQ2u1tuV8on2uG/3bc2JmRZ9C78kA5FwJUrDU1r41vqHFSFF1oTPHU1SWsSacr8FZ95/u0Hdh+c+FryUlVm8I+rptG9yeTvCKs+AtJv+BdhkZcW47ppMt2g702/gP9MphLVg04XKr6xP4Kj4Z+gjj+HEX5ucs9mkJwigeeoDm8lnydhOHzxdRnImW3E7lksTyQRw+fgzJ8hFcxA5J7G4O7xuypAWp/vmzaOUrwMq741WRMJEwEo0cGL7P8nGw/BQA6h7BWb7VA4mvtOxVkBcolVUQ2FpatBaSkdr2EEvCq5dZddroGi2OaPvEgUe6cl22JA6tv2Ah/k6q5NgR2Qik+jCOKSSUkQrVA6/eGJz3Rt9zf99Ah3hzHPEVpX6IVpKOMZUa66pw+bFLJLonzV2cGu/nQn0KCtI7AcoB+GWyqm1oqRDwzmCwqJRXJJ0PovKrSVHPQ== customer@key2",
 					"# customer key 3",
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
-				dottyKeys: nil,
+				dottyKeys: []*SSHKey{},
 			},
 			[]string{
 				"# customer key 1",
@@ -129,15 +139,37 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 			},
 		},
 		{
-			"should append all dotty keys after the customer's keys",
+			"should keep all existing droplet keys if managedKeys is nil",
+			args{
+				localKeys: []string{
+					"# customer key 1",
+					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
+					dropletKeyComment,
+					dropletKeyFmt(dropletKey1),
+					dottyComment,
+					dottyKeyFmt(exampleKey2, timeNow),
+				},
+				dottyKeys: nil,
+			},
+			[]string{
+				"# customer key 1",
+				"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
+				dropletKeyComment,
+				dropletKeyFmt(dropletKey1),
+			},
+		},
+		{
+			"should append all dotty keys after the customer's keys and properly reformat",
 			args{
 				localKeys: []string{
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
+					dropletKeyFmt(dropletKey1),
 					"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCnMKX2t5cq+TE+CmpkD7Mbdb3CQE81xGzutwQkr91nz/EDDxOsBfYGUAuHH/7eb+JXno2LiU9sWO3w9/muSsP5zDXoZY9xCUuatvJsMBIUWC7O3uGeE0UJWpdkNpXrbo+IuU/1TsoKnDEMd3o5Etyq5rrotZ0/ap/q4JxkFmJCFpGwGMI5H+MWk0UXbVVDV6jn1YsvFuEZl9ju63AyGGfJU05O1HbW8E5VB0tXbQ2u1tuV8on2uG/3bc2JmRZ9C78kA5FwJUrDU1r41vqHFSFF1oTPHU1SWsSacr8FZ95/u0Hdh+c+FryUlVm8I+rptG9yeTvCKs+AtJv+BdhkZcW47ppMt2g702/gP9MphLVg04XKr6xP4Kj4Z+gjj+HEX5ucs9mkJwigeeoDm8lnydhOHzxdRnImW3E7lksTyQRw+fgzJ8hFcxA5J7G4O7xuypAWp/vmzaOUrwMq741WRMJEwEo0cGL7P8nGw/BQA6h7BWb7VA4mvtOxVkBcolVUQ2FpatBaSkdr2EEvCq5dZddroGi2OaPvEgUe6cl22JA6tv2Ah/k6q5NgR2Qik+jCOKSSUkQrVA6/eGJz3Rt9zf99Ah3hzHPEVpX6IVpKOMZUa66pw+bFLJLonzV2cGu/nQn0KCtI7AcoB+GWyqm1oqRDwzmCwqJRXJJ0PovKrSVHPQ== customer@key2",
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
 				dottyKeys: []*SSHKey{
 					exampleKey1,
+					dropletKey1,
 				},
 			},
 			[]string{
@@ -146,6 +178,23 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 				"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				dottyComment,
 				dottyKeyFmt(exampleKey1, timeNow),
+				dropletKeyComment,
+				dropletKeyFmt(dropletKey1),
+			},
+		},
+		{
+			"should recognize droplet keys from existing keys",
+			args{
+				localKeys: []string{
+					dropletKey1.PublicKey + " comment foobar",
+				},
+				dottyKeys: []*SSHKey{
+					dropletKey1,
+				},
+			},
+			[]string{
+				dropletKeyComment,
+				dropletKeyFmt(dropletKey1),
 			},
 		},
 		{
@@ -530,7 +579,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "expired-key-1",
-						Type: SSHKeyTypeDroplet,
+						Type:      SSHKeyTypeDroplet,
 						expireAt:  timeNow.Add(-50 * time.Second),
 					},
 				},
@@ -538,7 +587,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 					&SSHKey{
 						OSUser:    "user2",
 						PublicKey: "expired-key-2",
-						Type: SSHKeyTypeDroplet,
+						Type:      SSHKeyTypeDroplet,
 						expireAt:  timeNow.Add(-50 * time.Second),
 					},
 				},
@@ -548,7 +597,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "expired-key-1",
-						Type: SSHKeyTypeDroplet,
+						Type:      SSHKeyTypeDroplet,
 						expireAt:  timeNow.Add(-50 * time.Second),
 					},
 				},
@@ -556,7 +605,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 					&SSHKey{
 						OSUser:    "user2",
 						PublicKey: "expired-key-2",
-						Type: SSHKeyTypeDroplet,
+						Type:      SSHKeyTypeDroplet,
 						expireAt:  timeNow.Add(-50 * time.Second),
 					},
 				},
@@ -703,12 +752,12 @@ func Test_sshHelperImpl_validateKey(t *testing.T) {
 				TTL:        0,
 			},
 			&SSHKey{
-				OSUser:     "root",
-				PublicKey:  "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=",
-				ActorEmail: "actor@email.com",
-				Type:       SSHKeyTypeDroplet,
+				OSUser:      "root",
+				PublicKey:   "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=",
+				ActorEmail:  "actor@email.com",
+				Type:        SSHKeyTypeDroplet,
 				fingerprint: "SHA256:w8bUbLGaB7nZg0zJisdljWq7HNMr+VOYXXVQU5nT1AI",
-				TTL:        0,
+				TTL:         0,
 			},
 			nil,
 		},
