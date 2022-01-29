@@ -99,7 +99,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 	}
 	type args struct {
 		localKeys []string
-		dottyKeys []*SSHKey
+		managedKeys []*SSHKey
 	}
 	tests := []struct {
 		name string
@@ -124,7 +124,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					"# customer key 3",
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
-				dottyKeys: []*SSHKey{},
+				managedKeys: []*SSHKey{},
 			},
 			[]string{
 				"# customer key 1",
@@ -149,7 +149,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					dottyComment,
 					dottyKeyFmt(exampleKey2, timeNow),
 				},
-				dottyKeys: nil,
+				managedKeys: nil,
 			},
 			[]string{
 				"# customer key 1",
@@ -167,7 +167,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCnMKX2t5cq+TE+CmpkD7Mbdb3CQE81xGzutwQkr91nz/EDDxOsBfYGUAuHH/7eb+JXno2LiU9sWO3w9/muSsP5zDXoZY9xCUuatvJsMBIUWC7O3uGeE0UJWpdkNpXrbo+IuU/1TsoKnDEMd3o5Etyq5rrotZ0/ap/q4JxkFmJCFpGwGMI5H+MWk0UXbVVDV6jn1YsvFuEZl9ju63AyGGfJU05O1HbW8E5VB0tXbQ2u1tuV8on2uG/3bc2JmRZ9C78kA5FwJUrDU1r41vqHFSFF1oTPHU1SWsSacr8FZ95/u0Hdh+c+FryUlVm8I+rptG9yeTvCKs+AtJv+BdhkZcW47ppMt2g702/gP9MphLVg04XKr6xP4Kj4Z+gjj+HEX5ucs9mkJwigeeoDm8lnydhOHzxdRnImW3E7lksTyQRw+fgzJ8hFcxA5J7G4O7xuypAWp/vmzaOUrwMq741WRMJEwEo0cGL7P8nGw/BQA6h7BWb7VA4mvtOxVkBcolVUQ2FpatBaSkdr2EEvCq5dZddroGi2OaPvEgUe6cl22JA6tv2Ah/k6q5NgR2Qik+jCOKSSUkQrVA6/eGJz3Rt9zf99Ah3hzHPEVpX6IVpKOMZUa66pw+bFLJLonzV2cGu/nQn0KCtI7AcoB+GWyqm1oqRDwzmCwqJRXJJ0PovKrSVHPQ== customer@key2",
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
-				dottyKeys: []*SSHKey{
+				managedKeys: []*SSHKey{
 					exampleKey1,
 					dropletKey1,
 				},
@@ -188,7 +188,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 				localKeys: []string{
 					dropletKey1.PublicKey + " comment foobar",
 				},
-				dottyKeys: []*SSHKey{
+				managedKeys: []*SSHKey{
 					dropletKey1,
 				},
 			},
@@ -209,7 +209,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					dottyKeyFmt(exampleKey3, timeNow),
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
-				dottyKeys: []*SSHKey{
+				managedKeys: []*SSHKey{
 					exampleKey1,
 					exampleKey2,
 					exampleKey4,
@@ -242,7 +242,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCnMKX2t5cq+TE+CmpkD7Mbdb3CQE81xGzutwQkr91nz/EDDxOsBfYGUAuHH/7eb+JXno2LiU9sWO3w9/muSsP5zDXoZY9xCUuatvJsMBIUWC7O3uGeE0UJWpdkNpXrbo+IuU/1TsoKnDEMd3o5Etyq5rrotZ0/ap/q4JxkFmJCFpGwGMI5H+MWk0UXbVVDV6jn1YsvFuEZl9ju63AyGGfJU05O1HbW8E5VB0tXbQ2u1tuV8on2uG/3bc2JmRZ9C78kA5FwJUrDU1r41vqHFSFF1oTPHU1SWsSacr8FZ95/u0Hdh+c+FryUlVm8I+rptG9yeTvCKs+AtJv+BdhkZcW47ppMt2g702/gP9MphLVg04XKr6xP4Kj4Z+gjj+HEX5ucs9mkJwigeeoDm8lnydhOHzxdRnImW3E7lksTyQRw+fgzJ8hFcxA5J7G4O7xuypAWp/vmzaOUrwMq741WRMJEwEo0cGL7P8nGw/BQA6h7BWb7VA4mvtOxVkBcolVUQ2FpatBaSkdr2EEvCq5dZddroGi2OaPvEgUe6cl22JA6tv2Ah/k6q5NgR2Qik+jCOKSSUkQrVA6/eGJz3Rt9zf99Ah3hzHPEVpX6IVpKOMZUa66pw+bFLJLonzV2cGu/nQn0KCtI7AcoB+GWyqm1oqRDwzmCwqJRXJJ0PovKrSVHPQ== customer@key2",
 					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDdPvHGQm4OWJd9vDvz405D7BFxhwu09IvnPOf0+e/nrGzWykXJsm9Hy1AdjSM7lgUEleeOQeMZt7EIlZJ8Eou4= customer@key3",
 				},
-				dottyKeys: []*SSHKey{
+				managedKeys: []*SSHKey{
 					exampleKey1,
 					exampleKey2,
 				},
@@ -266,7 +266,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 			"should okay if local keys empty",
 			args{
 				localKeys: nil,
-				dottyKeys: []*SSHKey{
+				managedKeys: []*SSHKey{
 					exampleKey1,
 					exampleKey2,
 					exampleKey3,
@@ -288,7 +288,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 			"should return empty slice if both local keys and dotty are empty",
 			args{
 				localKeys: nil,
-				dottyKeys: nil,
+				managedKeys: nil,
 			},
 			[]string{},
 		},
@@ -300,7 +300,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					return timeNow
 				},
 			}
-			if got := s.prepareAuthorizedKeys(tt.args.localKeys, tt.args.dottyKeys); !reflect.DeepEqual(got, tt.want) {
+			if got := s.prepareAuthorizedKeys(tt.args.localKeys, tt.args.managedKeys); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("prepareAuthorizedKeys() = %v, want %v", got, tt.want)
 			}
 		})
