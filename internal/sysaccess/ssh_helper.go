@@ -48,7 +48,23 @@ func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
 	return filePath
 }
 
+// prepareAuthorizedKeys prepares the authorized keys that will be updated to filesystem
+// NOTE: setting managedKeys to nil or empty slice will result in different behaviors
+// - managedKeys = nil: will result in all temporary keys (keys with a TTL) being removed,
+//   but all permanent DO managed droplet keys will be preserved
+// - managedKeys = []*SSHKey{}: means the droplet no longer has any DO managed keys (neither Droplet Keys nor DoTTY Keys),
+//   therefore, all DigitalOcean managed keys will be removed
 func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
+	managedKeysQuickCheck := make(map[string]bool)
+	keepLocalDropletKeys := false
+	if managedKeys == nil {
+		keepLocalDropletKeys = true
+	} else {
+		for _, k := range managedKeys {
+			managedKeysQuickCheck[k.fingerprint] = true
+		}
+	}
+
 	ret := make([]string, 0, len(localKeys))
 
 	// First, filter out all DO managed keys
@@ -57,13 +73,29 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 		if lineDup == dottyPrevComment || lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
 		}
+		if !keepLocalDropletKeys {
+			if lineDup == dropletKeyComment || strings.HasSuffix(lineDup, dropletKeyIndicator) {
+				continue
+			}
+			if pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(lineDup)); err == nil {
+				// if the line contains a key, check if it should be marked as DOManaged
+				fpt := ssh.FingerprintSHA256(pubKey)
+				if managedKeysQuickCheck[fpt] {
+					continue
+				}
+			}
+		}
 		ret = append(ret, line)
 	}
-	log.Debug("file will contain: [%d] lines of local keys, and [%d] dotty keys", len(ret), len(managedKeys))
+	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys", len(ret), len(managedKeys))
 
-	// Then append all dotty keys to the end
+	// Then append all managed keys to the end
 	for _, key := range managedKeys {
-		ret = append(ret, []string{dottyComment, dottyKeyFmt(key, s.timeNow())}...)
+		if key.Type == SSHKeyTypeDOTTY {
+			ret = append(ret, []string{dottyComment, dottyKeyFmt(key, s.timeNow())}...)
+		} else {
+			ret = append(ret, []string{dropletKeyComment, dropletKeyFmt(key)}...)
+		}
 	}
 	return ret
 }
@@ -188,4 +220,8 @@ func dottyKeyFmt(key *SSHKey, now time.Time) string {
 	}
 	keyComment, _ := json.Marshal(info)
 	return fmt.Sprintf("%s %s-%s", key.PublicKey, string(keyComment), dottyKeyIndicator)
+}
+
+func dropletKeyFmt(key *SSHKey) string {
+	return fmt.Sprintf("%s -%s", key.PublicKey, dropletKeyIndicator)
 }

@@ -81,17 +81,17 @@ func (mr *MocksshHelperMockRecorder) newFSWatcher() *gomock.Call {
 }
 
 // prepareAuthorizedKeys mocks base method.
-func (m *MocksshHelper) prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string {
+func (m *MocksshHelper) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "prepareAuthorizedKeys", localKeys, dottyKeys)
+	ret := m.ctrl.Call(m, "prepareAuthorizedKeys", localKeys, managedKeys)
 	ret0, _ := ret[0].([]string)
 	return ret0
 }
 
 // prepareAuthorizedKeys indicates an expected call of prepareAuthorizedKeys.
-func (mr *MocksshHelperMockRecorder) prepareAuthorizedKeys(localKeys, dottyKeys interface{}) *gomock.Call {
+func (mr *MocksshHelperMockRecorder) prepareAuthorizedKeys(localKeys, managedKeys interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "prepareAuthorizedKeys", reflect.TypeOf((*MocksshHelper)(nil).prepareAuthorizedKeys), localKeys, dottyKeys)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "prepareAuthorizedKeys", reflect.TypeOf((*MocksshHelper)(nil).prepareAuthorizedKeys), localKeys, managedKeys)
 }
 
 // removeExpiredKeys mocks base method.
