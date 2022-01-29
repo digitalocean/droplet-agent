@@ -19,8 +19,8 @@ const (
 	defaultAuthorizedKeysFile = "%h/.ssh/authorized_keys"
 	dottyPrevComment          = "# Added and Managed by DigitalOcean TTY service (DOTTY)" // for backward compatibility
 	dottyComment              = "# Added and Managed by " + config.AppFullName
-	dropletKeyComment          = "# Managed through DigitalOcean"
-	dropletKeyIndicator     = "do_managed_key"
+	dropletKeyComment         = "# Managed through DigitalOcean"
+	dropletKeyIndicator       = "do_managed_key"
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
 	defaultSSHDPort           = 22
