@@ -113,7 +113,9 @@ func (s *SSHManager) RemoveExpiredKeys() (err error) {
 func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	s.cachedKeysOpLock.Lock() // this lock may be too aggressive and can be possibly refined
 	defer s.cachedKeysOpLock.Unlock()
-
+	if keys == nil {
+		return ErrInvalidArgs
+	}
 	keyGroups := make(map[string][]*SSHKey) // group the keys by os user
 	for _, key := range keys {
 		if err := s.validateKey(key); err != nil {

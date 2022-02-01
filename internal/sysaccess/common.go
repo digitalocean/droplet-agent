@@ -18,6 +18,7 @@ var (
 	ErrReadAuthorizedKeysFileFailed  = errors.New("failed to read authorized_keys file")
 	ErrWriteAuthorizedKeysFileFailed = errors.New("failed to write authorized_keys file")
 	ErrInvalidPortNumber             = errors.New("invalid port number")
+	ErrInvalidArgs                   = errors.New("invalid arguments")
 )
 
 // SSHKeyType indicates the type of the ssh key.
