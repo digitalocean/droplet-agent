@@ -62,7 +62,7 @@ func (o *osOperatorImpl) getpwnam(username string) (*User, error) {
 			return entry, nil
 		}
 	}
-	return nil, fmt.Errorf("%w: user %s not found", ErrGetUserFailed, username)
+	return nil, fmt.Errorf("%w: user %s not found", ErrUserNotFound, username)
 }
 
 func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
