@@ -5,6 +5,7 @@ package sysaccess
 import (
 	"errors"
 	"fmt"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 	"reflect"
 	"testing"
 
@@ -262,6 +263,12 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		PublicKey: "public-key-22",
 		TTL:       123,
 	}
+	username3 := "user3"
+	key31 := &SSHKey{
+		OSUser:    username3,
+		PublicKey: "public-key-31",
+		Type: SSHKeyTypeDroplet,
+	}
 
 	invalidKeyErr := errors.New("invalid-key")
 	failedUpdateErr := errors.New("failed-update")
@@ -273,6 +280,13 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		wantErr        error
 		wantCachedKeys map[string][]*SSHKey
 	}{
+		{
+			"should return error if keys is nil",
+			nil,
+			nil,
+			ErrInvalidArgs,
+			nil,
+		},
 		{
 			"should removed expired keys from the cached keys before proceeding and return error when any of the key is invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
@@ -321,6 +335,24 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			},
 		},
 		{
+			"should proceed if failed to update key due to user not exist",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				sshMgr.cachedKeys = map[string][]*SSHKey{}
+				sshHpr.EXPECT().validateKey(key11).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, sshMgr.cachedKeys[username1]).Return(false)
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(sysutil.ErrUserNotFound)
+				sshHpr.EXPECT().validateKey(key21).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21}, sshMgr.cachedKeys[username2]).Return(false)
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{key21}).Return(nil)
+			},
+			[]*SSHKey{key11, key21},
+			nil,
+			map[string][]*SSHKey{
+				username1: {key11},
+				username2: {key21},
+			},
+		},
+		{
 			"should work if metadata returned keys for a new user",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
 				sshMgr.cachedKeys = map[string][]*SSHKey{
@@ -354,6 +386,27 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 					Return(true)
 
 				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(nil)
+			},
+			[]*SSHKey{key1},
+			nil,
+			map[string][]*SSHKey{
+				username1: {key1},
+			},
+		},
+		{
+			"should proceed if encountered user not found error when removing keys for an user",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				sshMgr.cachedKeys = map[string][]*SSHKey{
+					username1: {key1},
+					username2: {key21, key22},
+					username3: {key31},
+				}
+				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, []*SSHKey{key1}).
+					Return(true)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(sysutil.ErrUserNotFound)
+				updater.EXPECT().updateAuthorizedKeysFile(username3, []*SSHKey{}).Return(nil)
 			},
 			[]*SSHKey{key1},
 			nil,

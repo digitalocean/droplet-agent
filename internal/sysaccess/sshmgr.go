@@ -3,6 +3,7 @@
 package sysaccess
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -140,6 +141,10 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
 		if err := s.updateAuthorizedKeysFile(username, keys); err != nil {
+			if errors.Is(err, sysutil.ErrUserNotFound) {
+				log.Error("os user [%s] does not exist", username)
+				continue
+			}
 			return err
 		}
 	}
@@ -150,7 +155,11 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 			// if keys of a user is deleted
 			log.Debug("removing keys for %s", user)
 			if err := s.updateAuthorizedKeysFile(user, []*SSHKey{}); err != nil {
-				return err
+				if errors.Is(err, sysutil.ErrUserNotFound) {
+					log.Info("os user [%s] no longer exists", user)
+					continue
+				}
+				return fmt.Errorf("%w: failed to remove keys for user %s",err, user)
 			}
 		}
 	}
