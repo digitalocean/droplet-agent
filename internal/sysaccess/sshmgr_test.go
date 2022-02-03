@@ -4,7 +4,6 @@ package sysaccess
 
 import (
 	"errors"
-	"fmt"
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 	"reflect"
 	"testing"
@@ -730,15 +729,14 @@ func TestSSHManager_WatchSSHDConfig(t *testing.T) {
 			} else {
 				go close(waitWatcherThread)
 			}
-			fmt.Println("foo")
 			<-waitWatcherThread
-			fmt.Println("bar")
 			tt.assert(t, s, got, err)
 		})
 	}
 }
 
 func TestSSHManager_RemoveDoTTYKeys(t *testing.T) {
+	log.Mute()
 	user1 := "user1"
 	user2 := "user2"
 	user3 := "user3"
@@ -771,7 +769,7 @@ func TestSSHManager_RemoveDoTTYKeys(t *testing.T) {
 				user2: {key21},
 			},
 			func(updater *MockauthorizedKeysFileUpdater) {
-				updater.EXPECT().updateAuthorizedKeysFile(user1, nil).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(user1, nil).Return(nil).MaxTimes(1)
 				updater.EXPECT().updateAuthorizedKeysFile(user2, nil).Return(updateErr)
 			},
 			updateErr,
