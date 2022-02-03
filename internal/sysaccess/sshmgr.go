@@ -166,6 +166,24 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	return nil
 }
 
+// RemoveDoTTYKeys removes all dotty keys from the droplet
+// When the agent exit, all temporary keys managed through DigitalOcean must be cleaned up
+// to avoid leaving stale expired keys in the system
+func (s *SSHManager) RemoveDoTTYKeys() error {
+	s.cachedKeysOpLock.Lock()
+	defer s.cachedKeysOpLock.Unlock()
+	for user := range s.cachedKeys {
+		if err := s.updateAuthorizedKeysFile(user, nil); err != nil {
+			if errors.Is(err, sysutil.ErrUserNotFound) {
+				log.Info("os user [%s] no longer exists", user)
+				continue
+			}
+			return fmt.Errorf("%w: failed to remove keys for user %s",err, user)
+		}
+	}
+	return nil
+}
+
 // SSHDPort returns the port sshd is binding to
 func (s *SSHManager) SSHDPort() int {
 	return s.sshdPort

@@ -21,6 +21,7 @@ func NewDOTTYKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
 
 type sshManager interface {
 	UpdateKeys(keys []*sysaccess.SSHKey) (retErr error)
+	RemoveDoTTYKeys() error
 }
 
 type dottyKeysActioner struct {
@@ -73,6 +74,6 @@ func (da *dottyKeysActioner) Shutdown() {
 	// 2. agent restarted, but all keys for user B are already removed from metadata
 	//    therefore, it will not appear in the response of metadata query,
 	//    and agent will leave some garbage keys in user B's authorized_keys file.
-	_ = da.sshMgr.UpdateKeys(nil)
+	_ = da.sshMgr.RemoveDoTTYKeys()
 	log.Info("[DOTTY Keys Actioner] Bye-bye")
 }
