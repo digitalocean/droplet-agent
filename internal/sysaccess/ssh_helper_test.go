@@ -97,8 +97,14 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 		Type:        SSHKeyTypeDroplet,
 		fingerprint: "SHA256:w8bUbLGaB7nZg0zJisdljWq7HNMr+VOYXXVQU5nT1AI",
 	}
+	dropletKey2 := &SSHKey{
+		OSUser:      "root",
+		PublicKey:   "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFWs0vUPi/q2dscBE5yzycy98ZSzs7kas5gNGrM62HGMUqM1lpO3nHbXqeBz/erOaPSoEk7TpR5wWMKYi6Yu3+Y=",
+		Type:        SSHKeyTypeDroplet,
+		fingerprint: "SHA256:8PEHs4nUAyUcVM6Fc6SVdaRhi6F55PiVFuh7oPH0Mgk",
+	}
 	type args struct {
-		localKeys []string
+		localKeys   []string
 		managedKeys []*SSHKey
 	}
 	tests := []struct {
@@ -148,6 +154,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 					dropletKeyFmt(dropletKey1),
 					dottyComment,
 					dottyKeyFmt(exampleKey2, timeNow),
+					dropletKey2.PublicKey,
 				},
 				managedKeys: nil,
 			},
@@ -156,6 +163,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 				"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
 				dropletKeyComment,
 				dropletKeyFmt(dropletKey1),
+				dropletKey2.PublicKey,
 			},
 		},
 		{
@@ -228,6 +236,25 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 			},
 		},
 		{
+			"should remove droplet keys that are not in the given list",
+			args{
+				localKeys: []string{
+					"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
+					dropletKeyComment,
+					dropletKeyFmt(dropletKey1),
+					dropletKey2.PublicKey,
+				},
+				managedKeys: []*SSHKey{
+					dropletKey2,
+				},
+			},
+			[]string{
+				"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHeAQeGsd93e5G41zQ3/N1rQ9OT5cj5xLwD0q7sf6fLFdMiDdxVIRFt/Qv+dCvvvZ3xO+Ers7aemTnEivfJSadU= customer@key1",
+				dropletKeyComment,
+				dropletKeyFmt(dropletKey2),
+			},
+		},
+		{
 			"should properly handle comments and empty lines",
 			args{
 				localKeys: []string{
@@ -287,7 +314,7 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 		{
 			"should return empty slice if both local keys and dotty are empty",
 			args{
-				localKeys: nil,
+				localKeys:   nil,
 				managedKeys: nil,
 			},
 			[]string{},
