@@ -73,7 +73,7 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 			sshMgrMock := mocks.NewMocksshManager(mockCtl)
 
 			tt.prepare(sshMgrMock)
-			da := &dottyKeysActioner{
+			da := &doManagedKeysActioner{
 				sshMgr: sshMgrMock,
 			}
 			da.do(tt.metadata)

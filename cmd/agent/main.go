@@ -41,9 +41,9 @@ func main() {
 		log.Fatal("failed to initialize SSHManager: %v", err)
 	}
 
-	dottyKeysActioner := actioner.NewDOTTYKeysActioner(sshMgr)
+	doManagedKeysActioner := actioner.NewDOManagedKeysActioner(sshMgr)
 	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
-	metadataWatcher.RegisterActioner(dottyKeysActioner)
+	metadataWatcher.RegisterActioner(doManagedKeysActioner)
 	infoUpdater := updater.NewAgentInfoUpdater()
 
 	// monitor sshd_config

@@ -11,9 +11,9 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
-// NewDOTTYKeysActioner returns a new DOTTY keys actioner
-func NewDOTTYKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
-	return &dottyKeysActioner{
+// NewDOManagedKeysActioner returns a new DigitalOcean Managed keys actioner
+func NewDOManagedKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
+	return &doManagedKeysActioner{
 		sshMgr:  sshMgr,
 		allDone: make(chan struct{}, 1),
 	}
@@ -24,32 +24,32 @@ type sshManager interface {
 	RemoveDoTTYKeys() error
 }
 
-type dottyKeysActioner struct {
+type doManagedKeysActioner struct {
 	sshMgr        sshManager
 	activeActions int32
 	closing       uint32
 	allDone       chan struct{}
 }
 
-func (da *dottyKeysActioner) do(metadata *metadata.Metadata) {
-	log.Info("[DOTTY-Keys Actioner] Attempting to update %d keys", len(metadata.DOTTYKeys))
+func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
+	log.Info("[DO-Managed Keys Actioner] Attempting to update %d keys", len(metadata.DOTTYKeys))
 	sshKeys := make([]*sysaccess.SSHKey, 0, len(metadata.DOTTYKeys))
 	for _, kRaw := range metadata.DOTTYKeys {
 		key := &sysaccess.SSHKey{}
 		if err := json.Unmarshal([]byte(kRaw), key); err != nil {
-			log.Error("[DOTTY-Keys Actioner] invalid ssh key object. %v", err)
+			log.Error("[DO-Managed Keys Actioner] invalid ssh key object. %v", err)
 			continue
 		}
 		sshKeys = append(sshKeys, key)
 	}
 	if err := da.sshMgr.UpdateKeys(sshKeys); err != nil {
-		log.Error("[DOTTY-Keys Actioner] failed to update keys: %v", err)
+		log.Error("[DO-Managed Keys Actioner] failed to update keys: %v", err)
 		return
 	}
-	log.Info("[DOTTY-Keys Actioner] Keys updated")
+	log.Info("[DO-Managed Keys Actioner] Keys updated")
 }
 
-func (da *dottyKeysActioner) Do(metadata *metadata.Metadata) {
+func (da *doManagedKeysActioner) Do(metadata *metadata.Metadata) {
 	atomic.AddInt32(&da.activeActions, 1)
 	defer func() {
 		ret := atomic.AddInt32(&da.activeActions, -1)
@@ -59,7 +59,7 @@ func (da *dottyKeysActioner) Do(metadata *metadata.Metadata) {
 	}()
 	da.do(metadata)
 }
-func (da *dottyKeysActioner) Shutdown() {
+func (da *doManagedKeysActioner) Shutdown() {
 	log.Info("[DOTTY Keys Actioner] Shutting down")
 	atomic.StoreUint32(&da.closing, 1)
 	if atomic.LoadInt32(&da.activeActions) != 0 {
