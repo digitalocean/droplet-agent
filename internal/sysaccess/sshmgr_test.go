@@ -267,7 +267,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 	key31 := &SSHKey{
 		OSUser:    username3,
 		PublicKey: "public-key-31",
-		Type: SSHKeyTypeDroplet,
+		Type:      SSHKeyTypeDroplet,
 	}
 
 	invalidKeyErr := errors.New("invalid-key")
@@ -734,6 +734,79 @@ func TestSSHManager_WatchSSHDConfig(t *testing.T) {
 			<-waitWatcherThread
 			fmt.Println("bar")
 			tt.assert(t, s, got, err)
+		})
+	}
+}
+
+func TestSSHManager_RemoveDoTTYKeys(t *testing.T) {
+	user1 := "user1"
+	user2 := "user2"
+	user3 := "user3"
+	key11 := &SSHKey{
+		OSUser:    user1,
+		PublicKey: "public-key-11",
+		TTL:       123,
+	}
+	key21 := &SSHKey{
+		OSUser:    user2,
+		PublicKey: "public-key-21",
+		Type:      SSHKeyTypeDroplet,
+	}
+	key31 := &SSHKey{
+		OSUser:    user3,
+		PublicKey: "public-key-31",
+		Type:      SSHKeyTypeDroplet,
+	}
+	updateErr := errors.New("update-failed")
+	tests := []struct {
+		name       string
+		cachedKeys map[string][]*SSHKey
+		prepare    func(updater *MockauthorizedKeysFileUpdater)
+		wantErr    error
+	}{
+		{
+			"should return error if failed to update authorized_keys file",
+			map[string][]*SSHKey{
+				user1: {key11},
+				user2: {key21},
+			},
+			func(updater *MockauthorizedKeysFileUpdater) {
+				updater.EXPECT().updateAuthorizedKeysFile(user1, nil).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(user2, nil).Return(updateErr)
+			},
+			updateErr,
+		},
+		{
+			"should proceed if update encountered user not found error",
+			map[string][]*SSHKey{
+				user1: {key11},
+				user2: {key21},
+				user3: {key31},
+			},
+			func(updater *MockauthorizedKeysFileUpdater) {
+				updater.EXPECT().updateAuthorizedKeysFile(user1, nil).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(user2, nil).Return(sysutil.ErrUserNotFound)
+				updater.EXPECT().updateAuthorizedKeysFile(user3, nil).Return(nil)
+			},
+			nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+			updaterMock := NewMockauthorizedKeysFileUpdater(mockCtl)
+
+			s := &SSHManager{
+				authorizedKeysFileUpdater: updaterMock,
+				cachedKeys:                tt.cachedKeys,
+			}
+			if tt.prepare != nil {
+				tt.prepare(updaterMock)
+			}
+			if err := s.RemoveDoTTYKeys(); err != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("RemoveDoTTYKeys() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

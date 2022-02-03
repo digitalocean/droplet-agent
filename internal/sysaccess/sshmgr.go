@@ -159,7 +159,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 					log.Info("os user [%s] no longer exists", user)
 					continue
 				}
-				return fmt.Errorf("%w: failed to remove keys for user %s",err, user)
+				return fmt.Errorf("%w: failed to remove keys for user %s", err, user)
 			}
 		}
 	}
@@ -178,7 +178,7 @@ func (s *SSHManager) RemoveDoTTYKeys() error {
 				log.Info("os user [%s] no longer exists", user)
 				continue
 			}
-			return fmt.Errorf("%w: failed to remove keys for user %s",err, user)
+			return fmt.Errorf("%w: failed to remove keys for user %s", err, user)
 		}
 	}
 	return nil
