@@ -72,24 +72,28 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 		PublicKey:  "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=",
 		ActorEmail: "actor@email.com",
 		TTL:        50,
+		Type: SSHKeyTypeDOTTY,
 	}
 	exampleKey2 := &SSHKey{
 		OSUser:     "user2",
 		PublicKey:  "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHkfoI1jkzV53geVZ9IMvVA6uyMlYwDkHJw04LMDWuFgAsA/hiLcoRPW2T4/1b6YPLyBwbgjZXwZ31MyLWhKbLI=",
 		ActorEmail: "actor2@email.com",
 		TTL:        1800,
+		Type: SSHKeyTypeDOTTY,
 	}
 	exampleKey3 := &SSHKey{
 		OSUser:     "user3",
 		PublicKey:  "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHzeZZbcsOfu8hWB/OVntUCLZ1EWMiOU6BysslJIxe1mSnQzEjQBaMY/eK3vjipVIaktLLJ3FNCCXlFCPWFYkrs=",
 		ActorEmail: "actor3@email.com",
 		TTL:        1800,
+		Type: SSHKeyTypeDOTTY,
 	}
 	exampleKey4 := &SSHKey{
 		OSUser:     "user4",
 		PublicKey:  "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGpEBNmbOenW9wV5YM+HCR4Hc00IXM1NxW0/4Qkx9bZvKoFbFA0Vv9yLaFP7asvqXSPe7UnNwe9rXKDS4wlTXmI= \n",
 		ActorEmail: "actor4@email.com",
 		TTL:        1800,
+		Type: SSHKeyTypeDOTTY,
 	}
 	dropletKey1 := &SSHKey{
 		OSUser:      "root",
@@ -552,16 +556,19 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user1",
 						PublicKey: "valid-key-1",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "expired-key-2",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "valid-key-3",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 				"user2": {
@@ -569,11 +576,13 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "expired-key-1",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
@@ -583,11 +592,13 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user1",
 						PublicKey: "valid-key-1",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "valid-key-3",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 				"user2": {
@@ -595,6 +606,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
@@ -646,16 +658,19 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user1",
 						PublicKey: "expired-key-1",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "expired-key-2",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user1",
 						PublicKey: "expired-key-3",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 				"user2": {
@@ -663,11 +678,13 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "expired-key-1",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
@@ -677,6 +694,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
@@ -690,11 +708,13 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "expired-key-1",
 						expireAt:  timeNow.Add(-50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 					&SSHKey{
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
@@ -704,6 +724,7 @@ func Test_sshHelperImpl_removeExpiredKeys(t *testing.T) {
 						OSUser:    "user2",
 						PublicKey: "valid-key-2",
 						expireAt:  timeNow.Add(50 * time.Second),
+						Type: SSHKeyTypeDOTTY,
 					},
 				},
 			},
