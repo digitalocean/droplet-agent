@@ -77,14 +77,14 @@ func (da *doManagedKeysActioner) Do(metadata *metadata.Metadata) {
 	da.do(metadata)
 }
 func (da *doManagedKeysActioner) Shutdown() {
-	log.Info("[DOTTY Keys Actioner] Shutting down")
+	log.Info("[DO-Managed Keys Actioner] Shutting down")
 	atomic.StoreUint32(&da.closing, 1)
 	if atomic.LoadInt32(&da.activeActions) != 0 {
 		// if there are still jobs in progress, wait for them to finish
-		log.Debug("[DOTTY Keys Actioner] Waiting for jobs in progress")
+		log.Debug("[DO-Managed Keys Actioner] Waiting for jobs in progress")
 		<-da.allDone
 	}
-	log.Debug("[DOTTY Keys Actioner] Clearing dotty keys from filesystem")
+	log.Debug("[DO-Managed Keys Actioner] Clearing dotty keys from filesystem")
 	// clear all agent managed keys
 	// this is for resolving the bug that:
 	// 1. agent started, and installed keys for user A and B
@@ -92,5 +92,5 @@ func (da *doManagedKeysActioner) Shutdown() {
 	//    therefore, it will not appear in the response of metadata query,
 	//    and agent will leave some garbage keys in user B's authorized_keys file.
 	_ = da.sshMgr.RemoveDoTTYKeys()
-	log.Info("[DOTTY Keys Actioner] Bye-bye")
+	log.Info("[DO-Managed Keys Actioner] Bye-bye")
 }
