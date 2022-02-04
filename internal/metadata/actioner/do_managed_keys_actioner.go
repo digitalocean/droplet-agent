@@ -3,7 +3,6 @@
 package actioner
 
 import (
-	"encoding/json"
 	"sync/atomic"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
@@ -14,8 +13,9 @@ import (
 // NewDOManagedKeysActioner returns a new DigitalOcean Managed keys actioner
 func NewDOManagedKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
 	return &doManagedKeysActioner{
-		sshMgr:  sshMgr,
-		allDone: make(chan struct{}, 1),
+		sshMgr:    sshMgr,
+		keyParser: metadata.NewSSHKeyParser(),
+		allDone:   make(chan struct{}, 1),
 	}
 }
 
@@ -24,24 +24,41 @@ type sshManager interface {
 	RemoveDoTTYKeys() error
 }
 
+type sshKeyParser interface {
+	FromPublicKey(key string) (*sysaccess.SSHKey, error)
+	FromDOTTYKey(key string) (*sysaccess.SSHKey, error)
+}
+
 type doManagedKeysActioner struct {
 	sshMgr        sshManager
+	keyParser     sshKeyParser
 	activeActions int32
 	closing       uint32
 	allDone       chan struct{}
 }
 
 func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
-	log.Info("[DO-Managed Keys Actioner] Attempting to update %d keys", len(metadata.DOTTYKeys))
-	sshKeys := make([]*sysaccess.SSHKey, 0, len(metadata.DOTTYKeys))
-	for _, kRaw := range metadata.DOTTYKeys {
-		key := &sysaccess.SSHKey{}
-		if err := json.Unmarshal([]byte(kRaw), key); err != nil {
-			log.Error("[DO-Managed Keys Actioner] invalid ssh key object. %v", err)
+	log.Info("[DO-Managed Keys Actioner] Attempting to update %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
+	sshKeys := make([]*sysaccess.SSHKey, 0, len(metadata.PublicKeys)+len(metadata.DOTTYKeys))
+	// prepare ssh keys
+	for _, kRaw := range metadata.PublicKeys {
+		k, e := da.keyParser.FromPublicKey(kRaw)
+		if e != nil {
+			log.Error("[DO-Managed Keys Actioner] invalid public key object. %v", e)
 			continue
 		}
-		sshKeys = append(sshKeys, key)
+		sshKeys = append(sshKeys, k)
 	}
+	// prepare dotty keys
+	for _, kRaw := range metadata.DOTTYKeys {
+		k, e := da.keyParser.FromDOTTYKey(kRaw)
+		if e != nil {
+			log.Error("[DO-Managed Keys Actioner] invalid ssh key object. %v", e)
+			continue
+		}
+		sshKeys = append(sshKeys, k)
+	}
+	log.Info("[DO-Managed Keys Actioner] Updating %d keys", len(sshKeys))
 	if err := da.sshMgr.UpdateKeys(sshKeys); err != nil {
 		log.Error("[DO-Managed Keys Actioner] failed to update keys: %v", err)
 		return

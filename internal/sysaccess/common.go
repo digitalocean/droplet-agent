@@ -40,7 +40,7 @@ type SSHKey struct {
 	ActorEmail string `json:"actor_email"`
 	TTL        int    `json:"ttl"` // time to live in seconds
 
-	Type SSHKeyType // key type
+	Type SSHKeyType `json:"-"` // key type
 
 	fingerprint string
 	expireAt    time.Time // set once when receiving the key, equals to receivedAt + TTL
