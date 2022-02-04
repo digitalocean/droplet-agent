@@ -141,7 +141,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
 		if err := s.updateAuthorizedKeysFile(username, keys); err != nil {
-			// TODO: maybe we should always process regardless the returned error
+			// TODO: maybe we should always proceed regardless the returned error
 			if errors.Is(err, sysutil.ErrUserNotFound) {
 				log.Error("os user [%s] does not exist", username)
 				continue
@@ -156,7 +156,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 			// if keys of a user is deleted
 			log.Debug("removing keys for %s", user)
 			if err := s.updateAuthorizedKeysFile(user, []*SSHKey{}); err != nil {
-				// TODO: maybe we should always process regardless the returned error
+				// TODO: maybe we should always proceed regardless the returned error
 				if errors.Is(err, sysutil.ErrUserNotFound) {
 					log.Info("os user [%s] no longer exists", user)
 					continue
