@@ -92,7 +92,7 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 	// Then append all managed keys to the end
 	for _, key := range managedKeys {
 		if key.Type == SSHKeyTypeDOTTY {
-			ret = append(ret, []string{dottyComment, dottyKeyFmt(key, s.timeNow())}...)
+			ret = append(ret, []string{dottyComment, dottyKeyFmt(key)}...)
 		} else {
 			ret = append(ret, []string{dropletKeyComment, dropletKeyFmt(key)}...)
 		}
@@ -212,11 +212,11 @@ func (s *sshHelperImpl) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsn
 	return false
 }
 
-func dottyKeyFmt(key *SSHKey, now time.Time) string {
+func dottyKeyFmt(key *SSHKey) string {
 	info := &sshKeyInfo{
 		OSUser:     key.OSUser,
 		ActorEmail: key.ActorEmail,
-		ExpireAt:   now.Add(time.Second * time.Duration(key.TTL)).Format(time.RFC3339),
+		ExpireAt:   key.expireAt.Format(time.RFC3339),
 	}
 	keyComment, _ := json.Marshal(info)
 	return fmt.Sprintf("%s %s-%s", key.PublicKey, string(keyComment), dottyKeyIndicator)
