@@ -168,10 +168,10 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	return nil
 }
 
-// RemoveDoTTYKeys removes all dotty keys from the droplet
+// RemoveDOTTYKeys removes all dotty keys from the droplet
 // When the agent exit, all temporary keys managed through DigitalOcean must be cleaned up
 // to avoid leaving stale expired keys in the system
-func (s *SSHManager) RemoveDoTTYKeys() error {
+func (s *SSHManager) RemoveDOTTYKeys() error {
 	s.cachedKeysOpLock.Lock()
 	defer s.cachedKeysOpLock.Unlock()
 	for user := range s.cachedKeys {

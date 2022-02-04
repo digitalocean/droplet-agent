@@ -34,18 +34,18 @@ func (m *MocksshManager) EXPECT() *MocksshManagerMockRecorder {
 	return m.recorder
 }
 
-// RemoveDoTTYKeys mocks base method.
-func (m *MocksshManager) RemoveDoTTYKeys() error {
+// RemoveDOTTYKeys mocks base method.
+func (m *MocksshManager) RemoveDOTTYKeys() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveDoTTYKeys")
+	ret := m.ctrl.Call(m, "RemoveDOTTYKeys")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// RemoveDoTTYKeys indicates an expected call of RemoveDoTTYKeys.
-func (mr *MocksshManagerMockRecorder) RemoveDoTTYKeys() *gomock.Call {
+// RemoveDOTTYKeys indicates an expected call of RemoveDOTTYKeys.
+func (mr *MocksshManagerMockRecorder) RemoveDOTTYKeys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDoTTYKeys", reflect.TypeOf((*MocksshManager)(nil).RemoveDoTTYKeys))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDOTTYKeys", reflect.TypeOf((*MocksshManager)(nil).RemoveDOTTYKeys))
 }
 
 // UpdateKeys mocks base method.

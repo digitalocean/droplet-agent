@@ -5,7 +5,7 @@ package config
 import "time"
 
 const (
-	AppFullName  = "DigitalOcean Droplet Agent (code name: DoTTY)"
+	AppFullName  = "DigitalOcean Droplet Agent (code name: DOTTY)"
 	AppShortName = "Droplet Agent"
 )
 

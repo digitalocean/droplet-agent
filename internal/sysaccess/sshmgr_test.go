@@ -735,7 +735,7 @@ func TestSSHManager_WatchSSHDConfig(t *testing.T) {
 	}
 }
 
-func TestSSHManager_RemoveDoTTYKeys(t *testing.T) {
+func TestSSHManager_RemoveDOTTYKeys(t *testing.T) {
 	log.Mute()
 	user1 := "user1"
 	user2 := "user2"
@@ -802,8 +802,8 @@ func TestSSHManager_RemoveDoTTYKeys(t *testing.T) {
 			if tt.prepare != nil {
 				tt.prepare(updaterMock)
 			}
-			if err := s.RemoveDoTTYKeys(); err != nil && !errors.Is(err, tt.wantErr) {
-				t.Errorf("RemoveDoTTYKeys() error = %v, wantErr %v", err, tt.wantErr)
+			if err := s.RemoveDOTTYKeys(); err != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("RemoveDOTTYKeys() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

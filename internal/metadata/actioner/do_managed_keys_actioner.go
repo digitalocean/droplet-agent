@@ -21,7 +21,7 @@ func NewDOManagedKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
 
 type sshManager interface {
 	UpdateKeys(keys []*sysaccess.SSHKey) (retErr error)
-	RemoveDoTTYKeys() error
+	RemoveDOTTYKeys() error
 }
 
 type sshKeyParser interface {
@@ -85,12 +85,12 @@ func (da *doManagedKeysActioner) Shutdown() {
 		<-da.allDone
 	}
 	log.Debug("[DO-Managed Keys Actioner] Clearing dotty keys from filesystem")
-	// clear all agent managed keys
+	// clear all agent managed temporary keys (i.e. the DOTTY Keys)
 	// this is for resolving the bug that:
 	// 1. agent started, and installed keys for user A and B
 	// 2. agent restarted, but all keys for user B are already removed from metadata
 	//    therefore, it will not appear in the response of metadata query,
 	//    and agent will leave some garbage keys in user B's authorized_keys file.
-	_ = da.sshMgr.RemoveDoTTYKeys()
+	_ = da.sshMgr.RemoveDOTTYKeys()
 	log.Info("[DO-Managed Keys Actioner] Bye-bye")
 }
