@@ -91,6 +91,8 @@ func (da *doManagedKeysActioner) Shutdown() {
 	// 2. agent restarted, but all keys for user B are already removed from metadata
 	//    therefore, it will not appear in the response of metadata query,
 	//    and agent will leave some garbage keys in user B's authorized_keys file.
-	_ = da.sshMgr.RemoveDOTTYKeys()
+	if  err := da.sshMgr.RemoveDOTTYKeys(); err != nil {
+		log.Error("[DO-Managed Keys Actioner] Failed to remove DOTTY keys: %v", err)
+	}
 	log.Info("[DO-Managed Keys Actioner] Bye-bye")
 }
