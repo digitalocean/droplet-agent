@@ -35,7 +35,8 @@ func (p *SSHKeyParser) FromPublicKey(key string) (*sysaccess.SSHKey, error) {
 	if len(match) != 0 {
 		// trying to find "-os_user" flag from the key
 		// if not presented, default user will be used
-		// if multiple os_user flags presented, the last one will be used
+		// if multiple os_user flags presented, the last one will be used because the backend service always append the
+		// os_user to the end of the key
 		lastIdx := len(match) - 1
 		if len(match[lastIdx]) != 2 {
 			// this should never happen, but just in case
