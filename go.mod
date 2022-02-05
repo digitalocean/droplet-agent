@@ -8,6 +8,7 @@ require (
 	github.com/opencontainers/selinux v1.8.1
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 )
