@@ -70,11 +70,11 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 	// First, filter out all DO managed keys
 	for _, line := range localKeys {
 		lineDup := strings.Trim(line, " \t")
-		if lineDup == dottyPrevComment || lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
+		if areStringsEqual(lineDup, dottyPrevComment) || areStringsEqual(lineDup, dottyComment) || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
 		}
 		if !keepLocalDropletKeys {
-			if lineDup == dropletKeyComment || strings.HasSuffix(lineDup, dropletKeyIndicator) {
+			if areStringsEqual(lineDup, dropletKeyComment) || strings.HasSuffix(lineDup, dropletKeyIndicator) {
 				continue
 			}
 			if pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(lineDup)); err == nil {
@@ -224,4 +224,8 @@ func dottyKeyFmt(key *SSHKey) string {
 
 func dropletKeyFmt(key *SSHKey) string {
 	return fmt.Sprintf("%s -%s", key.PublicKey, dropletKeyIndicator)
+}
+
+func areStringsEqual(s1, s2 string) bool {
+	return strings.ToLower(s1) == strings.ToLower(s2)
 }
