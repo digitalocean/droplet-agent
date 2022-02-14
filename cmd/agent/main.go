@@ -30,7 +30,9 @@ func main() {
 		log.Info("Debug mode enabled")
 	}
 	if cfg.UseSyslog {
-		log.UseSysLog()
+		if err := log.UseSysLog(); err != nil {
+			log.Error("failed to use syslog, using default logger instead. Error:%v", err)
+		}
 	}
 	var sshMgrOpts []sysaccess.SSHManagerOpt
 	if cfg.CustomSSHDPort != 0 {
