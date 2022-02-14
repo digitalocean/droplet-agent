@@ -217,6 +217,6 @@ mockgen:
 	mockgen -source=internal/sysaccess/common.go -package=mocks -destination=internal/sysaccess/internal/mocks/mocks.go
 	mockgen -source=internal/sysaccess/ssh_helper.go -package=sysaccess -destination=internal/sysaccess/ssh_helper_mocks.go
 	mockgen -source=internal/sysaccess/authorized_keys_file_updater.go -package=sysaccess -destination=internal/sysaccess/authorized_keys_file_updater_mocks.go
-	mockgen -source=internal/metadata/actioner/dotty_keys_actioner.go -package=mocks -destination=internal/metadata/actioner/internal/mocks/ssh_mgr_mocks.go
+	mockgen -source=internal/metadata/actioner/do_managed_keys_actioner.go -package=mocks -destination=internal/metadata/actioner/internal/mocks/mocks.go
 	GOOS=linux mockgen -source=internal/netutil/tcp_sniffer_helper_linux.go -package=mocks -destination=internal/netutil/internal/mocks/dependent_functions_mock.go
 	mockgen -source=internal/metadata/updater/updater.go -package=updater -destination=internal/metadata/updater/updater_mocks.go

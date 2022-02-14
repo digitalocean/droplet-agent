@@ -3,6 +3,8 @@
 package sysaccess
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -13,12 +15,16 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/config"
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
+
+	"golang.org/x/sync/errgroup"
 )
 
 const (
 	defaultAuthorizedKeysFile = "%h/.ssh/authorized_keys"
 	dottyPrevComment          = "# Added and Managed by DigitalOcean TTY service (DOTTY)" // for backward compatibility
 	dottyComment              = "# Added and Managed by " + config.AppFullName
+	dropletKeyComment         = "# Managed through DigitalOcean"
+	dropletKeyIndicator       = "do_managed_key"
 	dottyKeyIndicator         = "dotty_ssh"
 	defaultOSUser             = "root"
 	defaultSSHDPort           = 22
@@ -93,16 +99,25 @@ func (s *SSHManager) RemoveExpiredKeys() (err error) {
 			log.Debug("has expired keys: %v, update file error: %v", hasExpired, err)
 		}
 	}()
+	eg, _ := errgroup.WithContext(context.Background())
 	for user, keys := range s.cachedKeys {
-		if s.areSameKeys(keys, cleanKeys[user]) {
+		u := user
+		if s.areSameKeys(keys, cleanKeys[u]) {
 			// keys all still valid for this user, no need to update
 			continue
 		}
 		hasExpired = true
-		log.Debug("removing expired keys for %s", user)
-		if e := s.updateAuthorizedKeysFile(user, cleanKeys[user]); e != nil {
-			return e
-		}
+		eg.Go(func() error {
+			log.Debug("removing expired keys for %s", u)
+			if e := s.updateAuthorizedKeysFile(u, cleanKeys[u]); e != nil {
+				log.Error("failed to remove expired keys for %s: %v", u, e)
+				return e
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -111,8 +126,11 @@ func (s *SSHManager) RemoveExpiredKeys() (err error) {
 func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	s.cachedKeysOpLock.Lock() // this lock may be too aggressive and can be possibly refined
 	defer s.cachedKeysOpLock.Unlock()
-
+	if keys == nil {
+		return ErrInvalidArgs
+	}
 	keyGroups := make(map[string][]*SSHKey) // group the keys by os user
+	updatedKeys := make(map[string][]*SSHKey)
 	for _, key := range keys {
 		if err := s.validateKey(key); err != nil {
 			return err
@@ -124,7 +142,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	}
 	defer func() {
 		if retErr == nil {
-			s.cachedKeys = keyGroups
+			s.cachedKeys = updatedKeys
 		}
 	}()
 
@@ -132,12 +150,15 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		if s.areSameKeys(keys, s.cachedKeys[username]) {
 			//key not changed for the current user, skip
 			log.Debug("keys not changed for %s, skipped", username)
+			updatedKeys[username] = keys
 			continue
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
 		if err := s.updateAuthorizedKeysFile(username, keys); err != nil {
-			return err
+			log.Error("failed to update keys for %s:%v", username, err)
+			continue
 		}
+		updatedKeys[username] = keys
 	}
 
 	for user := range s.cachedKeys {
@@ -145,10 +166,43 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		if _, ok := keyGroups[user]; !ok {
 			// if keys of a user is deleted
 			log.Debug("removing keys for %s", user)
-			if err := s.updateAuthorizedKeysFile(user, nil); err != nil {
-				return err
+			if err := s.updateAuthorizedKeysFile(user, []*SSHKey{}); err != nil {
+				if errors.Is(err, sysutil.ErrUserNotFound) {
+					log.Info("os user [%s] no longer exists", user)
+					continue
+				}
+				log.Error("failed to remove keys for user %s:%v", user, err)
+				// if failed to remove ssh keys for a user,
+				// preserve them so that the removal can be retried next time
+				updatedKeys[user] = s.cachedKeys[user]
 			}
 		}
+	}
+	return nil
+}
+
+// RemoveDOTTYKeys removes all dotty keys from the droplet
+// When the agent exit, all temporary keys managed through DigitalOcean must be cleaned up
+// to avoid leaving stale expired keys in the system
+func (s *SSHManager) RemoveDOTTYKeys() error {
+	s.cachedKeysOpLock.Lock()
+	defer s.cachedKeysOpLock.Unlock()
+	eg, _ := errgroup.WithContext(context.Background())
+	for user := range s.cachedKeys {
+		u := user
+		eg.Go(func() error {
+			if err := s.updateAuthorizedKeysFile(u, nil); err != nil {
+				if errors.Is(err, sysutil.ErrUserNotFound) {
+					log.Info("os user [%s] no longer exists", u)
+					return nil
+				}
+				return fmt.Errorf("%w: failed to remove keys for user %s", err, user)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 	return nil
 }

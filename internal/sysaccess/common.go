@@ -18,6 +18,19 @@ var (
 	ErrReadAuthorizedKeysFileFailed  = errors.New("failed to read authorized_keys file")
 	ErrWriteAuthorizedKeysFileFailed = errors.New("failed to write authorized_keys file")
 	ErrInvalidPortNumber             = errors.New("invalid port number")
+	ErrInvalidArgs                   = errors.New("invalid arguments")
+)
+
+// SSHKeyType indicates the type of the ssh key.
+// There are 2 types currently:
+// - DOTTY: which is the keys used for web console sessions
+// - Droplet: which is the droplet ssh keys managed through DigitalOcean
+type SSHKeyType int
+
+// constants for the SSH Key types
+const (
+	SSHKeyTypeDOTTY SSHKeyType = iota
+	SSHKeyTypeDroplet
 )
 
 // SSHKey contains information of a ssh key operated by DOTTY
@@ -27,7 +40,10 @@ type SSHKey struct {
 	ActorEmail string `json:"actor_email"`
 	TTL        int    `json:"ttl"` // time to live in seconds
 
-	expireAt time.Time // set once when receiving the key, equals to receivedAt + TTL
+	Type SSHKeyType `json:"-"` // key type
+
+	fingerprint string
+	expireAt    time.Time // set once when receiving the key, equals to receivedAt + TTL
 }
 
 type sshKeyInfo struct {

@@ -29,6 +29,11 @@ func main() {
 		log.EnableDebug()
 		log.Info("Debug mode enabled")
 	}
+	if cfg.UseSyslog {
+		if err := log.UseSysLog(); err != nil {
+			log.Error("failed to use syslog, using default logger instead. Error:%v", err)
+		}
+	}
 	var sshMgrOpts []sysaccess.SSHManagerOpt
 	if cfg.CustomSSHDPort != 0 {
 		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDPort(cfg.CustomSSHDPort))
@@ -41,9 +46,9 @@ func main() {
 		log.Fatal("failed to initialize SSHManager: %v", err)
 	}
 
-	dottyKeysActioner := actioner.NewDOTTYKeysActioner(sshMgr)
+	doManagedKeysActioner := actioner.NewDOManagedKeysActioner(sshMgr)
 	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
-	metadataWatcher.RegisterActioner(dottyKeysActioner)
+	metadataWatcher.RegisterActioner(doManagedKeysActioner)
 	infoUpdater := updater.NewAgentInfoUpdater()
 
 	// monitor sshd_config

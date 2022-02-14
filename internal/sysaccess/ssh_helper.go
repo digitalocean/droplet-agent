@@ -19,7 +19,7 @@ import (
 type sshHelper interface {
 	sshdConfigFile() string
 	authorizedKeysFile(user *sysutil.User) string
-	prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string
+	prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string
 	removeExpiredKeys(originalKeys map[string][]*SSHKey) (filteredKeys map[string][]*SSHKey)
 	areSameKeys(keys1, keys2 []*SSHKey) bool
 	validateKey(k *SSHKey) error
@@ -48,22 +48,54 @@ func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
 	return filePath
 }
 
-func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, dottyKeys []*SSHKey) []string {
+// prepareAuthorizedKeys prepares the authorized keys that will be updated to filesystem
+// NOTE: setting managedKeys to nil or empty slice will result in different behaviors
+// - managedKeys = nil: will result in all temporary keys (keys with a TTL) being removed,
+//   but all permanent DO managed droplet keys will be preserved
+// - managedKeys = []*SSHKey{}: means the droplet no longer has any DO managed keys (neither Droplet Keys nor DoTTY Keys),
+//   therefore, all DigitalOcean managed keys will be removed
+func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
+	managedKeysQuickCheck := make(map[string]bool)
+	keepLocalDropletKeys := false
+	if managedKeys == nil {
+		keepLocalDropletKeys = true
+	} else {
+		for _, k := range managedKeys {
+			managedKeysQuickCheck[k.fingerprint] = true
+		}
+	}
+
 	ret := make([]string, 0, len(localKeys))
 
-	// First, filter out all dotty keys
+	// First, filter out all DO managed keys
 	for _, line := range localKeys {
 		lineDup := strings.Trim(line, " \t")
-		if lineDup == dottyPrevComment || lineDup == dottyComment || strings.HasSuffix(lineDup, dottyKeyIndicator) {
+		if strings.EqualFold(lineDup, dottyPrevComment) || strings.EqualFold(lineDup, dottyComment) || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
+		}
+		if !keepLocalDropletKeys {
+			if strings.EqualFold(lineDup, dropletKeyComment) || strings.HasSuffix(lineDup, dropletKeyIndicator) {
+				continue
+			}
+			if pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(lineDup)); err == nil {
+				// if the line contains a key, check if it should be marked as DOManaged
+				fpt := ssh.FingerprintSHA256(pubKey)
+				if managedKeysQuickCheck[fpt] {
+					continue
+				}
+			}
 		}
 		ret = append(ret, line)
 	}
-	log.Debug("file will contain: [%d] lines of local keys, and [%d] dotty keys", len(ret), len(dottyKeys))
+	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys", len(ret), len(managedKeys))
 
-	// Then append all dotty keys to the end
-	for _, key := range dottyKeys {
-		ret = append(ret, []string{dottyComment, dottyKeyFmt(key, s.timeNow())}...)
+	// Then append all managed keys to the end
+	for _, key := range managedKeys {
+		if key.Type == SSHKeyTypeDOTTY {
+			ret = append(ret, []string{dottyComment, dottyKeyFmt(key)}...)
+		} else {
+			ret = append(ret, []string{dropletKeyComment, dropletKeyFmt(key)}...)
+		}
 	}
 	return ret
 }
@@ -80,7 +112,7 @@ func (s *sshHelperImpl) removeExpiredKeys(originalKeys map[string][]*SSHKey) (fi
 		}
 		filteredKeys[user] = make([]*SSHKey, 0, len(keys))
 		for _, k := range keys {
-			if timeNow.After(k.expireAt) {
+			if k.Type == SSHKeyTypeDOTTY && timeNow.After(k.expireAt) {
 				// key already expired
 				continue
 			}
@@ -96,18 +128,18 @@ func (s *sshHelperImpl) validateKey(k *SSHKey) (err error) {
 	if k.OSUser == "" {
 		k.OSUser = defaultOSUser
 	}
-	defer func() {
-		if err == nil {
-			k.expireAt = s.timeNow().Add(time.Duration(k.TTL) * time.Second)
+	if k.Type == SSHKeyTypeDOTTY {
+		if k.TTL <= 0 {
+			return fmt.Errorf("%w: invalid ttl", ErrInvalidKey)
 		}
-	}()
-	if k.TTL <= 0 {
-		return fmt.Errorf("%w: invalid ttl", ErrInvalidKey)
+		k.expireAt = s.timeNow().Add(time.Duration(k.TTL) * time.Second)
 	}
 	k.PublicKey = strings.Trim(k.PublicKey, " \t\r\n")
-	if _, _, _, _, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey)); e != nil {
+	pubKey, _, _, _, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey))
+	if e != nil {
 		return fmt.Errorf("%w: invalid ssh key: %s-%v", ErrInvalidKey, k.PublicKey, e)
 	}
+	k.fingerprint = ssh.FingerprintSHA256(pubKey)
 	return nil
 }
 
@@ -180,12 +212,16 @@ func (s *sshHelperImpl) sshdCfgModified(w fsWatcher, sshdCfgFile string, ev *fsn
 	return false
 }
 
-func dottyKeyFmt(key *SSHKey, now time.Time) string {
+func dottyKeyFmt(key *SSHKey) string {
 	info := &sshKeyInfo{
 		OSUser:     key.OSUser,
 		ActorEmail: key.ActorEmail,
-		ExpireAt:   now.Add(time.Second * time.Duration(key.TTL)).Format(time.RFC3339),
+		ExpireAt:   key.expireAt.Format(time.RFC3339),
 	}
 	keyComment, _ := json.Marshal(info)
 	return fmt.Sprintf("%s %s-%s", key.PublicKey, string(keyComment), dottyKeyIndicator)
+}
+
+func dropletKeyFmt(key *SSHKey) string {
+	return fmt.Sprintf("%s -%s", key.PublicKey, dropletKeyIndicator)
 }
