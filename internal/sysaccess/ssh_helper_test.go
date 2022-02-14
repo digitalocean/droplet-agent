@@ -175,6 +175,32 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 			},
 		},
 		{
+			"should recognize DO managed keys comments case-agnostic",
+			args{
+				localKeys: []string{
+					"# ADDED and Managed by DigitalOcean TTY service (DoTTY)",
+					dottyKeyFmt(exampleKey1),
+					"# ManAged through DIGITALOcEaN",
+					dropletKeyFmt(dropletKey1),
+					strings.ToTitle(dottyComment),
+					dottyKeyFmt(exampleKey2),
+				},
+				managedKeys: []*SSHKey{
+					dropletKey1,
+					exampleKey1,
+					exampleKey2,
+				},
+			},
+			[]string{
+				dropletKeyComment,
+				dropletKeyFmt(dropletKey1),
+				dottyComment,
+				dottyKeyFmt(exampleKey1),
+				dottyComment,
+				dottyKeyFmt(exampleKey2),
+			},
+		},
+		{
 			"should append all dotty keys after the customer's keys and properly reformat",
 			args{
 				localKeys: []string{
