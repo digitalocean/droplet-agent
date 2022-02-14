@@ -24,20 +24,20 @@ func UseSysLog() error {
 			err = fmt.Errorf("failed to use syslog: %w", e)
 			return
 		}
-		logDebug = dl
 
 		il, e := syslog.NewLogger(syslog.LOG_INFO, syslogFlags)
 		if e != nil {
 			err = fmt.Errorf("failed to use syslog: %w", e)
 			return
 		}
-		logInfo = il
 
 		el, e := syslog.NewLogger(syslog.LOG_ERR, syslogFlags)
 		if e != nil {
 			err = fmt.Errorf("failed to use syslog: %w", e)
 			return
 		}
+		logDebug = dl
+		logInfo = il
 		logErr = el
 	})
 	return err
