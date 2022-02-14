@@ -29,6 +29,9 @@ func main() {
 		log.EnableDebug()
 		log.Info("Debug mode enabled")
 	}
+	if cfg.UseSyslog {
+		log.UseSysLog()
+	}
 	var sshMgrOpts []sysaccess.SSHManagerOpt
 	if cfg.CustomSSHDPort != 0 {
 		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDPort(cfg.CustomSSHDPort))

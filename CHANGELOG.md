@@ -7,6 +7,7 @@
 - Add support for managing SSH Keys on a droplet. If a droplet is configured with one or more SSH Keys through 
 DigitalOcean, either during droplet creation or added/removed via DigitalOcean APIs, such changes can now be 
 synchronized to the droplet and the keys can be dynamically installed/uninstalled.
+- Don't use syslog when systemd is supported 
 
 ### Related PRs
 - Support managing ssh keys [\#44](https://github.com/digitalocean/droplet-agent/pull/44)
