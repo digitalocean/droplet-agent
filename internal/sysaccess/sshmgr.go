@@ -133,7 +133,9 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	updatedKeys := make(map[string][]*SSHKey)
 	for _, key := range keys {
 		if err := s.validateKey(key); err != nil {
-			return err
+			//invalid key, skip
+			log.Debug("invalid key, %s", err.Error())
+			continue
 		}
 		if _, ok := keyGroups[key.OSUser]; !ok {
 			keyGroups[key.OSUser] = make([]*SSHKey, 0, 1)

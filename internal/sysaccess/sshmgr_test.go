@@ -287,12 +287,28 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			nil,
 		},
 		{
-			"should removed expired keys from the cached keys before proceeding and return error when any of the key is invalid",
+			"should removed expired keys from the cached keys before proceeding and return error when ALL of the keys are invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
 				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key11).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key21).Return(invalidKeyErr)
 			},
-			[]*SSHKey{key1},
+			[]*SSHKey{key1, key11, key21},
 			invalidKeyErr,
+			nil,
+		},
+		{
+			"should removed expired keys from the cached keys before proceeding and continue processing when SOME of the keys are invalid",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key11).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, nil).
+					Return(false)
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(nil)
+				sshHpr.EXPECT().validateKey(key21).Return(invalidKeyErr)
+			},
+			[]*SSHKey{key1, key11, key21},
+			nil,
 			nil,
 		},
 		{
@@ -329,8 +345,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			},
 			[]*SSHKey{key11},
 			failedUpdateErr,
-			map[string][]*SSHKey{
-			},
+			map[string][]*SSHKey{},
 		},
 		{
 			"should work if metadata returned keys for a new user",
