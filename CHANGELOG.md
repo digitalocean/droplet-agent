@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.1](https://github.com/digitalocean/droplet-agent/tree/1.2.1) (2022-03-28)
+### Updated
+- Added logic to handle skipping invalid keys while continue to process valid keys
+
+
 ## [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0) (2022-02-03)
 ### Updated
 - Add support for managing SSH Keys on a droplet. If a droplet is configured with one or more SSH Keys through 
