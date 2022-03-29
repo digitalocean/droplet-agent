@@ -148,11 +148,12 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		}
 	}()
 
+	cleanKeys := s.removeExpiredKeys(s.cachedKeys)
 	for username, keys := range keyGroups {
-		if s.areSameKeys(keys, s.cachedKeys[username]) {
+		if s.areSameKeys(keys, cleanKeys[username]) {
 			//key not changed for the current user, skip
 			log.Debug("keys not changed for %s, skipped", username)
-			updatedKeys[username] = s.cachedKeys[username]
+			updatedKeys[username] = cleanKeys[username]
 			continue
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
