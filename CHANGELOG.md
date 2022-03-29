@@ -4,8 +4,10 @@
 
 ## [1.2.1](https://github.com/digitalocean/droplet-agent/tree/1.2.1) (2022-03-28)
 ### Updated
-- Added support for validating SSH Keys on a key-by-key basis.
-- Updating SSH Keys will now partially succeed with an input of a mix of valid and invalid SSHKeys.
+- Update ssh keys will ignore invalid keys.
+- We noticed that some keys configured for a droplet may become deprecated by OpenSSH, which causes validation of those keys to fail. 
+- We relaxed the requirement of input key validation from all input keys being valid, to at-least one input key being valid.
+- This behavior is accomplished by skipping invalid keys, and only processing the valid keys.
 
 ## [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0) (2022-02-03)
 ### Updated

@@ -4,12 +4,12 @@ package sysaccess
 
 import (
 	"errors"
-	"github.com/digitalocean/droplet-agent/internal/sysutil"
 	"reflect"
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/golang/mock/gomock"
@@ -309,7 +309,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			},
 			[]*SSHKey{key1, key11, key21},
 			nil,
-			nil,
+			map[string][]*SSHKey{username1: {key11}},
 		},
 		{
 			"should group the keys by user and do not update keys for a user if unchanged",
