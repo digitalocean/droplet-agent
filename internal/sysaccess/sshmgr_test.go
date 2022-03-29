@@ -295,15 +295,22 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			nil,
 		},
 		{
-			"should return error when ALL of the keys are invalid",
+			"should attempt to clear the keys if  ALL of the keys are invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				sshMgr.cachedKeys = map[string][]*SSHKey{
+					username1: {key11},
+					username2: {key22},
+				}
 				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
 				sshHpr.EXPECT().validateKey(key11).Return(invalidKeyErr)
 				sshHpr.EXPECT().validateKey(key21).Return(invalidKeyErr)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{}).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(nil)
 			},
 			[]*SSHKey{key1, key11, key21},
-			invalidKeyErr,
 			nil,
+			map[string][]*SSHKey{},
 		},
 		{
 			"should continue processing when SOME of the keys are invalid",
