@@ -4,8 +4,8 @@
 
 ## [1.2.1](https://github.com/digitalocean/droplet-agent/tree/1.2.1) (2022-03-28)
 ### Updated
-- Added logic to handle skipping invalid keys while continue to process valid keys
-
+- Added support for validating SSH Keys on a key-by-key basis.
+- Updating SSH Keys will now partially succeed with an input of a mix of valid and invalid SSHKeys.
 
 ## [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0) (2022-02-03)
 ### Updated
