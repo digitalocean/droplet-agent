@@ -199,7 +199,7 @@ func (s *SSHManager) RemoveDOTTYKeys() error {
 					log.Info("os user [%s] no longer exists", u)
 					return nil
 				}
-				return fmt.Errorf("%w: failed to remove keys for user %s", err, user)
+				return fmt.Errorf("%w: failed to remove keys for user %s", err, u)
 			}
 			return nil
 		})
