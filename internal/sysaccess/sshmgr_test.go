@@ -6,6 +6,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
@@ -238,7 +239,7 @@ func TestSSHManager_parseSSHDConfig(t *testing.T) {
 
 func TestSSHManager_UpdateKeys(t *testing.T) {
 	log.Mute()
-
+	timeNow := time.Now()
 	username1 := "user1"
 	key1 := &SSHKey{
 		OSUser:    username1,
@@ -250,13 +251,20 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		PublicKey: "public-key-11",
 		TTL:       123,
 	}
-
 	username2 := "user2"
 	key21 := &SSHKey{
 		OSUser:    username2,
 		PublicKey: "public-key-21",
 		TTL:       123,
+		expireAt:  timeNow.Add(time.Minute),
 	}
+	key21newExp := &SSHKey{
+		OSUser:    username2,
+		PublicKey: "public-key-21",
+		TTL:       123,
+		expireAt:  timeNow.Add(2 * time.Minute),
+	}
+
 	key22 := &SSHKey{
 		OSUser:    username2,
 		PublicKey: "public-key-22",
@@ -322,10 +330,10 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, sshMgr.cachedKeys[username1]).
 					Return(false)
 				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(nil)
-				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21, key22}, sshMgr.cachedKeys[username2]).
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21newExp, key22}, sshMgr.cachedKeys[username2]).
 					Return(true)
 			},
-			[]*SSHKey{key11, key21, key22},
+			[]*SSHKey{key11, key21newExp, key22},
 			nil,
 			map[string][]*SSHKey{
 				username1: {key11},

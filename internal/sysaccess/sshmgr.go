@@ -152,7 +152,7 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		if s.areSameKeys(keys, s.cachedKeys[username]) {
 			//key not changed for the current user, skip
 			log.Debug("keys not changed for %s, skipped", username)
-			updatedKeys[username] = keys
+			updatedKeys[username] = s.cachedKeys[username]
 			continue
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
