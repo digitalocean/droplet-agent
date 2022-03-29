@@ -295,7 +295,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			nil,
 		},
 		{
-			"should removed expired keys from the cached keys before proceeding and return error when ALL of the keys are invalid",
+			"should return error when ALL of the keys are invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
 				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
 				sshHpr.EXPECT().validateKey(key11).Return(invalidKeyErr)
@@ -306,7 +306,7 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			nil,
 		},
 		{
-			"should removed expired keys from the cached keys before proceeding and continue processing when SOME of the keys are invalid",
+			"should continue processing when SOME of the keys are invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
 				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
 				sshHpr.EXPECT().validateKey(key11).Return(nil)
