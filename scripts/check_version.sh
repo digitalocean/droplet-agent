@@ -28,7 +28,7 @@ function main() {
   if spaces_version_exist "${latest_ver}"; then
     abort "${latest_ver} already deployed"
   fi
-  echo "Okay to deployed"
+  echo "Okay to deploy"
 }
 
 main "$@"

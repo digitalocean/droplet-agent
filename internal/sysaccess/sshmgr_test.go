@@ -4,12 +4,13 @@ package sysaccess
 
 import (
 	"errors"
-	"github.com/digitalocean/droplet-agent/internal/sysutil"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/golang/mock/gomock"
@@ -238,7 +239,7 @@ func TestSSHManager_parseSSHDConfig(t *testing.T) {
 
 func TestSSHManager_UpdateKeys(t *testing.T) {
 	log.Mute()
-
+	timeNow := time.Now()
 	username1 := "user1"
 	key1 := &SSHKey{
 		OSUser:    username1,
@@ -250,13 +251,20 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		PublicKey: "public-key-11",
 		TTL:       123,
 	}
-
 	username2 := "user2"
 	key21 := &SSHKey{
 		OSUser:    username2,
 		PublicKey: "public-key-21",
 		TTL:       123,
+		expireAt:  timeNow.Add(time.Minute),
 	}
+	key21newExp := &SSHKey{
+		OSUser:    username2,
+		PublicKey: "public-key-21",
+		TTL:       123,
+		expireAt:  timeNow.Add(2 * time.Minute),
+	}
+
 	key22 := &SSHKey{
 		OSUser:    username2,
 		PublicKey: "public-key-22",
@@ -287,29 +295,60 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			nil,
 		},
 		{
-			"should removed expired keys from the cached keys before proceeding and return error when any of the key is invalid",
+			"should attempt to clear the keys if  ALL of the keys are invalid",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				oldCachedKeys := map[string][]*SSHKey{
+					username1: {key11},
+					username2: {key22},
+				}
+				sshMgr.cachedKeys = oldCachedKeys
+				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key11).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key21).Return(invalidKeyErr)
+
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{}).Return(nil)
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(nil)
+			},
+			[]*SSHKey{key1, key11, key21},
+			nil,
+			map[string][]*SSHKey{},
+		},
+		{
+			"should continue processing when SOME of the keys are invalid",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
 				sshHpr.EXPECT().validateKey(key1).Return(invalidKeyErr)
+				sshHpr.EXPECT().validateKey(key11).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, nil).
+					Return(false)
+
+				sshHpr.EXPECT().removeExpiredKeys(nil).Return(nil)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(nil)
+				sshHpr.EXPECT().validateKey(key21).Return(invalidKeyErr)
 			},
-			[]*SSHKey{key1},
-			invalidKeyErr,
+			[]*SSHKey{key1, key11, key21},
 			nil,
+			map[string][]*SSHKey{username1: {key11}},
 		},
 		{
 			"should group the keys by user and do not update keys for a user if unchanged",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 					username2: {key21, key22},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil).Times(3)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, sshMgr.cachedKeys[username1]).
 					Return(false)
 				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(nil)
-				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21, key22}, sshMgr.cachedKeys[username2]).
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21newExp, key22}, sshMgr.cachedKeys[username2]).
 					Return(true)
 			},
-			[]*SSHKey{key11, key21, key22},
+			[]*SSHKey{key11, key21newExp, key22},
 			nil,
 			map[string][]*SSHKey{
 				username1: {key11},
@@ -319,26 +358,29 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		{
 			"should not cache keys for a user if failed to update key",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key11}, sshMgr.cachedKeys[username1]).
 					Return(false)
 				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key11}).Return(failedUpdateErr)
 			},
 			[]*SSHKey{key11},
 			failedUpdateErr,
-			map[string][]*SSHKey{
-			},
+			map[string][]*SSHKey{},
 		},
 		{
 			"should work if metadata returned keys for a new user",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil).Times(3)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, sshMgr.cachedKeys[username1]).
 					Return(true)
@@ -357,11 +399,13 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		{
 			"should work if metadata removed keys for an existing user",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 					username2: {key21, key22},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, []*SSHKey{key1}).
 					Return(true)
 
@@ -376,12 +420,14 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		{
 			"should proceed if encountered user not found error when removing keys for an user",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 					username2: {key21, key22},
 					username3: {key31},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, []*SSHKey{key1}).
 					Return(true)
 
@@ -397,12 +443,14 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 		{
 			"should keep the keys for a user in cache if failed to remove the keys from fs",
 			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
-				sshMgr.cachedKeys = map[string][]*SSHKey{
+				oldCachedKeys := map[string][]*SSHKey{
 					username1: {key1},
 					username2: {key21, key22},
 					username3: {key31},
 				}
+				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(oldCachedKeys)
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, []*SSHKey{key1}).
 					Return(true)
 
@@ -414,6 +462,53 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 			map[string][]*SSHKey{
 				username1: {key1},
 				username2: {key21, key22},
+			},
+		},
+		{
+			"should work if re-add a key that is already expired",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				oldCachedKeys := map[string][]*SSHKey{
+					username2: {key21},
+				}
+				sshMgr.cachedKeys = oldCachedKeys
+				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil)
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(map[string][]*SSHKey{})
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key21newExp}, nil).
+					Return(false)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{key21newExp}).Return(nil)
+			},
+			[]*SSHKey{key21newExp},
+			nil,
+			map[string][]*SSHKey{
+				username2: {key21newExp},
+			},
+		},
+		{
+			"in the case of cached keys expired, should still attempt to clean up the keys of a user that no longer has active keys",
+			func(sshMgr *SSHManager, sshHpr *MocksshHelper, updater *MockauthorizedKeysFileUpdater) {
+				oldCachedKeys := map[string][]*SSHKey{
+					username2: {key21},
+				}
+				sshMgr.cachedKeys = oldCachedKeys
+				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil).AnyTimes()
+				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(map[string][]*SSHKey{})
+
+
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, nil).
+					Return(false)
+				updater.EXPECT().updateAuthorizedKeysFile(username1, []*SSHKey{key1}).Return(nil)
+				sshHpr.EXPECT().areSameKeys([]*SSHKey{key31}, nil).
+					Return(false)
+				updater.EXPECT().updateAuthorizedKeysFile(username3, []*SSHKey{key31}).Return(nil)
+
+				updater.EXPECT().updateAuthorizedKeysFile(username2, []*SSHKey{}).Return(nil)
+			},
+			[]*SSHKey{key1, key31},
+			nil,
+			map[string][]*SSHKey{
+				username1: {key1},
+				username3: {key31},
 			},
 		},
 	}

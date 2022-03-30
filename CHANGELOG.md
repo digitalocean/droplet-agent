@@ -2,6 +2,20 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.1](https://github.com/digitalocean/droplet-agent/tree/1.2.1) (2022-03-28)
+### Updated
+- Update ssh keys will ignore invalid keys.
+- We noticed that some keys configured for a droplet may become deprecated by OpenSSH, which causes validation of those keys to fail.
+- Now, instead of failing at the first invalid SSH key, we continue processing in case there are valid SSH keys in the input list.
+- This behavior is accomplished by skipping invalid keys, and only processing the valid keys.
+
+### Bug fixed
+- Fixed a bug that can unexpectedly extend the expiry time of a temporary ssh key
+
+### Related PRs
+- Skip invalid keys [\#49](https://github.com/digitalocean/droplet-agent/pull/49)
+- Should not change expired time if key unchanged [\#50](https://github.com/digitalocean/droplet-agent/pull/50)
+
 ## [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0) (2022-02-03)
 ### Updated
 - Add support for managing SSH Keys on a droplet. If a droplet is configured with one or more SSH Keys through 

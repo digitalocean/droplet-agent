@@ -133,7 +133,9 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 	updatedKeys := make(map[string][]*SSHKey)
 	for _, key := range keys {
 		if err := s.validateKey(key); err != nil {
-			return err
+			//invalid key, skip
+			log.Error("invalid key, %s", err.Error())
+			continue
 		}
 		if _, ok := keyGroups[key.OSUser]; !ok {
 			keyGroups[key.OSUser] = make([]*SSHKey, 0, 1)
@@ -146,11 +148,12 @@ func (s *SSHManager) UpdateKeys(keys []*SSHKey) (retErr error) {
 		}
 	}()
 
+	cleanKeys := s.removeExpiredKeys(s.cachedKeys)
 	for username, keys := range keyGroups {
-		if s.areSameKeys(keys, s.cachedKeys[username]) {
+		if s.areSameKeys(keys, cleanKeys[username]) {
 			//key not changed for the current user, skip
 			log.Debug("keys not changed for %s, skipped", username)
-			updatedKeys[username] = keys
+			updatedKeys[username] = cleanKeys[username]
 			continue
 		}
 		log.Debug("updating %d keys for %s", len(keys), username)
@@ -196,7 +199,7 @@ func (s *SSHManager) RemoveDOTTYKeys() error {
 					log.Info("os user [%s] no longer exists", u)
 					return nil
 				}
-				return fmt.Errorf("%w: failed to remove keys for user %s", err, user)
+				return fmt.Errorf("%w: failed to remove keys for user %s", err, u)
 			}
 			return nil
 		})
