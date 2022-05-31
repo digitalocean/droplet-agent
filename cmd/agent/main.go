@@ -34,7 +34,7 @@ func main() {
 			log.Error("failed to use syslog, using default logger instead. Error:%v", err)
 		}
 	}
-	var sshMgrOpts []sysaccess.SSHManagerOpt
+	sshMgrOpts := []sysaccess.SSHManagerOpt{sysaccess.WithoutManagingDropletKeys()}
 	if cfg.CustomSSHDPort != 0 {
 		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDPort(cfg.CustomSSHDPort))
 	}
