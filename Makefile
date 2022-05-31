@@ -210,7 +210,6 @@ $(tar_package): $(base_linux_package)
 	# print all files within the archive
 	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
 
-
 ## mockgen: generates the mocks for the droplet agent service
 mockgen:
 	@echo "Generating mocks"
