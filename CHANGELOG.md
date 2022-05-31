@@ -2,6 +2,15 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.2](https://github.com/digitalocean/droplet-agent/tree/1.2.2) (2022-05-31)
+### Updated
+- Starting from [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0), agent supports managing ssh keys for
+the customers by attempting to sync the keys presented in the droplet's metadata to the droplet. This prevents customers 
+from being able to remove the keys from the droplet. Therefore, the feature is turned off for now. 
+
+### Related PRs
+- Stop managing droplet ssh keys [\#57](https://github.com/digitalocean/droplet-agent/pull/57)
+
 ## [1.2.1](https://github.com/digitalocean/droplet-agent/tree/1.2.1) (2022-03-28)
 ### Updated
 - Update ssh keys will ignore invalid keys.

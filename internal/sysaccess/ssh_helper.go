@@ -38,6 +38,7 @@ type sshHelperImpl struct {
 	timeNow func() time.Time
 
 	customSSHDCfgFile string
+	manageDropletKeys bool
 }
 
 func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
@@ -73,7 +74,7 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 		if strings.EqualFold(lineDup, dottyPrevComment) || strings.EqualFold(lineDup, dottyComment) || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
 		}
-		if !keepLocalDropletKeys {
+		if s.manageDropletKeys && !keepLocalDropletKeys {
 			if strings.EqualFold(lineDup, dropletKeyComment) || strings.HasSuffix(lineDup, dropletKeyIndicator) {
 				continue
 			}
@@ -87,13 +88,13 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 		}
 		ret = append(ret, line)
 	}
-	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys", len(ret), len(managedKeys))
+	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys, manageDropletKeys is set to [%v]", len(ret), len(managedKeys), s.manageDropletKeys)
 
 	// Then append all managed keys to the end
 	for _, key := range managedKeys {
 		if key.Type == SSHKeyTypeDOTTY {
 			ret = append(ret, []string{dottyComment, dottyKeyFmt(key)}...)
-		} else {
+		} else if s.manageDropletKeys {
 			ret = append(ret, []string{dropletKeyComment, dropletKeyFmt(key)}...)
 		}
 	}

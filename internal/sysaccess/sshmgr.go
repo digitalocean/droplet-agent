@@ -49,10 +49,7 @@ type SSHManager struct {
 
 // NewSSHManager constructs a new SSHManager object
 func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
-	defaultOpts := &sshMgrOpts{
-		customSSHDPort:    0,
-		customSSHDCfgFile: "",
-	}
+	defaultOpts := defaultMgrOpts()
 	for _, opt := range opts {
 		opt(defaultOpts)
 	}
@@ -65,6 +62,7 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 		mgr:               ret,
 		timeNow:           time.Now,
 		customSSHDCfgFile: defaultOpts.customSSHDCfgFile,
+		manageDropletKeys: defaultOpts.manageDropletKeys,
 	}
 	ret.authorizedKeysFileUpdater = &updaterImpl{sshMgr: ret}
 
