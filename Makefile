@@ -28,7 +28,7 @@ linter = docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MOD
 	-u $(shell id -u) golangci/golangci-lint:v1.39 \
 	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
 
-go_docker_linux = golang:1.16.3
+go_docker_linux = golang:1.18.2
 ifeq ($(GOOS), linux)
 go = docker run --rm -i \
 	-e "GOOS=$(GOOS)" \
