@@ -42,7 +42,7 @@ type doManagedKeysActioner struct {
 func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
 	log.Info("[DO-Managed Keys Actioner] Metadata contains %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
 	sshKeys := make([]*sysaccess.SSHKey, 0, len(metadata.PublicKeys)+len(metadata.DOTTYKeys))
-	if metadata.ManagedKeysEnabled {
+	if metadata.ManagedKeysEnabled != nil && *metadata.ManagedKeysEnabled {
 		log.Info("[DO-Managed Keys Actioner] Attempting to update %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
 		da.sshMgr.EnableManagedDropletKeys()
 	} else {

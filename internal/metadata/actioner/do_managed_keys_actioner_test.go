@@ -17,6 +17,7 @@ import (
 
 func Test_dottyKeysActioner_do(t *testing.T) {
 	log.Mute()
+	newBoolPtr := func(v bool) *bool { return &v }
 
 	validDOTTYKey1 := &sysaccess.SSHKey{
 		OSUser:     "root",
@@ -130,7 +131,7 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 				sshMgr.EXPECT().UpdateKeys([]*sysaccess.SSHKey{}).Return(nil)
 			},
 			&metadata.Metadata{
-				ManagedKeysEnabled: true,
+				ManagedKeysEnabled: newBoolPtr(true),
 			},
 		},
 	}
