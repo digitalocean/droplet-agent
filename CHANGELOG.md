@@ -2,6 +2,17 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.3](https://github.com/digitalocean/droplet-agent/tree/1.2.3) (2022-06-16)
+### Updated
+- Droplet Agent now supports dynamically turning the managed ssh keys feature on and off. If the metadata of the droplet
+suggests that the droplet has the managed ssh keys feature turned on, droplet-agent will attempt to manage the keys that 
+are configured through DigitalOcean platform.
+- NOTES: Only keys configured through DigitalOcean platform will be managed by the droplet-agent. Such keys will be 
+marked in the authorized_keys file and should not be manually modified.
+
+### Related PRs
+- Support dynamically enabling and disabling managed keys feature [\#58](https://github.com/digitalocean/droplet-agent/pull/58)
+
 ## [1.2.2](https://github.com/digitalocean/droplet-agent/tree/1.2.2) (2022-05-31)
 ### Updated
 - Starting from [1.2.0](https://github.com/digitalocean/droplet-agent/tree/1.2.0), agent supports managing ssh keys for
