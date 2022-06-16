@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
@@ -14,6 +15,11 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"golang.org/x/crypto/ssh"
+)
+
+const (
+	manageDropletKeysDisabled uint32 = iota
+	manageDropletKeysEnabled
 )
 
 type sshHelper interface {
@@ -38,7 +44,6 @@ type sshHelperImpl struct {
 	timeNow func() time.Time
 
 	customSSHDCfgFile string
-	manageDropletKeys bool
 }
 
 func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
@@ -56,6 +61,7 @@ func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
 // - managedKeys = []*SSHKey{}: means the droplet no longer has any DO managed keys (neither Droplet Keys nor DoTTY Keys),
 //   therefore, all DigitalOcean managed keys will be removed
 func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
+	managedDropletKeysEnabled := atomic.LoadUint32(&s.mgr.manageDropletKeys) == manageDropletKeysEnabled
 	managedKeysQuickCheck := make(map[string]bool)
 	keepLocalDropletKeys := false
 	if managedKeys == nil {
@@ -74,7 +80,7 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 		if strings.EqualFold(lineDup, dottyPrevComment) || strings.EqualFold(lineDup, dottyComment) || strings.HasSuffix(lineDup, dottyKeyIndicator) {
 			continue
 		}
-		if s.manageDropletKeys && !keepLocalDropletKeys {
+		if managedDropletKeysEnabled && !keepLocalDropletKeys {
 			if strings.EqualFold(lineDup, dropletKeyComment) || strings.HasSuffix(lineDup, dropletKeyIndicator) {
 				continue
 			}
@@ -88,13 +94,13 @@ func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []
 		}
 		ret = append(ret, line)
 	}
-	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys, manageDropletKeys is set to [%v]", len(ret), len(managedKeys), s.manageDropletKeys)
+	log.Debug("file will contain: [%d] lines of local keys, and [%d] managed keys, manageDropletKeys is set to [%v]", len(ret), len(managedKeys), managedDropletKeysEnabled)
 
 	// Then append all managed keys to the end
 	for _, key := range managedKeys {
 		if key.Type == SSHKeyTypeDOTTY {
 			ret = append(ret, []string{dottyComment, dottyKeyFmt(key)}...)
-		} else if s.manageDropletKeys {
+		} else if managedDropletKeysEnabled {
 			ret = append(ret, []string{dropletKeyComment, dropletKeyFmt(key)}...)
 		}
 	}
