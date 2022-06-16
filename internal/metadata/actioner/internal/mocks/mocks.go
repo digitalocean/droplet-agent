@@ -34,6 +34,30 @@ func (m *MocksshManager) EXPECT() *MocksshManagerMockRecorder {
 	return m.recorder
 }
 
+// DisableManagedDropletKeys mocks base method.
+func (m *MocksshManager) DisableManagedDropletKeys() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DisableManagedDropletKeys")
+}
+
+// DisableManagedDropletKeys indicates an expected call of DisableManagedDropletKeys.
+func (mr *MocksshManagerMockRecorder) DisableManagedDropletKeys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableManagedDropletKeys", reflect.TypeOf((*MocksshManager)(nil).DisableManagedDropletKeys))
+}
+
+// EnableManagedDropletKeys mocks base method.
+func (m *MocksshManager) EnableManagedDropletKeys() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "EnableManagedDropletKeys")
+}
+
+// EnableManagedDropletKeys indicates an expected call of EnableManagedDropletKeys.
+func (mr *MocksshManagerMockRecorder) EnableManagedDropletKeys() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableManagedDropletKeys", reflect.TypeOf((*MocksshManager)(nil).EnableManagedDropletKeys))
+}
+
 // RemoveDOTTYKeys mocks base method.
 func (m *MocksshManager) RemoveDOTTYKeys() error {
 	m.ctrl.T.Helper()

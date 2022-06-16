@@ -20,6 +20,8 @@ func NewDOManagedKeysActioner(sshMgr *sysaccess.SSHManager) MetadataActioner {
 }
 
 type sshManager interface {
+	EnableManagedDropletKeys()
+	DisableManagedDropletKeys()
 	UpdateKeys(keys []*sysaccess.SSHKey) (retErr error)
 	RemoveDOTTYKeys() error
 }
@@ -38,8 +40,15 @@ type doManagedKeysActioner struct {
 }
 
 func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
-	log.Info("[DO-Managed Keys Actioner] Attempting to update %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
+	log.Info("[DO-Managed Keys Actioner] Metadata contains %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
 	sshKeys := make([]*sysaccess.SSHKey, 0, len(metadata.PublicKeys)+len(metadata.DOTTYKeys))
+	if metadata.ManagedKeysEnabled {
+		log.Info("[DO-Managed Keys Actioner] Attempting to update %d ssh keys and %d dotty keys", len(metadata.PublicKeys), len(metadata.DOTTYKeys))
+		da.sshMgr.EnableManagedDropletKeys()
+	} else {
+		log.Info("[DO-Managed Keys Actioner] Attempting to update %d dotty keys", len(metadata.DOTTYKeys))
+		da.sshMgr.DisableManagedDropletKeys()
+	}
 	// prepare ssh keys
 	for _, kRaw := range metadata.PublicKeys {
 		k, e := da.keyParser.FromPublicKey(kRaw)
