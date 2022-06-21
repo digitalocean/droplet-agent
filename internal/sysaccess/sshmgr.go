@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/config"
@@ -45,6 +46,8 @@ type SSHManager struct {
 
 	cachedKeys       map[string][]*SSHKey
 	cachedKeysOpLock sync.Mutex
+
+	manageDropletKeys uint32
 }
 
 // NewSSHManager constructs a new SSHManager object
@@ -54,15 +57,18 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 		opt(defaultOpts)
 	}
 	ret := &SSHManager{
-		sysMgr:     sysutil.NewSysManager(),
-		cachedKeys: make(map[string][]*SSHKey),
-		sshdPort:   defaultOpts.customSSHDPort,
+		sysMgr:            sysutil.NewSysManager(),
+		cachedKeys:        make(map[string][]*SSHKey),
+		sshdPort:          defaultOpts.customSSHDPort,
+		manageDropletKeys: manageDropletKeysEnabled,
+	}
+	if !defaultOpts.manageDropletKeys {
+		ret.manageDropletKeys = manageDropletKeysDisabled
 	}
 	ret.sshHelper = &sshHelperImpl{
 		mgr:               ret,
 		timeNow:           time.Now,
 		customSSHDCfgFile: defaultOpts.customSSHDCfgFile,
-		manageDropletKeys: defaultOpts.manageDropletKeys,
 	}
 	ret.authorizedKeysFileUpdater = &updaterImpl{sshMgr: ret}
 
@@ -75,6 +81,16 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 	}
 	log.Info("SSH Manager Initialized. sshd_config:[%s], sshd_port:[%d]", ret.sshdConfigFile(), ret.sshdPort)
 	return ret, nil
+}
+
+// EnableManagedDropletKeys enables the SSH manager to manage droplet keys
+func (s *SSHManager) EnableManagedDropletKeys() {
+	atomic.StoreUint32(&s.manageDropletKeys, manageDropletKeysEnabled)
+}
+
+// DisableManagedDropletKeys disables the SSH manager to manage droplet keys
+func (s *SSHManager) DisableManagedDropletKeys() {
+	atomic.StoreUint32(&s.manageDropletKeys, manageDropletKeysDisabled)
 }
 
 // RemoveExpiredKeys removes expired keys from the authorized_keys file

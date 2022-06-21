@@ -17,6 +17,7 @@ import (
 
 func Test_dottyKeysActioner_do(t *testing.T) {
 	log.Mute()
+	newBoolPtr := func(v bool) *bool { return &v }
 
 	validDOTTYKey1 := &sysaccess.SSHKey{
 		OSUser:     "root",
@@ -52,6 +53,7 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 		{
 			"should skip invalid public keys",
 			func(sshMgr *mocks.MocksshManager, keyParser *mocks.MocksshKeyParser) {
+				sshMgr.EXPECT().DisableManagedDropletKeys()
 				gomock.InOrder(
 					keyParser.EXPECT().FromPublicKey("invalid-public-key").Return(nil, errors.New("oops")),
 					keyParser.EXPECT().FromPublicKey(validDropletKey1Str).Return(validDropletKey1, nil),
@@ -70,6 +72,7 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 		{
 			"should skip invalid dotty keys",
 			func(sshMgr *mocks.MocksshManager, keyParser *mocks.MocksshKeyParser) {
+				sshMgr.EXPECT().DisableManagedDropletKeys()
 				gomock.InOrder(
 					keyParser.EXPECT().FromDOTTYKey("invalid-dotty-key").Return(nil, errors.New("oops")),
 					keyParser.EXPECT().FromDOTTYKey(validDOTTYKey1Str).Return(validDOTTYKey1, nil),
@@ -88,6 +91,7 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 		{
 			"should combine public keys and dotty keys",
 			func(sshMgr *mocks.MocksshManager, keyParser *mocks.MocksshKeyParser) {
+				sshMgr.EXPECT().DisableManagedDropletKeys()
 				gomock.InOrder(
 					keyParser.EXPECT().FromPublicKey(validDropletKey1Str).Return(validDropletKey1, nil),
 					keyParser.EXPECT().FromDOTTYKey(validDOTTYKey1Str).Return(validDOTTYKey1, nil),
@@ -112,11 +116,22 @@ func Test_dottyKeysActioner_do(t *testing.T) {
 		{
 			"should allow to clear keys if metadata does not contain any valid keys",
 			func(sshMgr *mocks.MocksshManager, keyParser *mocks.MocksshKeyParser) {
+				sshMgr.EXPECT().DisableManagedDropletKeys()
 				sshMgr.EXPECT().UpdateKeys([]*sysaccess.SSHKey{})
 			},
 			&metadata.Metadata{
 				PublicKeys: []string{},
 				DOTTYKeys:  []string{},
+			},
+		},
+		{
+			"should turn on managed keys if specified",
+			func(sshMgr *mocks.MocksshManager, keyParser *mocks.MocksshKeyParser) {
+				sshMgr.EXPECT().EnableManagedDropletKeys()
+				sshMgr.EXPECT().UpdateKeys([]*sysaccess.SSHKey{}).Return(nil)
+			},
+			&metadata.Metadata{
+				ManagedKeysEnabled: newBoolPtr(true),
 			},
 		},
 	}

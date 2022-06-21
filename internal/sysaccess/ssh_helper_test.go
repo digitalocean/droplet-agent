@@ -450,7 +450,12 @@ func Test_sshHelperImpl_prepareAuthorizedKeys(t *testing.T) {
 				timeNow: func() time.Time {
 					return timeNow
 				},
-				manageDropletKeys: !tt.withoutManagedKeys,
+				mgr: &SSHManager{
+					manageDropletKeys: manageDropletKeysEnabled,
+				},
+			}
+			if tt.withoutManagedKeys {
+				s.mgr.manageDropletKeys = manageDropletKeysDisabled
 			}
 			if got := s.prepareAuthorizedKeys(tt.args.localKeys, tt.args.managedKeys); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("prepareAuthorizedKeys() = %v, want %v", got, tt.want)
