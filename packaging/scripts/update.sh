@@ -4,6 +4,7 @@
 set -ue
 
 SVC_NAME="droplet-agent"
+KEYRING_PKG="${SVC_NAME}-keyring"
 
 REPO_HOST=""
 PKG_PATTERN=""
@@ -11,10 +12,13 @@ ARCH=""
 ARCH_ALIAS=""
 LATEST_VER="-"
 LOCAL_VER=""
+LATEST_KEYRING_VER=""
+LOCAL_KEYRING_VER=""
+KEYRING_PKG_PATTERN=""
 
 main() {
   # add some jitter to prevent overloading the remote repo server
-  delay=$(( RANDOM % 900 ))
+  delay=$((RANDOM % 900))
   echo "Waiting ${delay} seconds"
   sleep ${delay}
 
@@ -30,12 +34,13 @@ main() {
   fi
   prepare "${platform}"
   find_latest_pkg "${platform}"
-  if [ "${LOCAL_VER}" = "${LATEST_VER}" ]; then
+  if [ "${LOCAL_VER}" = "${LATEST_VER}" ] && [ "${LOCAL_KEYRING_VER}" = "${LATEST_KEYRING_VER}" ]; then
     echo "No need to update"
     exit 0
   fi
   ${do_update}
 }
+
 update_deb() {
   echo "Updating ${SVC_NAME} deb package"
   export DEBIAN_FRONTEND="noninteractive"
@@ -77,7 +82,9 @@ prepare() {
     ;;
   deb)
     LOCAL_VER=$(dpkg -s ${SVC_NAME} | grep Version | cut -f 2 -d: | tr -d '[:space:]')
+    LOCAL_KEYRING_VER=$(dpkg -s ${KEYRING_PKG} | grep Version | cut -f 2 -d: | tr -d '[:space:]')
     url=$(cut -f 3 -d' ' <"/etc/apt/sources.list.d/${SVC_NAME}.list")
+    KEYRING_PKG_PATTERN=$(echo "${url}/pool/main/main/d/${KEYRING_PKG}/${KEYRING_PKG}_" | grep "/" | cut -d"/" -f4-)
     url="${url}/pool/main/main/d/${SVC_NAME}/${SVC_NAME}_"
     ;;
   esac
@@ -85,6 +92,10 @@ prepare() {
   PKG_PATTERN=$(echo "${url}" | grep "/" | cut -d"/" -f4-)
   echo "Package Host: ${REPO_HOST}"
   echo "Package Path: ${PKG_PATTERN}"
+  if [ -n "${KEYRING_PKG_PATTERN}" ]; then
+    echo "Keyring Path: ${KEYRING_PKG_PATTERN}"
+    echo "Local Keyring:${LOCAL_KEYRING_VER}"
+  fi
   echo "Local Version:${LOCAL_VER}"
 }
 
@@ -92,19 +103,25 @@ find_latest_pkg() {
   platform=${1:-}
   [ -z "${platform}" ] && abort "Destination repository is required. Usage: find_latest_pkg <platform>"
 
-  echo -n "Checking Latest Version..."
+  echo "Checking Latest Version..."
   case "${platform}" in
   rpm)
     repo_tree=$(curl -sSL "${REPO_HOST}")
     ;;
   deb)
     repo_tree=$(wget -qO- "${REPO_HOST}")
+    if [ -n "${KEYRING_PKG_PATTERN}" ]; then
+      keyring_pkgs=$(echo "${repo_tree}" | grep -oP '(?<=Key>'"${KEYRING_PKG_PATTERN}"')[^<]+' | tr ' ' '\n')
+      sorted_pkgs=$(echo "${keyring_pkgs}" | sort -V)
+      LATEST_KEYRING_VER=$(echo "${sorted_pkgs}" | tail -1 | grep -oP '\d.\d.\d')
+      echo "Latest keyring package:${LATEST_KEYRING_VER}"
+    fi
     ;;
   esac
   files=$(echo "${repo_tree}" | grep -oP '(?<=Key>'"${PKG_PATTERN}"')[^<]+' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
   LATEST_VER=$(echo "${sorted_files}" | tail -1 | grep -oP '\d.\d.\d')
-  echo "${LATEST_VER}"
+  echo "Latest agent package:${LATEST_VER}"
 }
 
 not_supported() {
