@@ -21,16 +21,16 @@ touch        = @touch $@
 cp           = @cp $< $@
 print        = @printf "\n:::::::::::::::: [$(shell date -u)] $@ ::::::::::::::::\n"
 now          = $(shell date -u)
-fpm          = @docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
-shellcheck   = @docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) koalaman/shellcheck:v0.6.0
+fpm          = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
+shellcheck   = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) koalaman/shellcheck:v0.6.0
 version_check = @./scripts/check_version.sh
-linter = docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
+linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
 	-u $(shell id -u) golangci/golangci-lint:v1.39 \
 	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
 
 go_docker_linux = golang:1.18.2
 ifeq ($(GOOS), linux)
-go = docker run --rm -i \
+go = docker run --platform linux/amd64 --rm -i \
 	-e "GOOS=$(GOOS)" \
 	-e "GOARCH=$(GOARCH)" \
 	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
@@ -178,7 +178,7 @@ $(deb_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print information about the compiled deb package
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial /bin/bash -c 'dpkg --info $@ && dpkg -c $@'
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial /bin/bash -c 'dpkg --info $@ && dpkg -c $@'
 
 rpm: $(rpm_package)
 $(rpm_package): $(base_linux_package)
@@ -194,7 +194,7 @@ $(rpm_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print information about the compiled rpm package
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" centos:7 rpm -qilp $@
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" centos:7 rpm -qilp $@
 
 tar: $(tar_package)
 $(tar_package): $(base_linux_package)
@@ -208,7 +208,7 @@ $(tar_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print all files within the archive
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
 
 ## mockgen: generates the mocks for the droplet agent service
 mockgen:
