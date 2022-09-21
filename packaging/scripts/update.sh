@@ -45,7 +45,7 @@ update_deb() {
   echo "Updating ${SVC_NAME} deb package"
   export DEBIAN_FRONTEND="noninteractive"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/${SVC_NAME}.list"
-  apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq install -y --only-upgrade ${SVC_NAME}
+  apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq install -y --only-upgrade ${SVC_NAME} ${KEYRING_PKG}
 }
 
 update_rpm() {
