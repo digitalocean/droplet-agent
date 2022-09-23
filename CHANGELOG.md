@@ -2,6 +2,14 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.4](https://github.com/digitalocean/droplet-agent/tree/1.2.4) (2022-09-21)
+### Updated
+- For Ubuntu & Debian droplets, the update script will now also check for newer keyring package as well to ensure a fast
+and smooth GPG key rotation
+
+### Related PRs
+- update.sh check for newer keyring packages [\#60](https://github.com/digitalocean/droplet-agent/pull/60)
+
 ## [1.2.3](https://github.com/digitalocean/droplet-agent/tree/1.2.3) (2022-06-16)
 ### Updated
 - Droplet Agent now supports dynamically turning the managed ssh keys feature on and off. If the metadata of the droplet
