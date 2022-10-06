@@ -4,11 +4,13 @@ package sysutil
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // NewSysManager returns a new SysManager Object
@@ -51,6 +53,22 @@ func (s *SysManager) MkDirIfNonExist(dir string, user *User, perm os.FileMode) e
 // CreateFileForWrite creates a file for write
 func (s *SysManager) CreateFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
 	return s.createFileForWrite(file, user, perm)
+}
+
+// FileExists checks whether a file exists or not
+func (s *SysManager) FileExists(name string) (bool, error) {
+	_, err := os.Stat(name)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
+func (s *SysManager) Sleep(d time.Duration) {
+	time.Sleep(d)
 }
 
 // RunCmd runs a command and return the result

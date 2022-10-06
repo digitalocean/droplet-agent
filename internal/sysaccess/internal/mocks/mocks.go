@@ -8,6 +8,7 @@ import (
 	io "io"
 	os "os"
 	reflect "reflect"
+	time "time"
 
 	sysutil "github.com/digitalocean/droplet-agent/internal/sysutil"
 	gomock "github.com/golang/mock/gomock"
@@ -63,6 +64,21 @@ func (m *MocksysManager) CreateFileForWrite(file string, user *sysutil.User, per
 func (mr *MocksysManagerMockRecorder) CreateFileForWrite(file, user, perm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileForWrite", reflect.TypeOf((*MocksysManager)(nil).CreateFileForWrite), file, user, perm)
+}
+
+// FileExists mocks base method.
+func (m *MocksysManager) FileExists(name string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FileExists", name)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FileExists indicates an expected call of FileExists.
+func (mr *MocksysManagerMockRecorder) FileExists(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileExists", reflect.TypeOf((*MocksysManager)(nil).FileExists), name)
 }
 
 // GetUserByName mocks base method.
@@ -135,4 +151,16 @@ func (m *MocksysManager) RenameFile(oldpath, newpath string) error {
 func (mr *MocksysManagerMockRecorder) RenameFile(oldpath, newpath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenameFile", reflect.TypeOf((*MocksysManager)(nil).RenameFile), oldpath, newpath)
+}
+
+// Sleep mocks base method.
+func (m *MocksysManager) Sleep(d time.Duration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Sleep", d)
+}
+
+// Sleep indicates an expected call of Sleep.
+func (mr *MocksysManagerMockRecorder) Sleep(d interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sleep", reflect.TypeOf((*MocksysManager)(nil).Sleep), d)
 }

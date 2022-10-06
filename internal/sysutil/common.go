@@ -12,6 +12,8 @@ import (
 var (
 	// ErrGetUserFailed indicates the system call for fetching user entry from passwd has failed
 	ErrGetUserFailed = fmt.Errorf("failed to get user")
+	// ErrUserNotFound indicates the user does not exist in the system
+	ErrUserNotFound = fmt.Errorf("user not found")
 	// ErrMakeDirFailed indicates the system call for making a directory has failed
 	ErrMakeDirFailed = fmt.Errorf("failed to make directory")
 	// ErrCreateFileFailed indicates the error of failing to create a file

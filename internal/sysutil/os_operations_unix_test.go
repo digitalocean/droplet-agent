@@ -81,7 +81,7 @@ lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin`,
 			nil,
 			"hlee",
 			nil,
-			ErrGetUserFailed,
+			ErrUserNotFound,
 		},
 	}
 	for _, tt := range tests {

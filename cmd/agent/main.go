@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
-	"github.com/digitalocean/droplet-agent/internal/metadata/status"
+	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
@@ -28,26 +29,43 @@ func main() {
 		log.EnableDebug()
 		log.Info("Debug mode enabled")
 	}
-
-	sshMgr, err := sysaccess.NewSSHManager()
+	if cfg.UseSyslog {
+		if err := log.UseSysLog(); err != nil {
+			log.Error("failed to use syslog, using default logger instead. Error:%v", err)
+		}
+	}
+	sshMgrOpts := []sysaccess.SSHManagerOpt{sysaccess.WithoutManagingDropletKeys()}
+	if cfg.CustomSSHDPort != 0 {
+		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDPort(cfg.CustomSSHDPort))
+	}
+	if cfg.CustomSSHDCfgFile != "" {
+		sshMgrOpts = append(sshMgrOpts, sysaccess.WithCustomSSHDCfg(cfg.CustomSSHDCfgFile))
+	}
+	sshMgr, err := sysaccess.NewSSHManager(sshMgrOpts...)
 	if err != nil {
 		log.Fatal("failed to initialize SSHManager: %v", err)
 	}
 
-	dottyKeysActioner := actioner.NewDOTTYKeysActioner(sshMgr)
-	metadataWatcher := newMetadataWatcher()
-	metadataWatcher.RegisterActioner(dottyKeysActioner)
-	updater := status.NewStatusUpdater()
+	doManagedKeysActioner := actioner.NewDOManagedKeysActioner(sshMgr)
+	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
+	metadataWatcher.RegisterActioner(doManagedKeysActioner)
+	infoUpdater := updater.NewAgentInfoUpdater()
+
+	// monitor sshd_config
+	go mustMonitorSSHDConfig(sshMgr)
 
 	// Launch background jobs
 	bgJobsCtx, bgJobsCancel := context.WithCancel(context.Background())
 	go bgJobsRemoveExpiredDOTTYKeys(bgJobsCtx, sshMgr, cfg.AuthorizedKeysCheckInterval)
 
 	// handle shutdown
-	go handleShutdown(bgJobsCancel, metadataWatcher, updater)
+	go handleShutdown(bgJobsCancel, metadataWatcher, infoUpdater, sshMgr)
 
-	// set status to running
-	go setStatus(updater, metadata.RunningStatus, true)
+	// report agent status and ssh info
+	go updateMetadata(infoUpdater, &metadata.Metadata{
+		DOTTYStatus: metadata.RunningStatus,
+		SSHInfo:     &metadata.SSHInfo{Port: sshMgr.SSHDPort()},
+	}, true)
 
 	// launch the watcher
 	if err := metadataWatcher.Run(); err != nil {
@@ -57,7 +75,7 @@ func main() {
 	}
 }
 
-func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, updater status.Updater) {
+func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, infoUpdater updater.AgentInfoUpdater, sshMgr *sysaccess.SSHManager) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGINT,
@@ -67,12 +85,13 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 	)
 
 	c := <-signalChan
-	setStatus(updater, metadata.StoppedStatus, false)
+	updateMetadata(infoUpdater, &metadata.Metadata{DOTTYStatus: metadata.StoppedStatus}, false)
 	switch c {
 	case syscall.SIGINT, syscall.SIGTERM:
 		log.Info("[%s] Shutting down", config.AppShortName)
 		bgJobsCancel()
 		metadataWatcher.Shutdown()
+		_ = sshMgr.Close()
 	case syscall.SIGTSTP, syscall.SIGQUIT:
 		log.Info("[%s] Forced to quit! You may lose jobs in progress", config.AppShortName)
 	default:
@@ -81,27 +100,43 @@ func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.Met
 	}
 }
 
-func setStatus(updater status.Updater, agentStatus metadata.AgentStatus, retry bool) {
-	fn := func() error { return updater.Update(agentStatus) }
+func updateMetadata(infoUpdater updater.AgentInfoUpdater, md *metadata.Metadata, retry bool) {
+	fn := func() error { return infoUpdater.Update(md) }
 	sleepTime := time.Second * 5
 
 	if !retry {
 		err := fn()
 		if err != nil {
-			log.Error("error setting status: %s", err)
+			log.Error("error updating droplet metadata: %s", err)
 		}
 		return
 	}
 
 	for {
-		log.Debug("setting status")
+		log.Debug("updating metadata")
 		err := fn()
 		if err == nil {
-			log.Info("Agent status set to [%s]", string(agentStatus))
+			jsonMD, _ := json.Marshal(md)
+			log.Info("droplet metadata updated to [%s]", string(jsonMD))
 			return
 		}
 
 		time.Sleep(sleepTime)
-		log.Error("error setting status: %s, retrying", err)
+		log.Error("error updating droplet metadata: %s, retrying", err)
+	}
+}
+
+func mustMonitorSSHDConfig(sshMgr *sysaccess.SSHManager) {
+	cfgChanged, err := sshMgr.WatchSSHDConfig()
+	if err != nil {
+		log.Fatal("Failed to watch for sshd_config changes. error: %v", err)
+	}
+	if _, ok := <-cfgChanged; ok {
+		// change detected, terminate the agent
+		// and the systemd will restart it
+		if err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM); err != nil {
+			log.Debug("Failed to send signal to process")
+			os.Exit(2)
+		}
 	}
 }

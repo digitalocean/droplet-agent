@@ -14,7 +14,7 @@ import (
 )
 
 type authorizedKeysFileUpdater interface {
-	updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error
+	updateAuthorizedKeysFile(osUsername string, managedKeys []*SSHKey) error
 }
 
 type updaterImpl struct {
@@ -23,7 +23,7 @@ type updaterImpl struct {
 	keysFileLocks sync.Map
 }
 
-func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error {
+func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, managedKeys []*SSHKey) error {
 	osUser, err := u.sshMgr.sysMgr.GetUserByName(osUsername)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, dottyKeys []*S
 	if localKeysRaw != nil {
 		localKeys = strings.Split(strings.TrimRight(string(localKeysRaw), "\n"), "\n")
 	}
-	updatedKeys := u.sshMgr.prepareAuthorizedKeys(localKeys, dottyKeys)
+	updatedKeys := u.sshMgr.prepareAuthorizedKeys(localKeys, managedKeys)
 	if err = u.do(authorizedKeysFile, osUser, updatedKeys, fileExist); err != nil {
 		return err
 	}

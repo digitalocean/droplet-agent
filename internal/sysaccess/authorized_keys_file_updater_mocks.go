@@ -34,15 +34,15 @@ func (m *MockauthorizedKeysFileUpdater) EXPECT() *MockauthorizedKeysFileUpdaterM
 }
 
 // updateAuthorizedKeysFile mocks base method.
-func (m *MockauthorizedKeysFileUpdater) updateAuthorizedKeysFile(osUsername string, dottyKeys []*SSHKey) error {
+func (m *MockauthorizedKeysFileUpdater) updateAuthorizedKeysFile(osUsername string, managedKeys []*SSHKey) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "updateAuthorizedKeysFile", osUsername, dottyKeys)
+	ret := m.ctrl.Call(m, "updateAuthorizedKeysFile", osUsername, managedKeys)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // updateAuthorizedKeysFile indicates an expected call of updateAuthorizedKeysFile.
-func (mr *MockauthorizedKeysFileUpdaterMockRecorder) updateAuthorizedKeysFile(osUsername, dottyKeys interface{}) *gomock.Call {
+func (mr *MockauthorizedKeysFileUpdaterMockRecorder) updateAuthorizedKeysFile(osUsername, managedKeys interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "updateAuthorizedKeysFile", reflect.TypeOf((*MockauthorizedKeysFileUpdater)(nil).updateAuthorizedKeysFile), osUsername, dottyKeys)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "updateAuthorizedKeysFile", reflect.TypeOf((*MockauthorizedKeysFileUpdater)(nil).updateAuthorizedKeysFile), osUsername, managedKeys)
 }

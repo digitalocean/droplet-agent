@@ -21,16 +21,16 @@ touch        = @touch $@
 cp           = @cp $< $@
 print        = @printf "\n:::::::::::::::: [$(shell date -u)] $@ ::::::::::::::::\n"
 now          = $(shell date -u)
-fpm          = @docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
-shellcheck   = @docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) koalaman/shellcheck:v0.6.0
+fpm          = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
+shellcheck   = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) koalaman/shellcheck:v0.6.0
 version_check = @./scripts/check_version.sh
-linter = docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
+linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
 	-u $(shell id -u) golangci/golangci-lint:v1.39 \
 	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
 
-go_docker_linux = golang:1.16.3
+go_docker_linux = golang:1.18.2
 ifeq ($(GOOS), linux)
-go = docker run --rm -i \
+go = docker run --platform linux/amd64 --rm -i \
 	-e "GOOS=$(GOOS)" \
 	-e "GOARCH=$(GOARCH)" \
 	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
@@ -178,7 +178,7 @@ $(deb_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print information about the compiled deb package
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial /bin/bash -c 'dpkg --info $@ && dpkg -c $@'
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial /bin/bash -c 'dpkg --info $@ && dpkg -c $@'
 
 rpm: $(rpm_package)
 $(rpm_package): $(base_linux_package)
@@ -194,7 +194,7 @@ $(rpm_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print information about the compiled rpm package
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" centos:7 rpm -qilp $@
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" centos:7 rpm -qilp $@
 
 tar: $(tar_package)
 $(tar_package): $(base_linux_package)
@@ -208,8 +208,7 @@ $(tar_package): $(base_linux_package)
 		-p $@ \
 		$<
 	# print all files within the archive
-	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
-
+	@docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" ubuntu:xenial tar -ztvf $@
 
 ## mockgen: generates the mocks for the droplet agent service
 mockgen:
@@ -217,6 +216,6 @@ mockgen:
 	mockgen -source=internal/sysaccess/common.go -package=mocks -destination=internal/sysaccess/internal/mocks/mocks.go
 	mockgen -source=internal/sysaccess/ssh_helper.go -package=sysaccess -destination=internal/sysaccess/ssh_helper_mocks.go
 	mockgen -source=internal/sysaccess/authorized_keys_file_updater.go -package=sysaccess -destination=internal/sysaccess/authorized_keys_file_updater_mocks.go
-	mockgen -source=internal/metadata/actioner/dotty_keys_actioner.go -package=mocks -destination=internal/metadata/actioner/internal/mocks/ssh_mgr_mocks.go
+	mockgen -source=internal/metadata/actioner/do_managed_keys_actioner.go -package=mocks -destination=internal/metadata/actioner/internal/mocks/mocks.go
 	GOOS=linux mockgen -source=internal/netutil/tcp_sniffer_helper_linux.go -package=mocks -destination=internal/netutil/internal/mocks/dependent_functions_mock.go
-	mockgen -source=internal/metadata/status/updater.go -package=status -destination=internal/metadata/status/updater_mocks.go
+	mockgen -source=internal/metadata/updater/updater.go -package=updater -destination=internal/metadata/updater/updater_mocks.go
