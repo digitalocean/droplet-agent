@@ -2,6 +2,13 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## Support AlmaLinux (2022-10-06)
+### Updated
+- Add support for installing the agent on AlmaLinux (NOTE: no new version is introduced as there are not any changes made to the binary)
+
+### Related PRs
+- Add AlmaLinux OS support [\#32](https://github.com/digitalocean/droplet-agent/pull/32)
+
 ## [1.2.4](https://github.com/digitalocean/droplet-agent/tree/1.2.4) (2022-09-21)
 ### Updated
 - For Ubuntu & Debian droplets, the update script will now also check for newer keyring package as well to ensure a fast
