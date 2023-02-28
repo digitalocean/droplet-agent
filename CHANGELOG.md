@@ -2,6 +2,14 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+
+## [1.2.5](https://github.com/digitalocean/droplet-agent/tree/1.2.5) (2023-02-28)
+### Updated
+- Use Lshortfile to only show filename and line number in logs
+
+### Related PRs
+- Use Lshortfile in logs [\#72](https://github.com/digitalocean/droplet-agent/pull/72)
+
 ## Support AlmaLinux (2022-10-06)
 ### Updated
 - Add support for installing the agent on AlmaLinux (NOTE: no new version is introduced as there are not any changes made to the binary)
