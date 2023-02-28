@@ -111,7 +111,7 @@ build: $(binary)
 $(binary): $(gofiles)
 	$(print)
 	$(mkdir)
-	$(go) build -ldflags $(ldflags) -o "$@" ./cmd/agent/
+	$(go) build -ldflags $(ldflags) -trimpath -o "$@" ./cmd/agent/
 
 shellcheck: $(cache)/shellcheck
 $(cache)/shellcheck: $(shellscripts)
