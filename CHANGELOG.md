@@ -2,6 +2,15 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.5](https://github.com/digitalocean/droplet-agent/tree/1.2.5) (2023-02-28)
+### Updated
+- Use Lshortfile flag when using syslog
+- Added `-trimpath` build flag
+
+### Related PRs
+- Update log format and build flag [\#73](https://github.com/digitalocean/droplet-agent/pull/73)
+
+
 ## Support AlmaLinux (2022-10-06)
 ### Updated
 - Add support for installing the agent on AlmaLinux (NOTE: no new version is introduced as there are not any changes made to the binary)

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	syslogFlags = log.Llongfile
+	syslogFlags = log.Lshortfile
 )
 
 var once sync.Once
