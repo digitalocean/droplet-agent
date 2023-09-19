@@ -26,7 +26,7 @@ shellcheck   = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR
 version_check = @./scripts/check_version.sh
 linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GOOS=$(GOOS)" -e "GOARCH=$(GOARCH)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
 	-u $(shell id -u) golangci/golangci-lint:v1.54 \
-	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
+	golangci-lint run --skip-files=.*_test.go -D errcheck -E revive -E gosec -E gofmt
 
 go_docker_linux = golang:1.21.1
 ifeq ($(GOOS), linux)
