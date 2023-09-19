@@ -1,15 +1,15 @@
 # github.com/fsnotify/fsnotify v1.6.0
-## explicit
+## explicit; go 1.16
 github.com/fsnotify/fsnotify
 # github.com/golang/mock v1.6.0
-## explicit
+## explicit; go 1.11
 github.com/golang/mock/gomock
 # github.com/opencontainers/selinux v1.11.0
-## explicit
+## explicit; go 1.19
 github.com/opencontainers/selinux/go-selinux
 github.com/opencontainers/selinux/pkg/pwalkdir
 # golang.org/x/crypto v0.13.0
-## explicit
+## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
@@ -20,13 +20,13 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 # golang.org/x/net v0.15.0
-## explicit
+## explicit; go 1.17
 golang.org/x/net/bpf
 # golang.org/x/sync v0.3.0
-## explicit
+## explicit; go 1.17
 golang.org/x/sync/errgroup
 # golang.org/x/sys v0.12.0
-## explicit
+## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
