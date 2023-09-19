@@ -50,8 +50,8 @@ func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
 		da.sshMgr.DisableManagedDropletKeys()
 	}
 	// prepare ssh keys
-	for _, kRaw := range metadata.PublicKeys {
-		k, e := da.keyParser.FromPublicKey(kRaw)
+	for _, keyRaw := range metadata.PublicKeys {
+		k, e := da.keyParser.FromPublicKey(keyRaw)
 		if e != nil {
 			log.Error("[DO-Managed Keys Actioner] invalid public key object. %v", e)
 			continue
@@ -59,8 +59,8 @@ func (da *doManagedKeysActioner) do(metadata *metadata.Metadata) {
 		sshKeys = append(sshKeys, k)
 	}
 	// prepare dotty keys
-	for _, kRaw := range metadata.DOTTYKeys {
-		k, e := da.keyParser.FromDOTTYKey(kRaw)
+	for _, keyRaw := range metadata.DOTTYKeys {
+		k, e := da.keyParser.FromDOTTYKey(keyRaw)
 		if e != nil {
 			log.Error("[DO-Managed Keys Actioner] invalid ssh key object. %v", e)
 			continue

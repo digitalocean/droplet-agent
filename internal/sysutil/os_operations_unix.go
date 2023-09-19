@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build !windows
 // +build !windows
 
 package sysutil
@@ -7,7 +8,6 @@ package sysutil
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -15,7 +15,7 @@ import (
 
 func newOSOperator() osOperator {
 	return &osOperatorImpl{
-		readFileFn: ioutil.ReadFile,
+		readFileFn: os.ReadFile,
 		osStatFn:   os.Stat,
 		osMkDir:    os.MkdirAll,
 		osChown:    os.Chown,

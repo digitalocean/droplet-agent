@@ -64,8 +64,9 @@ func (w *webBasedWatcher) Run() error {
 	})
 
 	w.server = &http.Server{
-		Addr:    webAddr,
-		Handler: r,
+		Addr:              webAddr,
+		Handler:           r,
+		ReadHeaderTimeout: 3 * time.Second,
 	}
 	if err := w.server.ListenAndServe(); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {

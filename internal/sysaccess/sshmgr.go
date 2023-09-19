@@ -130,10 +130,7 @@ func (s *SSHManager) RemoveExpiredKeys() (err error) {
 			return nil
 		})
 	}
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return eg.Wait()
 }
 
 // UpdateKeys updates the given ssh keys to corresponding authorized_keys files.
@@ -218,10 +215,7 @@ func (s *SSHManager) RemoveDOTTYKeys() error {
 			return nil
 		})
 	}
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return eg.Wait()
 }
 
 // SSHDPort returns the port sshd is binding to
@@ -286,15 +280,16 @@ func (s *SSHManager) Close() error {
 }
 
 // parseSSHDConfig parses the sshd_config file and retrieves configurations needed by the agent, which are:
-//  - AuthorizedKeysFile : to know how to locate the authorized_keys file
-//  - Port | ListenAddress : to know which port sshd is currently binding to
+//   - AuthorizedKeysFile : to know how to locate the authorized_keys file
+//   - Port | ListenAddress : to know which port sshd is currently binding to
+//
 // NOTES:
-//  - the port specified in the command line arguments (--sshd_port) when launching the agent has the highest priority,
-//    if given, parseSSHDConfig will skip parsing port numbers specified in the sshd_config
-//  - only 1 port is currently supported, if there are multiple ports presented, for example, multiple "Port" entries
-//    or more ports are found from `ListenAddress` entry/entries, the agent will only take the first one found, and this
-//    *MAY NOT* be the right one. If this happens to be the case, please explicit specify which port the agent should
-//    watch via the command line argument "--sshd_port"
+//   - the port specified in the command line arguments (--sshd_port) when launching the agent has the highest priority,
+//     if given, parseSSHDConfig will skip parsing port numbers specified in the sshd_config
+//   - only 1 port is currently supported, if there are multiple ports presented, for example, multiple "Port" entries
+//     or more ports are found from `ListenAddress` entry/entries, the agent will only take the first one found, and this
+//     *MAY NOT* be the right one. If this happens to be the case, please explicit specify which port the agent should
+//     watch via the command line argument "--sshd_port"
 func (s *SSHManager) parseSSHDConfig() error {
 	defer func() {
 		if s.authorizedKeysFilePattern == "" {

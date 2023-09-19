@@ -54,10 +54,7 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, managedKeys []
 		localKeys = strings.Split(strings.TrimRight(string(localKeysRaw), "\n"), "\n")
 	}
 	updatedKeys := u.sshMgr.prepareAuthorizedKeys(localKeys, managedKeys)
-	if err = u.do(authorizedKeysFile, osUser, updatedKeys, fileExist); err != nil {
-		return err
-	}
-	return nil
+	return u.do(authorizedKeysFile, osUser, updatedKeys, fileExist)
 }
 
 func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []string, srcFileExist bool) (retErr error) {

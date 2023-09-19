@@ -5,7 +5,7 @@ package mockutils
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/golang/mock/gomock"
@@ -50,12 +50,12 @@ func (m *HTTPRequestMatcher) Matches(x interface{}) bool {
 	actualBodyReader := actual.Body
 	expectedBodyReader := m.ExpectedRequest.Body
 
-	actualBody, err := ioutil.ReadAll(actualBodyReader)
+	actualBody, err := io.ReadAll(actualBodyReader)
 	if err != nil {
 		return false
 	}
 
-	expectedBody, err := ioutil.ReadAll(expectedBodyReader)
+	expectedBody, err := io.ReadAll(expectedBodyReader)
 	if err != nil {
 		return false
 	}

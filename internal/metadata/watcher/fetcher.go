@@ -5,7 +5,7 @@ package watcher
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/digitalocean/droplet-agent/internal/metadata"
@@ -32,7 +32,7 @@ func (m *metadataFetcherImpl) fetchMetadata() (*metadata.Metadata, error) {
 		_ = metaResp.Body.Close()
 	}()
 
-	metadataRaw, err := ioutil.ReadAll(metaResp.Body)
+	metadataRaw, err := io.ReadAll(metaResp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%w:%v", ErrFetchMetadataFailed, err)
 	}
