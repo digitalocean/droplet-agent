@@ -24,8 +24,8 @@ now          = $(shell date -u)
 fpm          = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
 shellcheck   = @docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) koalaman/shellcheck:v0.6.0
 version_check = @./scripts/check_version.sh
-linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
-	-u $(shell id -u) golangci/golangci-lint:v1.39 \
+linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "GOOS=$(GOOS)" -e "GOARCH=$(GOARCH)" -e "GO111MODULE=on" -e "GOFLAGS=-mod=vendor" -e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
+	-u $(shell id -u) golangci/golangci-lint:v1.54 \
 	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
 
 go_docker_linux = golang:1.21.1
