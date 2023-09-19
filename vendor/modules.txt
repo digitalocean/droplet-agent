@@ -1,39 +1,36 @@
-# github.com/fsnotify/fsnotify v1.5.1
-## explicit
+# github.com/fsnotify/fsnotify v1.6.0
+## explicit; go 1.16
 github.com/fsnotify/fsnotify
 # github.com/golang/mock v1.6.0
-## explicit
+## explicit; go 1.11
 github.com/golang/mock/gomock
-# github.com/opencontainers/selinux v1.8.1
-## explicit
+# github.com/opencontainers/selinux v1.11.0
+## explicit; go 1.19
 github.com/opencontainers/selinux/go-selinux
-github.com/opencontainers/selinux/pkg/pwalk
-# github.com/pkg/errors v0.9.1
-github.com/pkg/errors
-# github.com/willf/bitset v1.1.11
-github.com/willf/bitset
-# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-## explicit
+github.com/opencontainers/selinux/pkg/pwalkdir
+# golang.org/x/crypto v0.13.0
+## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
+golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
-golang.org/x/crypto/internal/subtle
-golang.org/x/crypto/poly1305
+golang.org/x/crypto/internal/alias
+golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-## explicit
+# golang.org/x/net v0.15.0
+## explicit; go 1.17
 golang.org/x/net/bpf
-# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-## explicit
+# golang.org/x/sync v0.3.0
+## explicit; go 1.17
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
-## explicit
+# golang.org/x/sys v0.12.0
+## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
-# golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
+golang.org/x/sys/windows
+# golang.org/x/time v0.3.0
 ## explicit
 golang.org/x/time/rate

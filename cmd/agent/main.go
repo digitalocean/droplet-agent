@@ -70,9 +70,8 @@ func main() {
 	// launch the watcher
 	if err := metadataWatcher.Run(); err != nil {
 		log.Fatal("Failed to run watcher... %v", err)
-	} else {
-		log.Info("Watcher finished")
 	}
+	log.Info("Watcher finished")
 }
 
 func handleShutdown(bgJobsCancel context.CancelFunc, metadataWatcher watcher.MetadataWatcher, infoUpdater updater.AgentInfoUpdater, sshMgr *sysaccess.SSHManager) {

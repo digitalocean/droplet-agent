@@ -56,10 +56,10 @@ func (s *sshHelperImpl) authorizedKeysFile(user *sysutil.User) string {
 
 // prepareAuthorizedKeys prepares the authorized keys that will be updated to filesystem
 // NOTE: setting managedKeys to nil or empty slice will result in different behaviors
-// - managedKeys = nil: will result in all temporary keys (keys with a TTL) being removed,
-//   but all permanent DO managed droplet keys will be preserved
-// - managedKeys = []*SSHKey{}: means the droplet no longer has any DO managed keys (neither Droplet Keys nor DoTTY Keys),
-//   therefore, all DigitalOcean managed keys will be removed
+//   - managedKeys = nil: will result in all temporary keys (keys with a TTL) being removed,
+//     but all permanent DO managed droplet keys will be preserved
+//   - managedKeys = []*SSHKey{}: means the droplet no longer has any DO managed keys (neither Droplet Keys nor DoTTY Keys),
+//     therefore, all DigitalOcean managed keys will be removed
 func (s *sshHelperImpl) prepareAuthorizedKeys(localKeys []string, managedKeys []*SSHKey) []string {
 	managedDropletKeysEnabled := atomic.LoadUint32(&s.mgr.manageDropletKeys) == manageDropletKeysEnabled
 	managedKeysQuickCheck := make(map[string]bool)

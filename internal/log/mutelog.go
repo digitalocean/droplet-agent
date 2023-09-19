@@ -19,6 +19,6 @@ func Mute() {
 
 type muteLogger struct{}
 
-func (*muteLogger) Output(calldepth int, s string) error {
+func (*muteLogger) Output(_ int, _ string) error {
 	return nil
 }

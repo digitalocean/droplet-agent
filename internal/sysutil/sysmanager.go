@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
@@ -27,7 +26,7 @@ type SysManager struct {
 
 // ReadFile reads a file
 func (s *SysManager) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
+	return os.ReadFile(filename)
 }
 
 // RenameFile renames a file

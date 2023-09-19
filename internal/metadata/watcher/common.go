@@ -10,7 +10,7 @@ const (
 	maxShutdownWaitTimeSeconds = 5
 )
 
-//Possible Errors
+// Possible Errors
 var (
 	ErrFetchMetadataFailed  = errors.New("failed to fetch rmetadata")
 	ErrNoRegisteredActioner = errors.New("no registered actioners")
