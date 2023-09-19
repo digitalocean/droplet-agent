@@ -28,7 +28,7 @@ linter = docker run --platform linux/amd64 --rm -i -v "$(CURDIR):$(CURDIR)" -w "
 	-u $(shell id -u) golangci/golangci-lint:v1.39 \
 	golangci-lint run --skip-files=.*_test.go -D errcheck -E golint -E gosec -E gofmt
 
-go_docker_linux = golang:1.18.2
+go_docker_linux = golang:1.21.1
 ifeq ($(GOOS), linux)
 go = docker run --platform linux/amd64 --rm -i \
 	-e "GOOS=$(GOOS)" \
