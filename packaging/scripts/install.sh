@@ -167,7 +167,7 @@ install_apt() (
 
   echo "Installing droplet-agent"
   apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
-  apt-get -qq install -y droplet-agent droplet-agent-keyring
+  apt-get -qq install --fix-missing -y droplet-agent droplet-agent-keyring
 )
 
 install_yum() (
