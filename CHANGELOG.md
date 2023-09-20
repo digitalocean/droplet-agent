@@ -2,6 +2,16 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.6](https://github.com/digitalocean/droplet-agent/tree/1.2.6) (2023-09-20)
+### Updated
+- Switched to go 1.21
+- Upgraded all modules
+- Fix installation on Debian 12
+
+### Related PRs
+- Update go and modules [\#101](https://github.com/digitalocean/droplet-agent/pull/101)
+- Fix debian 12 install [\#102](https://github.com/digitalocean/droplet-agent/pull/102)
+
 ## [1.2.5](https://github.com/digitalocean/droplet-agent/tree/1.2.5) (2023-02-28)
 ### Updated
 - Use Lshortfile flag when using syslog
