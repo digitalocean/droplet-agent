@@ -166,6 +166,10 @@ install_apt() (
 	EOF
 
   echo "Installing droplet-agent"
+  # TODO:
+  #  replace the `apt-get -qq update` with
+  # `apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"`
+  #  once dependency on crond is gone.
   apt-get -qq update
   apt-get -qq --fix-missing install -y droplet-agent droplet-agent-keyring
 )
