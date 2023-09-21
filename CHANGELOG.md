@@ -2,6 +2,14 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+
+## [1.2.7](https://github.com/digitalocean/droplet-agent/tree/1.2.7) (2023-09-20)
+### Updated
+- Explicitly disable CGO when building the agent binary
+
+### Related PRs
+- Explicitly disable CGO when building binary [\#104](https://github.com/digitalocean/droplet-agent/pull/104)
+
 ## [1.2.6](https://github.com/digitalocean/droplet-agent/tree/1.2.6) (2023-09-20)
 ### Updated
 - Switched to go 1.21
