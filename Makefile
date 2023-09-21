@@ -39,12 +39,28 @@ go = docker run --platform linux/amd64 --rm -i \
 	-w "$(CURDIR)" \
 	$(go_docker_linux) \
 	go
+go_w_cgo = docker run --platform linux/amd64 --rm -i \
+	-e "GOOS=$(GOOS)" \
+	-e "GOARCH=$(GOARCH)" \
+	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
+	-e "CGO_ENABLED=1" \
+	-v "$(CURDIR):$(CURDIR)" \
+	-w "$(CURDIR)" \
+	$(go_docker_linux) \
+	go
 else
 go = GOOS=$(GOOS) \
      GOARCH=$(GOARCH) \
      GO111MODULE=on \
      GOFLAGS=-mod=vendor \
      CGO_ENABLED=0 \
+     GOCACHE=$(CURDIR)/target/.cache/go \
+     $(shell which go)
+go_w_cgo = GOOS=$(GOOS) \
+     GOARCH=$(GOARCH) \
+     GO111MODULE=on \
+     GOFLAGS=-mod=vendor \
+     CGO_ENABLED=1 \
      GOCACHE=$(CURDIR)/target/.cache/go \
      $(shell which go)
 endif
@@ -85,10 +101,10 @@ tar_package        := $(package_dir)/$(pkg_project).$(VERSION).$(PKG_ARCH).tar.g
 test:
 ifndef pkg
 	$(linter) ./...
-	$(go) test -cover -race ./...
+	$(go_w_cgo) test -cover -race ./...
 else
 	$(linter) $(pkg)
-	$(go) test -cover -race -v ./$(pkg)
+	$(go_w_cgo) test -cover -race -v ./$(pkg)
 endif
 
 .PHONY: internal/config/version.go
