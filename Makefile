@@ -34,6 +34,7 @@ go = docker run --platform linux/amd64 --rm -i \
 	-e "GOOS=$(GOOS)" \
 	-e "GOARCH=$(GOARCH)" \
 	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
+	-e "CGO_ENABLED=0" \
 	-v "$(CURDIR):$(CURDIR)" \
 	-w "$(CURDIR)" \
 	$(go_docker_linux) \
@@ -43,6 +44,7 @@ go = GOOS=$(GOOS) \
      GOARCH=$(GOARCH) \
      GO111MODULE=on \
      GOFLAGS=-mod=vendor \
+     CGO_ENABLED=0 \
      GOCACHE=$(CURDIR)/target/.cache/go \
      $(shell which go)
 endif
