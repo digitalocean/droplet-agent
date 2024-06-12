@@ -5,14 +5,13 @@ package actioner
 import (
 	"encoding/json"
 	"errors"
-	"go.uber.org/mock/gomock"
 	"testing"
-
-	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/metadata/actioner/internal/mocks"
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_dottyKeysActioner_do(t *testing.T) {
