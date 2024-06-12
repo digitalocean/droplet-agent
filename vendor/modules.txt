@@ -8,6 +8,9 @@ github.com/golang/mock/gomock
 ## explicit; go 1.19
 github.com/opencontainers/selinux/go-selinux
 github.com/opencontainers/selinux/pkg/pwalkdir
+# go.uber.org/mock v0.4.0
+## explicit; go 1.20
+go.uber.org/mock/gomock
 # golang.org/x/crypto v0.16.0
 ## explicit; go 1.18
 golang.org/x/crypto/blowfish
