@@ -19,7 +19,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/sysaccess/internal/mocks"
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 type recorder struct {

@@ -5,7 +5,7 @@ package actioner
 import (
 	"encoding/json"
 	"errors"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"testing"
 
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"

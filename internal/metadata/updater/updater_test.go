@@ -11,7 +11,7 @@ import (
 
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/mockutils"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
