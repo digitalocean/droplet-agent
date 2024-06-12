@@ -5,6 +5,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,6 +29,9 @@ func main() {
 
 	if cfg.DebugMode {
 		log.EnableDebug()
+		go func() {
+			http.ListenAndServe(config.AppDebugAddr, nil)
+		}()
 		log.Info("Debug mode enabled")
 	}
 	if cfg.UseSyslog {
