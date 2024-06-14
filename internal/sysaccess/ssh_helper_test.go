@@ -16,7 +16,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_sshHelperImpl_authorizedKeysFile(t *testing.T) {

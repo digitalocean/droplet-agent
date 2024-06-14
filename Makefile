@@ -237,3 +237,4 @@ mockgen:
 	mockgen -source=internal/metadata/actioner/do_managed_keys_actioner.go -package=mocks -destination=internal/metadata/actioner/internal/mocks/mocks.go
 	GOOS=linux mockgen -source=internal/netutil/tcp_sniffer_helper_linux.go -package=mocks -destination=internal/netutil/internal/mocks/dependent_functions_mock.go
 	mockgen -source=internal/metadata/updater/updater.go -package=updater -destination=internal/metadata/updater/updater_mocks.go
+	mockgen -destination=internal/metadata/updater/readcloser_mocks.go -package=updater -build_flags=--mod=mod io ReadCloser

@@ -43,6 +43,11 @@ func (u *agentInfoUpdaterImpl) Update(md *metadata.Metadata) error {
 	if err != nil {
 		return fmt.Errorf("%w:%v", ErrUpdateMetadataFailed, err)
 	}
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
 
 	success := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !success {
