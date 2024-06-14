@@ -46,7 +46,7 @@ func (w *webBasedWatcher) Run() error {
 	}
 
 	r := http.NewServeMux()
-	r.HandleFunc("/new_metadata", func(rw http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/new_metadata", func(rw http.ResponseWriter, _ *http.Request) {
 		if !w.limiter.Allow() {
 			rw.WriteHeader(http.StatusTooManyRequests)
 			return

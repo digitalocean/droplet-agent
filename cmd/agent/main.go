@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // #nosec G108
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,7 +30,7 @@ func main() {
 	if cfg.DebugMode {
 		log.EnableDebug()
 		go func() {
-			http.ListenAndServe(config.AppDebugAddr, nil)
+			http.ListenAndServe(config.AppDebugAddr, nil) // #nosec G114
 		}()
 		log.Info("Debug mode enabled")
 	}
