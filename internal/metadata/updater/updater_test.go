@@ -11,7 +11,7 @@ import (
 
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/mockutils"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
@@ -24,12 +24,12 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 	}
 	tests := []struct {
 		name         string
-		expectations func(client *MockhttpClient)
+		expectations func(client *MockhttpClient, respBody *MockReadCloser)
 		wantErr      bool
 	}{
 		{
 			"successful response",
-			func(client *MockhttpClient) {
+			func(client *MockhttpClient, respBody *MockReadCloser) {
 				reqMatcher := &mockutils.HTTPRequestMatcher{
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
@@ -40,18 +40,19 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 		},
 		{
 			"unsuccessful response code",
-			func(client *MockhttpClient) {
+			func(client *MockhttpClient, respBody *MockReadCloser) {
 				reqMatcher := &mockutils.HTTPRequestMatcher{
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 
-				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 404}, nil)
+				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 404, Body: respBody}, nil)
+				respBody.EXPECT().Close()
 			},
 			true,
 		},
 		{
 			"error from http client",
-			func(client *MockhttpClient) {
+			func(client *MockhttpClient, respBody *MockReadCloser) {
 				reqMatcher := &mockutils.HTTPRequestMatcher{
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
@@ -65,7 +66,8 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			client := NewMockhttpClient(ctrl)
-			tt.expectations(client)
+			readCloser := NewMockReadCloser(ctrl)
+			tt.expectations(client, readCloser)
 			m := &agentInfoUpdaterImpl{
 				client: client,
 			}

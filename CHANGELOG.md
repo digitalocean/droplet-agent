@@ -2,6 +2,15 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.8](https://github.com/digitalocean/droplet-agent/tree/1.2.8) (2024-06-14)
+### Updated
+- Properly close the response body when requesting metadata service to avoid memory leak
+- Enable `pprof` in debug mode
+- Upgraded to go 1.22
+- Switched the usage of gomock from `golang/mock` to `uber-go/mock` 
+
+### Related PRs
+- Explicitly disable CGO when building binary [\#104](https://github.com/digitalocean/droplet-agent/pull/104)
 
 ## [1.2.7](https://github.com/digitalocean/droplet-agent/tree/1.2.7) (2023-09-20)
 ### Updated

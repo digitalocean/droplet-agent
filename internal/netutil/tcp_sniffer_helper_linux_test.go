@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build amd64
 // +build amd64
 
 package netutil
@@ -14,7 +15,7 @@ import (
 	"unsafe"
 
 	"github.com/digitalocean/droplet-agent/internal/netutil/internal/mocks"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"golang.org/x/net/bpf"
 	"golang.org/x/sys/unix"
 )

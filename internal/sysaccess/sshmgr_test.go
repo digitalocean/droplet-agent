@@ -13,7 +13,7 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/sysutil"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestSSHManager_parseSSHDConfig(t *testing.T) {
@@ -493,7 +493,6 @@ func TestSSHManager_UpdateKeys(t *testing.T) {
 				sshMgr.cachedKeys = oldCachedKeys
 				sshHpr.EXPECT().validateKey(gomock.Any()).Return(nil).AnyTimes()
 				sshHpr.EXPECT().removeExpiredKeys(oldCachedKeys).Return(map[string][]*SSHKey{})
-
 
 				sshHpr.EXPECT().areSameKeys([]*SSHKey{key1}, nil).
 					Return(false)
