@@ -99,7 +99,7 @@ Droplet Agent currently supports:
 
 - Ubuntu (oldest [End Of Standard Support](https://wiki.ubuntu.com/Releases) LTS release and later)
 - Debian ([oldest supported](https://wiki.debian.org/LTS) LTS release and later)
-- Fedora 38+
+- Fedora 39+
 - CentOS 7+
 - AlmaLinux 8+
 - Rocky Linux 8+
