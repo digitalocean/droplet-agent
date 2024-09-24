@@ -192,7 +192,7 @@ $(deb_package): $(base_linux_package)
 		--verbose \
 		--input-type deb \
 		--force \
-		--depends cron \
+		--depends cron-daemon \
 		-p $@ \
 		$<
 	# print information about the compiled deb package
