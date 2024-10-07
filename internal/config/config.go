@@ -8,6 +8,8 @@ const (
 	AppFullName  = "DigitalOcean Droplet Agent (code name: DOTTY)"
 	AppShortName = "Droplet Agent"
 	AppDebugAddr = "127.0.0.1:304"
+
+	UserAgent = "Droplet-Agent/" + version
 )
 
 const (
