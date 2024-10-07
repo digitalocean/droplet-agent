@@ -10,10 +10,8 @@ const (
 	AppDebugAddr = "127.0.0.1:304"
 
 	UserAgent = "Droplet-Agent/" + version
-)
 
-const (
-	backgroundJobIntervalSeconds = 120
+	backgroundJobInterval = 120 * time.Second
 )
 
 // Conf contains the configurations needed to run the agent
@@ -35,6 +33,6 @@ func Init() *Conf {
 		DebugMode:                   cliArgs.debugMode,
 		CustomSSHDPort:              cliArgs.sshdPort,
 		CustomSSHDCfgFile:           cliArgs.sshdCfgFile,
-		AuthorizedKeysCheckInterval: backgroundJobIntervalSeconds * time.Second,
+		AuthorizedKeysCheckInterval: backgroundJobInterval,
 	}
 }
