@@ -9,26 +9,25 @@ const (
 	AppShortName = "Droplet Agent"
 	AppDebugAddr = "127.0.0.1:304"
 
-	UserAgent = "Droplet-Agent/" + version
+	UserAgent = "Droplet-Agent/" + Version
 
 	backgroundJobInterval = 120 * time.Second
 )
 
 // Conf contains the configurations needed to run the agent
 type Conf struct {
-	Version                     string
-	UseSyslog                   bool
-	DebugMode                   bool
-	AuthorizedKeysCheckInterval time.Duration
+	UseSyslog bool
+	DebugMode bool
+
 	CustomSSHDPort              int
 	CustomSSHDCfgFile           string
+	AuthorizedKeysCheckInterval time.Duration
 }
 
 // Init initializes the agent's configuration
 func Init() *Conf {
 	cliArgs := parseCLIArgs()
 	return &Conf{
-		Version:                     version,
 		UseSyslog:                   cliArgs.useSyslog,
 		DebugMode:                   cliArgs.debugMode,
 		CustomSSHDPort:              cliArgs.sshdPort,

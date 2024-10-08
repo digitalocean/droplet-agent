@@ -2,4 +2,5 @@
 
 package config
 
-const version = "v1.2.8"
+// Version is the current package version.
+const Version = "v1.2.8"
