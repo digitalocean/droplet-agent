@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/digitalocean/droplet-agent/internal/config"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 )
 
@@ -37,7 +38,7 @@ func (u *agentInfoUpdaterImpl) Update(md *metadata.Metadata) error {
 		return fmt.Errorf("%w:%v", ErrUpdateMetadataFailed, err)
 	}
 
-	req.Header.Set("User-Agent", "Droplet-Agent/1.0.1")
+	req.Header.Set("User-Agent", config.UserAgent)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	resp, err := u.client.Do(req)
 	if err != nil {

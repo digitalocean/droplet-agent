@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/digitalocean/droplet-agent/internal/config"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/mockutils"
 	"go.uber.org/mock/gomock"
@@ -89,7 +90,7 @@ func newRequest(t *testing.T, body []byte) *http.Request {
 		t.Fatalf("could not create http request: %s", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("User-Agent", "Droplet-Agent/1.0.1")
+	req.Header.Set("User-Agent", config.UserAgent)
 
 	return req
 }

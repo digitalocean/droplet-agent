@@ -25,7 +25,7 @@ func main() {
 	log.Info("Launching %s", config.AppFullName)
 	cfg := config.Init()
 
-	log.Info("Config Loaded. Agent Starting (version:%s)", cfg.Version)
+	log.Info("Config Loaded. Agent Starting (version:%s)", config.Version)
 
 	if cfg.DebugMode {
 		log.EnableDebug()
