@@ -2,6 +2,16 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.9](https://github.com/digitalocean/droplet-agent/tree/1.2.9) (2024-12-11)
+### Updated
+- config: include version in user agent
+- config: simplify backgroundJobInterval
+- config: export and use Version const directly
+- config: add support for environment variables
+
+### Related PRs
+- config: cleanup, add env var support [\#135](https://github.com/digitalocean/droplet-agent/pull/135)
+
 ## [1.2.8](https://github.com/digitalocean/droplet-agent/tree/1.2.8) (2024-06-14)
 ### Updated
 - Properly close the response body when requesting metadata service to avoid memory leak
