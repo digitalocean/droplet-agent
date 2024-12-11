@@ -111,7 +111,7 @@ endif
 internal/config/version.go:
 	$(print)
 	@printf "version = v%s" $(VERSION)
-	@printf "// SPDX-License-Identifier: Apache-2.0\n\npackage config\n\nconst version = \"v%s\"\n" $(VERSION) > $@
+	@printf "// SPDX-License-Identifier: Apache-2.0\n\npackage config\n\n// Version is the current package version.\nconst Version = \"v%s\"\n" $(VERSION) > $@
 
 .PHONY: target/VERSION internal/config/version.go
 target/VERSION:
