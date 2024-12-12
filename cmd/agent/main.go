@@ -12,12 +12,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jsimonetti/rtnetlink/v2"
+
 	"github.com/digitalocean/droplet-agent/internal/config"
 	"github.com/digitalocean/droplet-agent/internal/log"
 	"github.com/digitalocean/droplet-agent/internal/metadata"
 	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
 	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
+	"github.com/digitalocean/droplet-agent/internal/reservedipv6"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
@@ -51,19 +54,45 @@ func main() {
 		log.Fatal("failed to initialize SSHManager: %v", err)
 	}
 
-	doManagedKeysActioner := actioner.NewDOManagedKeysActioner(sshMgr)
+	// create the watcher
 	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
+
+	// ssh managed keys
+	doManagedKeysActioner := actioner.NewDOManagedKeysActioner(sshMgr)
 	metadataWatcher.RegisterActioner(doManagedKeysActioner)
-	infoUpdater := updater.NewAgentInfoUpdater()
-
-	// monitor sshd_config
 	go mustMonitorSSHDConfig(sshMgr)
-
-	// Launch background jobs
 	bgJobsCtx, bgJobsCancel := context.WithCancel(context.Background())
 	go bgJobsRemoveExpiredDOTTYKeys(bgJobsCtx, sshMgr, cfg.AuthorizedKeysCheckInterval)
 
+	// reserved ipv6
+	if cfg.ManageReservedIPv6 {
+		log.Info("Reserved IPv6 management enabled")
+		conn, err := rtnetlink.Dial(nil)
+		if err != nil {
+			log.Fatal("failed to create netlink client: %v", err)
+		}
+		defer conn.Close()
+
+		rip6Manager, err := reservedipv6.NewManager(conn)
+		if err != nil {
+			log.Fatal("Failed to create Reserved IPv6 manager: %v", err)
+		}
+
+		rip6Actioner := actioner.NewReservedIPv6Actioner(rip6Manager)
+		metadataWatcher.RegisterActioner(rip6Actioner)
+
+		// fetch first at the beginning
+		// TODO: remove this debugging
+		if md, err := watcher.FetchMetadata(); err != nil {
+			log.Info("failed to fetch metadata at startup: %v", err)
+		} else {
+			log.Info("running Reserved IPv6 action")
+			rip6Actioner.Do(md)
+		}
+	}
+
 	// handle shutdown
+	infoUpdater := updater.NewAgentInfoUpdater()
 	go handleShutdown(bgJobsCancel, metadataWatcher, infoUpdater, sshMgr)
 
 	// report agent status and ssh info
