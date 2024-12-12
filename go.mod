@@ -4,6 +4,8 @@ go 1.22
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
+	github.com/jsimonetti/rtnetlink/v2 v2.0.2
+	github.com/mdlayher/netlink v1.7.2
 	github.com/opencontainers/selinux v1.11.0
 	github.com/peterbourgon/ff/v3 v3.4.0
 	go.uber.org/mock v0.4.0
@@ -12,4 +14,10 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.26.0
 	golang.org/x/time v0.7.0
+)
+
+require (
+	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/josharian/native v1.1.0 // indirect
+	github.com/mdlayher/socket v0.4.1 // indirect
 )
