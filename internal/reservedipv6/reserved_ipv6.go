@@ -86,12 +86,12 @@ func (m *mgr) Unassign() error {
 		}
 	}
 
+	// remove the default route if it existed
 	route := defaultIPv6Route(m.eth0Idx)
-	if _, err := m.nlConn.Route.Get(route); err != nil {
-		fmt.Errorf("failed to check if default IPv6 route already exists: %w", err)
-	}
-	if err := m.nlConn.Route.Delete(defaultIPv6Route(m.eth0Idx)); err != nil {
-		return fmt.Errorf("failed to remove default IPv6 route on %s: %w", eth0Iface, err)
+	if _, err := m.nlConn.Route.Get(route); err == nil {
+		if err := m.nlConn.Route.Delete(route); err != nil {
+			return fmt.Errorf("failed to remove default IPv6 route on %s: %w", eth0Iface, err)
+		}
 	}
 
 	return nil
