@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digitalocean/droplet-agent/internal/log"
-
-	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
 	"golang.org/x/time/rate"
+
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/digitalocean/droplet-agent/internal/metadata/actioner"
 )
 
 type webBasedWatcher struct {

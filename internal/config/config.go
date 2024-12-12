@@ -28,6 +28,8 @@ type Conf struct {
 	CustomSSHDPort              int
 	CustomSSHDCfgFile           string
 	AuthorizedKeysCheckInterval time.Duration
+
+	ManageReservedIPv6 bool
 }
 
 // Init initializes the agent's configuration
@@ -40,8 +42,11 @@ func Init() *Conf {
 
 	fs.BoolVar(&cfg.UseSyslog, "syslog", false, "Use syslog service for logging")
 	fs.BoolVar(&cfg.DebugMode, "debug", false, "Turn on debug mode")
+
 	fs.IntVar(&cfg.CustomSSHDPort, "sshd_port", 0, "The port sshd is binding to")
 	fs.StringVar(&cfg.CustomSSHDCfgFile, "sshd_config", "", "The location of sshd_config")
+
+	fs.BoolVar(&cfg.ManageReservedIPv6, "reserved_ipv6", false, "enable reserved IPv6 assignment/unassignment feature")
 
 	ff.Parse(fs, os.Args[1:],
 		ff.WithEnvVarPrefix("DROPLET_AGENT"),
