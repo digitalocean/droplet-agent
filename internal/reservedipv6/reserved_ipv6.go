@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	logPrefix string = "[Reserved IPv6 Manager]"
-
 	loIface   string = "lo"
 	eth0Iface string = "eth0"
 	prefixLen uint8  = 128
@@ -75,7 +73,7 @@ func (m *mgr) Assign(ip string) error {
 func (m *mgr) Unassign() error {
 	addrs, err := m.nlConn.Address.List()
 	if err != nil {
-		fmt.Errorf("failed to list addreses: %w", err)
+		return fmt.Errorf("failed to list addreses: %w", err)
 	}
 
 	for _, a := range addrs {
