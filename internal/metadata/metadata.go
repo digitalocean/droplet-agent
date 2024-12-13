@@ -31,12 +31,19 @@ type Metadata struct {
 	SSHInfo            *SSHInfo    `json:"ssh_info,omitempty"`
 	ManagedKeysEnabled *bool       `json:"managed_keys_enabled,omitempty"`
 
-	ReservedIP struct {
-		IPv6 struct {
-			IPAddress string `json:"ip_address,omitempty"`
-			Active    bool   `json:"active,omitempty"`
-		} `json:"ipv6,omitempty"`
-	} `json:"reserved_ip,omitempty"`
+	ReservedIP *ReservedIP `json:"reserved_ip,omitempty"`
+}
+
+// ReservedIP defines the Metadata fields of a Reserved IP.
+
+type ReservedIP struct {
+	IPv6 *ReservedIPv6 `json:"ipv6,omitempty"`
+}
+
+// ReservedIP defines the Metadata fields of a Reserved IPv6.
+type ReservedIPv6 struct {
+	IPAddress string `json:"ip_address,omitempty"`
+	Active    bool   `json:"active,omitempty"`
 }
 
 // SSHInfo contains the information of the sshd service running on the droplet
