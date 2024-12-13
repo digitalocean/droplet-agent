@@ -42,9 +42,3 @@ func (m *metadataFetcherImpl) fetchMetadata() (*metadata.Metadata, error) {
 	}
 	return ret, nil
 }
-
-// FetchMetadata should only be used for testing
-// TODO: remove this
-func FetchMetadata() (*metadata.Metadata, error) {
-	return newMetadataFetcher().fetchMetadata()
-}

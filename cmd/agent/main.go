@@ -80,15 +80,6 @@ func main() {
 
 		rip6Actioner := actioner.NewReservedIPv6Actioner(rip6Manager)
 		metadataWatcher.RegisterActioner(rip6Actioner)
-
-		// fetch first at the beginning
-		// TODO: remove this debugging
-		if md, err := watcher.FetchMetadata(); err != nil {
-			log.Info("failed to fetch metadata at startup: %v", err)
-		} else {
-			log.Info("running Reserved IPv6 action")
-			rip6Actioner.Do(md)
-		}
 	}
 
 	// handle shutdown
