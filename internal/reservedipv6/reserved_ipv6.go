@@ -15,7 +15,7 @@ const (
 
 	loIface   string = "lo"
 	eth0Iface string = "eth0"
-	prefixLen uint8  = 124
+	prefixLen uint8  = 128
 )
 
 type Manager interface {
@@ -57,7 +57,7 @@ func (m *mgr) Assign(ip string) error {
 		return fmt.Errorf("IP must be an IPv6 address")
 	}
 
-	// Equivalent to `ip -6 addr replace "${ip}/124" dev lo scope global`
+	// Equivalent to `ip -6 addr replace "${ip}/128" dev lo scope global`
 	req := reservedIPv6Addr(m.loIdx, addr)
 	flags := netlink.Request | netlink.Replace | netlink.Acknowledge
 	if _, err := m.nlConn.Execute(req, unix.RTM_NEWADDR, flags); err != nil {
