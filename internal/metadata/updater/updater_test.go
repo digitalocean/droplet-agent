@@ -35,7 +35,8 @@ func Test_agentInfoUpdaterImpl_Update(t *testing.T) {
 					ExpectedRequest: newRequest(t, []byte("{\"dotty_status\":\"running\",\"ssh_info\":{\"port\":256}}")),
 				}
 
-				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 202}, nil)
+				client.EXPECT().Do(reqMatcher).Return(&http.Response{StatusCode: 202, Body: respBody}, nil)
+				respBody.EXPECT().Close()
 			},
 			false,
 		},
