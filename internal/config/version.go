@@ -3,4 +3,4 @@
 package config
 
 // Version is the current package version.
-const Version = "v1.2.9"
+const Version = "v1.3.0"
