@@ -20,6 +20,12 @@ var (
 	ErrCreateFileFailed = fmt.Errorf("failed to create file")
 	// ErrRunCmdFailed is returned when a command is failed to run
 	ErrRunCmdFailed = fmt.Errorf("failed to run command")
+	// ErrInvalidFileType is returned when the file type is unexpected
+	ErrInvalidFileType = fmt.Errorf("invalid file type")
+	// ErrUnexpected indicates an unexpected error
+	ErrUnexpected = fmt.Errorf("unexpected error")
+	// ErrPermissionDenied indicates the given permission is not sufficient to perform the designated operation
+	ErrPermissionDenied = fmt.Errorf("insufficient permission")
 )
 
 // User struct contains information of a user
