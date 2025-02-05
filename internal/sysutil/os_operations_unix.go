@@ -96,6 +96,19 @@ func (o *osOperatorImpl) createFileForWrite(file string, user *User, perm os.Fil
 	return f, nil
 }
 
+func (o *osOperatorImpl) createTempFile(dir, pattern string, user *User) (io.WriteCloser, error) {
+	f, err := os.CreateTemp(dir, pattern)
+	if err != nil {
+		return nil, fmt.Errorf("%w: open file failed: %v", ErrCreateFileFailed, err)
+	}
+	if err := o.osChown(f.Name(), user.UID, user.GID); err != nil {
+		_ = f.Close()
+		_ = o.osRemove(f.Name())
+		return nil, fmt.Errorf("%w: failed to set owner: %v", ErrCreateFileFailed, err)
+	}
+	return f, nil
+}
+
 func parseLine(line string) (*User, error) {
 	ret := &User{}
 	items := strings.Split(line, ":")
