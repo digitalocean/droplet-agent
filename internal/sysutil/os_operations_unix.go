@@ -31,6 +31,10 @@ type osOperatorImpl struct {
 	osOpHelper
 }
 
+func (o *osOperatorImpl) openFile(name string, flag int, perm os.FileMode) (File, error) {
+	return os.OpenFile(name, flag, perm)
+}
+
 func (o *osOperatorImpl) getpwnam(username string) (*User, error) {
 	content, err := o.ReadFile("/etc/passwd")
 	if err != nil {

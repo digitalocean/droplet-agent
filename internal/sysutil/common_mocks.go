@@ -68,6 +68,21 @@ func (mr *MockFileMockRecorder) Name() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockFile)(nil).Name))
 }
 
+// Read mocks base method.
+func (m *MockFile) Read(p []byte) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Read", p)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Read indicates an expected call of Read.
+func (mr *MockFileMockRecorder) Read(p any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockFile)(nil).Read), p)
+}
+
 // Stat mocks base method.
 func (m *MockFile) Stat() (os.FileInfo, error) {
 	m.ctrl.T.Helper()
@@ -121,6 +136,21 @@ func (mr *MockosOperatorMockRecorder) createFileForWrite(file, user, perm any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "createFileForWrite", reflect.TypeOf((*MockosOperator)(nil).createFileForWrite), file, user, perm)
 }
 
+// createTempFile mocks base method.
+func (m *MockosOperator) createTempFile(dir, pattern string, user *User) (File, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "createTempFile", dir, pattern, user)
+	ret0, _ := ret[0].(File)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// createTempFile indicates an expected call of createTempFile.
+func (mr *MockosOperatorMockRecorder) createTempFile(dir, pattern, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "createTempFile", reflect.TypeOf((*MockosOperator)(nil).createTempFile), dir, pattern, user)
+}
+
 // getpwnam mocks base method.
 func (m *MockosOperator) getpwnam(username string) (*User, error) {
 	m.ctrl.T.Helper()
@@ -148,4 +178,19 @@ func (m *MockosOperator) mkdir(dir string, user *User, perm os.FileMode) error {
 func (mr *MockosOperatorMockRecorder) mkdir(dir, user, perm any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mkdir", reflect.TypeOf((*MockosOperator)(nil).mkdir), dir, user, perm)
+}
+
+// openFile mocks base method.
+func (m *MockosOperator) openFile(name string, flag int, perm os.FileMode) (File, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "openFile", name, flag, perm)
+	ret0, _ := ret[0].(File)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// openFile indicates an expected call of openFile.
+func (mr *MockosOperatorMockRecorder) openFile(name, flag, perm any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "openFile", reflect.TypeOf((*MockosOperator)(nil).openFile), name, flag, perm)
 }

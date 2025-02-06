@@ -31,7 +31,7 @@ func (s *SysManager) CopyFileAttribute(from, to string) error {
 // ReadFileOfUser reads a file of the given user
 // either the user is root (i.e. uid=0), or the file has to be owned by the user
 func (s *SysManager) ReadFileOfUser(filename string, user *User) ([]byte, error) {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0)
+	file, err := s.openFile(filename, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, err
 	}
