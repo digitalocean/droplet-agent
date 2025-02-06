@@ -18,6 +18,8 @@ var (
 	ErrMakeDirFailed = fmt.Errorf("failed to make directory")
 	// ErrCreateFileFailed indicates the error of failing to create a file
 	ErrCreateFileFailed = fmt.Errorf("failed to create file")
+	// ErrOpenFileFailed indicates the error of failing to create a file
+	ErrOpenFileFailed = fmt.Errorf("failed to open file")
 	// ErrRunCmdFailed is returned when a command is failed to run
 	ErrRunCmdFailed = fmt.Errorf("failed to run command")
 	// ErrInvalidFileType is returned when the file type is unexpected
