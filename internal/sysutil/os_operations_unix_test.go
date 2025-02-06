@@ -188,3 +188,76 @@ func Test_osOperatorImpl_mkdir(t *testing.T) {
 		})
 	}
 }
+
+func Test_osOperatorImpl_createTempFile(t *testing.T) {
+	dir := "path/to/dir"
+	user := &User{
+		Name:    "foo",
+		UID:     1,
+		GID:     2,
+		HomeDir: "/home/path",
+		Shell:   "/bin/sh",
+	}
+	pattern := "data-*"
+	tests := []struct {
+		name     string
+		prepare  func(h *MockosOpHelper, f *MockFile)
+		wantFile bool
+		wantErr  error
+	}{
+		{
+			name: "return ErrCreateFileFailed if failed to create temporary file",
+			prepare: func(h *MockosOpHelper, f *MockFile) {
+				h.EXPECT().CreateTemp(dir, pattern).Return(nil, errors.New("create-temp-error"))
+			},
+			wantFile: false,
+			wantErr:  ErrCreateFileFailed,
+		},
+		{
+			name: "return ErrCreateFileFailed if failed to chown",
+			prepare: func(h *MockosOpHelper, f *MockFile) {
+				h.EXPECT().CreateTemp(dir, pattern).Return(f, nil)
+				tmpFile := "/path/to/tmp.file"
+				f.EXPECT().Name().AnyTimes().Return(tmpFile)
+				h.EXPECT().Chown(tmpFile, user.UID, user.GID).Return(errors.New("chown-error"))
+				f.EXPECT().Close()
+				h.EXPECT().Remove(tmpFile)
+			},
+			wantFile: false,
+			wantErr:  ErrCreateFileFailed,
+		},
+		{
+			name: "happy path",
+			prepare: func(h *MockosOpHelper, f *MockFile) {
+				h.EXPECT().CreateTemp(dir, pattern).Return(f, nil)
+				tmpFile := "/path/to/tmp.file"
+				f.EXPECT().Name().AnyTimes().Return(tmpFile)
+				h.EXPECT().Chown(tmpFile, user.UID, user.GID).Return(nil)
+			},
+			wantFile: true,
+			wantErr:  nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+			helperMock := NewMockosOpHelper(mockCtl)
+			fileMock := NewMockFile(mockCtl)
+			if tt.prepare != nil {
+				tt.prepare(helperMock, fileMock)
+			}
+			o := &osOperatorImpl{
+				osOpHelper: helperMock,
+			}
+			got, err := o.createTempFile(dir, pattern, user)
+			if (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("createTempFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (got != nil) != tt.wantFile {
+				t.Errorf("createTempFile() got = %v, wantFile: %v", got, tt.wantFile)
+			}
+		})
+	}
+}
