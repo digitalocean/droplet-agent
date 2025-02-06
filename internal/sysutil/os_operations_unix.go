@@ -15,14 +15,7 @@ import (
 
 func newOSOperator() osOperator {
 	return &osOperatorImpl{
-		readFileFn: os.ReadFile,
-		osStatFn:   os.Stat,
-		osMkDir:    os.MkdirAll,
-		osChown:    os.Chown,
-		osOpenFile: func(name string, flag int, perm os.FileMode) (io.WriteCloser, error) {
-			return os.OpenFile(name, flag, perm)
-		},
-		osRemove: os.Remove,
+		osOpHelper: &osOpHelperImpl{},
 	}
 }
 
@@ -35,16 +28,11 @@ const (
 )
 
 type osOperatorImpl struct {
-	readFileFn func(filename string) ([]byte, error)
-	osStatFn   func(name string) (os.FileInfo, error)
-	osMkDir    func(path string, perm os.FileMode) error
-	osChown    func(name string, uid, gid int) error
-	osOpenFile func(name string, flag int, perm os.FileMode) (io.WriteCloser, error)
-	osRemove   func(name string) error
+	osOpHelper
 }
 
 func (o *osOperatorImpl) getpwnam(username string) (*User, error) {
-	content, err := o.readFileFn("/etc/passwd")
+	content, err := o.ReadFile("/etc/passwd")
 	if err != nil {
 		return nil, fmt.Errorf("%w: error getting user info for:%s. error: %v", ErrGetUserFailed, username, err)
 	}
@@ -66,12 +54,12 @@ func (o *osOperatorImpl) getpwnam(username string) (*User, error) {
 }
 
 func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
-	if _, err := o.osStatFn(dir); err != nil {
+	if _, err := o.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
-			if err = o.osMkDir(dir, perm); err != nil {
+			if err = o.MkDir(dir, perm); err != nil {
 				return fmt.Errorf("%w: mkdir failed: %v", ErrMakeDirFailed, err)
 			}
-			if err = o.osChown(dir, user.UID, user.GID); err != nil {
+			if err = o.Chown(dir, user.UID, user.GID); err != nil {
 				return fmt.Errorf("%w: chown failed: %v", ErrMakeDirFailed, err)
 			}
 		} else {
@@ -82,28 +70,17 @@ func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
 }
 
 func (o *osOperatorImpl) createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
-	f, err := o.osOpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
-	if err != nil {
-		return nil, fmt.Errorf("%w: open file failed: %v", ErrCreateFileFailed, err)
-	}
-
-	if err := o.osChown(file, user.UID, user.GID); err != nil {
-		_ = f.Close()
-		_ = o.osRemove(file)
-		return nil, fmt.Errorf("%w: failed to set owner: %v", ErrCreateFileFailed, err)
-	}
-
-	return f, nil
+	return nil, fmt.Errorf("deprecated")
 }
 
-func (o *osOperatorImpl) createTempFile(dir, pattern string, user *User) (io.WriteCloser, error) {
-	f, err := os.CreateTemp(dir, pattern)
+func (o *osOperatorImpl) createTempFile(dir, pattern string, user *User) (File, error) {
+	f, err := o.CreateTemp(dir, pattern)
 	if err != nil {
 		return nil, fmt.Errorf("%w: open file failed: %v", ErrCreateFileFailed, err)
 	}
-	if err := o.osChown(f.Name(), user.UID, user.GID); err != nil {
+	if err := o.Chown(f.Name(), user.UID, user.GID); err != nil {
 		_ = f.Close()
-		_ = o.osRemove(f.Name())
+		_ = o.Remove(f.Name())
 		return nil, fmt.Errorf("%w: failed to set owner: %v", ErrCreateFileFailed, err)
 	}
 	return f, nil
