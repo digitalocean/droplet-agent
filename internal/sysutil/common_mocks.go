@@ -10,7 +10,6 @@
 package sysutil
 
 import (
-	io "io"
 	os "os"
 	reflect "reflect"
 
@@ -134,21 +133,6 @@ func NewMockosOperator(ctrl *gomock.Controller) *MockosOperator {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockosOperator) EXPECT() *MockosOperatorMockRecorder {
 	return m.recorder
-}
-
-// createFileForWrite mocks base method.
-func (m *MockosOperator) createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "createFileForWrite", file, user, perm)
-	ret0, _ := ret[0].(io.WriteCloser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// createFileForWrite indicates an expected call of createFileForWrite.
-func (mr *MockosOperatorMockRecorder) createFileForWrite(file, user, perm any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "createFileForWrite", reflect.TypeOf((*MockosOperator)(nil).createFileForWrite), file, user, perm)
 }
 
 // createTempFile mocks base method.
