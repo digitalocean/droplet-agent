@@ -7,7 +7,6 @@ package sysutil
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -71,10 +70,6 @@ func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
 		}
 	}
 	return nil
-}
-
-func (o *osOperatorImpl) createFileForWrite(_ string, _ *User, _ os.FileMode) (io.WriteCloser, error) {
-	return nil, fmt.Errorf("deprecated")
 }
 
 func (o *osOperatorImpl) createTempFile(dir, pattern string, user *User) (File, error) {

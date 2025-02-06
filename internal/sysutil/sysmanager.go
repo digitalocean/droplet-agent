@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -49,9 +48,9 @@ func (s *SysManager) MkDirIfNonExist(dir string, user *User, perm os.FileMode) e
 	return s.mkdir(dir, user, perm)
 }
 
-// CreateFileForWrite creates a file for write
-func (s *SysManager) CreateFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
-	return s.createFileForWrite(file, user, perm)
+// CreateTempFile creates a temporary file for the designated user to read and write
+func (s *SysManager) CreateTempFile(dir, pattern string, user *User) (File, error) {
+	return s.createTempFile(dir, pattern, user)
 }
 
 // FileExists checks whether a file exists or not
