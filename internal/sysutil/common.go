@@ -44,6 +44,13 @@ type CmdResult struct {
 	StdErr   string
 }
 
+// File contains common operations on *os.File
+type File interface {
+	Name() string
+	Close() error
+	Stat() (os.FileInfo, error)
+}
+
 type osOperator interface {
 	getpwnam(username string) (*User, error)
 	mkdir(dir string, user *User, perm os.FileMode) error
