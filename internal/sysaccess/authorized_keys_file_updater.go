@@ -42,7 +42,7 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, managedKeys []
 		return err
 	}
 	fileExist := true
-	localKeysRaw, err := u.sshMgr.sysMgr.ReadFile(authorizedKeysFile)
+	localKeysRaw, err := u.sshMgr.sysMgr.ReadFileOfUser(authorizedKeysFile, osUser)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return fmt.Errorf("%w:%v", ErrReadAuthorizedKeysFileFailed, err)
@@ -59,8 +59,8 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, managedKeys []
 
 func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []string, srcFileExist bool) (retErr error) {
 	log.Debug("updating [%s]", authorizedKeysFile)
-	tmpFilePath := authorizedKeysFile + ".dotty"
-	tmpFile, err := u.sshMgr.sysMgr.CreateFileForWrite(tmpFilePath, user, 0600)
+	dir := filepath.Dir(authorizedKeysFile)
+	tmpFile, err := u.sshMgr.sysMgr.CreateTempFile(dir, "authorized_keys-*.dotty", user)
 	if err != nil {
 		return fmt.Errorf("%w: failed to create tmp file: %v", ErrWriteAuthorizedKeysFileFailed, err)
 	}
@@ -68,7 +68,7 @@ func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []
 		log.Debug("[%s] updated", authorizedKeysFile)
 		_ = tmpFile.Close()
 		if retErr != nil {
-			_ = u.sshMgr.sysMgr.RemoveFile(tmpFilePath)
+			_ = u.sshMgr.sysMgr.RemoveFile(tmpFile.Name())
 		}
 	}()
 
@@ -77,14 +77,14 @@ func (u *updaterImpl) do(authorizedKeysFile string, user *sysutil.User, lines []
 	}
 
 	if srcFileExist {
-		log.Debug("copying file attribute from [%s] to [%s]", authorizedKeysFile, tmpFilePath)
-		err := u.sshMgr.sysMgr.CopyFileAttribute(authorizedKeysFile, tmpFilePath)
+		log.Debug("copying file attribute from [%s] to [%s]", authorizedKeysFile, tmpFile.Name())
+		err := u.sshMgr.sysMgr.CopyFileAttribute(authorizedKeysFile, tmpFile.Name())
 		if err != nil {
 			return fmt.Errorf("%w:failed to apply file attribute :%v", ErrWriteAuthorizedKeysFileFailed, err)
 		}
 	}
 
-	if err := u.sshMgr.sysMgr.RenameFile(tmpFilePath, authorizedKeysFile); err != nil {
+	if err := u.sshMgr.sysMgr.RenameFile(tmpFile.Name(), authorizedKeysFile); err != nil {
 		return fmt.Errorf("%w:failed to rename:%v", ErrWriteAuthorizedKeysFileFailed, err)
 	}
 	return nil
