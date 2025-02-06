@@ -33,12 +33,12 @@ func (s *SysManager) CopyFileAttribute(from, to string) error {
 func (s *SysManager) ReadFileOfUser(filename string, user *User) ([]byte, error) {
 	file, err := s.openFile(filename, os.O_RDONLY, 0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w:failed to open file:%v", ErrOpenFileFailed, err)
 	}
 	defer file.Close()
 	info, err := file.Stat()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: failed to stat:%v", ErrUnexpected, err)
 	}
 	if !info.Mode().IsRegular() {
 		return nil, ErrInvalidFileType

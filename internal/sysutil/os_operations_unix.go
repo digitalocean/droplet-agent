@@ -73,7 +73,7 @@ func (o *osOperatorImpl) mkdir(dir string, user *User, perm os.FileMode) error {
 	return nil
 }
 
-func (o *osOperatorImpl) createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error) {
+func (o *osOperatorImpl) createFileForWrite(_ string, _ *User, _ os.FileMode) (io.WriteCloser, error) {
 	return nil, fmt.Errorf("deprecated")
 }
 
