@@ -7,7 +7,9 @@ package sysutil
 
 import (
 	"errors"
+	mock_os "github.com/digitalocean/droplet-agent/internal/sysutil/internal/mocks"
 	"go.uber.org/mock/gomock"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -108,6 +110,80 @@ lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin`
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getpwnam() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_osOperatorImpl_mkdir(t *testing.T) {
+	dir := "path/to/dir"
+	user := &User{
+		Name:    "foo",
+		UID:     1,
+		GID:     2,
+		HomeDir: "/home/path",
+		Shell:   "/bin/sh",
+	}
+	perm := os.FileMode(0700)
+	tests := []struct {
+		name    string
+		prepare func(h *MockosOpHelper)
+		wantErr error
+	}{
+		{
+			name: "return nil if dir already exist",
+			prepare: func(h *MockosOpHelper) {
+				h.EXPECT().Stat(dir).Return(&mock_os.MockFileInfo{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "return ErrMakeDirFailed if mkdir failed",
+			prepare: func(h *MockosOpHelper) {
+				h.EXPECT().Stat(dir).Return(nil, os.ErrNotExist)
+				h.EXPECT().MkDir(dir, perm).Return(errors.New("mkdir-err"))
+			},
+			wantErr: ErrMakeDirFailed,
+		},
+		{
+			name: "return ErrMakeDirFailed if chmod failed",
+			prepare: func(h *MockosOpHelper) {
+				h.EXPECT().Stat(dir).Return(nil, os.ErrNotExist)
+				h.EXPECT().MkDir(dir, perm).Return(nil)
+				h.EXPECT().Chown(dir, user.UID, user.GID).Return(errors.New("chown-err"))
+			},
+			wantErr: ErrMakeDirFailed,
+		},
+		{
+			name: "return ErrMakeDirFailed if stat returns other error",
+			prepare: func(h *MockosOpHelper) {
+				h.EXPECT().Stat(dir).Return(nil, errors.New("stat-err"))
+			},
+			wantErr: ErrMakeDirFailed,
+		},
+		{
+			name: "happy path",
+			prepare: func(h *MockosOpHelper) {
+				h.EXPECT().Stat(dir).Return(nil, os.ErrNotExist)
+				h.EXPECT().MkDir(dir, perm).Return(nil)
+				h.EXPECT().Chown(dir, user.UID, user.GID).Return(nil)
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+			helperMock := NewMockosOpHelper(mockCtl)
+			if tt.prepare != nil {
+				tt.prepare(helperMock)
+			}
+			o := &osOperatorImpl{
+				osOpHelper: helperMock,
+			}
+			if err := o.mkdir(dir, user, perm); (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("mkdir() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
