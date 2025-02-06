@@ -231,6 +231,7 @@ $(tar_package): $(base_linux_package)
 ## mockgen: generates the mocks for the droplet agent service
 mockgen:
 	@echo "Generating mocks"
+	mockgen -package=mock_os -destination=internal/sysutil/internal/mocks/os_mocks.go os FileInfo
 	mockgen -source=internal/sysutil/common.go -package=sysutil -destination=internal/sysutil/common_mocks.go
 	mockgen -source=internal/sysutil/os_operations_helper.go -package=sysutil -destination=internal/sysutil/os_operations_helper_mocks.go
 	mockgen -source=internal/sysaccess/common.go -package=mocks -destination=internal/sysaccess/internal/mocks/mocks.go
