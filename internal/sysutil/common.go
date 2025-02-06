@@ -52,13 +52,12 @@ type File interface {
 	Close() error
 	Stat() (os.FileInfo, error)
 
-	Read(p []byte) (n int, err error)
+	io.ReadWriteCloser
 }
 
 type osOperator interface {
 	getpwnam(username string) (*User, error)
 	mkdir(dir string, user *User, perm os.FileMode) error
-	createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error)
 	createTempFile(dir, pattern string, user *User) (File, error)
 	openFile(name string, flag int, perm os.FileMode) (File, error)
 }
