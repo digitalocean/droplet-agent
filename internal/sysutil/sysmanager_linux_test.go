@@ -109,6 +109,22 @@ func TestSysManager_ReadFileOfUser(t *testing.T) {
 			wantErr: ErrPermissionDenied,
 		},
 		{
+			name: "non-root return ErrPermissionDenied if attempting to update root",
+			prepare: func(op *MockosOperator, f *MockFile, fi *mock_os.MockFileInfo) {
+				op.EXPECT().openFile("/var/log/file", os.O_RDONLY, os.FileMode(0)).Return(f, nil)
+				f.EXPECT().Stat().Return(fi, nil)
+				fi.EXPECT().Mode().Return(os.ModeTemporary)
+				fi.EXPECT().Sys().Return(&syscall.Stat_t{Uid: 0})
+				f.EXPECT().Close()
+			},
+			args: args{
+				filename: "/var/log/file",
+				user:     &User{UID: 123},
+			},
+			want:    nil,
+			wantErr: ErrPermissionDenied,
+		},
+		{
 			name: "non-root happy path",
 			prepare: func(op *MockosOperator, f *MockFile, fi *mock_os.MockFileInfo) {
 				op.EXPECT().openFile("/var/log/file", os.O_RDONLY, os.FileMode(0)).Return(f, nil)
