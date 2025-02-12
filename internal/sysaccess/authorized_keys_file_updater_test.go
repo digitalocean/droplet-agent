@@ -119,7 +119,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
 				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
-				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, os.ErrNotExist)
+				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, sysutil.ErrFileNotFound)
 				sshHelper.EXPECT().prepareAuthorizedKeys(gomock.Any(), gomock.Any()).Return([]string{})
 				sysMgr.EXPECT().CreateTempFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, createFileErr)
 			},
@@ -135,7 +135,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
 				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
-				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, os.ErrNotExist)
+				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, sysutil.ErrFileNotFound)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateTempFile(authorizedKeyFileDir, "authorized_keys-*.dotty", validUser1).Return(nil, createFileErr)
 			},
@@ -228,7 +228,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile(t *testing.T) {
 				sysMgr.EXPECT().GetUserByName(osUsername).Return(validUser1, nil)
 				sshHelper.EXPECT().authorizedKeysFile(validUser1).Return(authorizedKeyFile)
 				sysMgr.EXPECT().MkDirIfNonExist(authorizedKeyFileDir, validUser1, os.FileMode(0700)).Return(nil)
-				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, os.ErrNotExist)
+				sysMgr.EXPECT().ReadFileOfUser(authorizedKeyFile, validUser1).Return(nil, sysutil.ErrFileNotFound)
 				sshHelper.EXPECT().prepareAuthorizedKeys([]string{}, []*SSHKey{validKey1}).Return([]string{"line1", "line2"})
 				sysMgr.EXPECT().CreateTempFile(authorizedKeyFileDir, "authorized_keys-*.dotty", validUser1).Return(recorder, nil)
 				sysMgr.EXPECT().RenameFile(tmpFile, authorizedKeyFile).Return(nil)

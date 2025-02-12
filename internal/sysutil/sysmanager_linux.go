@@ -33,6 +33,9 @@ func (s *SysManager) CopyFileAttribute(from, to string) error {
 func (s *SysManager) ReadFileOfUser(filename string, user *User) ([]byte, error) {
 	file, err := s.openFile(filename, os.O_RDONLY, 0)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrFileNotFound
+		}
 		return nil, fmt.Errorf("%w:failed to open file:%v", ErrOpenFileFailed, err)
 	}
 	defer file.Close()

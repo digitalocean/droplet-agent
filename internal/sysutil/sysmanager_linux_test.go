@@ -36,6 +36,18 @@ func TestSysManager_ReadFileOfUser(t *testing.T) {
 			wantErr: ErrOpenFileFailed,
 		},
 		{
+			name: "return ErrFileNotFound if file not exist",
+			prepare: func(op *MockosOperator, f *MockFile, fi *mock_os.MockFileInfo) {
+				op.EXPECT().openFile("/var/log/file", os.O_RDONLY, os.FileMode(0)).Return(nil, os.ErrNotExist)
+			},
+			args: args{
+				filename: "/var/log/file",
+				user:     &User{UID: 123},
+			},
+			want:    nil,
+			wantErr: ErrOpenFileFailed,
+		},
+		{
 			name: "return ErrUnexpected if failed to stat file",
 			prepare: func(op *MockosOperator, f *MockFile, fi *mock_os.MockFileInfo) {
 				op.EXPECT().openFile("/var/log/file", os.O_RDONLY, os.FileMode(0)).Return(f, nil)

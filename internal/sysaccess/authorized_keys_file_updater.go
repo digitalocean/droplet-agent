@@ -3,8 +3,8 @@
 package sysaccess
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -44,7 +44,7 @@ func (u *updaterImpl) updateAuthorizedKeysFile(osUsername string, managedKeys []
 	fileExist := true
 	localKeysRaw, err := u.sshMgr.sysMgr.ReadFileOfUser(authorizedKeysFile, osUser)
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, sysutil.ErrFileNotFound) {
 			return fmt.Errorf("%w:%v", ErrReadAuthorizedKeysFileFailed, err)
 		}
 		fileExist = false
