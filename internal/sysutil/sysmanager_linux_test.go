@@ -45,7 +45,7 @@ func TestSysManager_ReadFileOfUser(t *testing.T) {
 				user:     &User{UID: 123},
 			},
 			want:    nil,
-			wantErr: ErrOpenFileFailed,
+			wantErr: ErrFileNotFound,
 		},
 		{
 			name: "return ErrUnexpected if failed to stat file",
