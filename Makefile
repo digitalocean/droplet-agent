@@ -129,7 +129,7 @@ build: $(binary)
 $(binary): $(gofiles)
 	$(print)
 	$(mkdir)
-	$(go) build -ldflags $(ldflags) -trimpath -o "$@" ./cmd/agent/
+	$(go) build -buildvcs=false -ldflags $(ldflags) -trimpath -o "$@" ./cmd/agent/
 
 shellcheck: $(cache)/shellcheck
 $(cache)/shellcheck: $(shellscripts)
@@ -231,6 +231,9 @@ $(tar_package): $(base_linux_package)
 ## mockgen: generates the mocks for the droplet agent service
 mockgen:
 	@echo "Generating mocks"
+	mockgen -package=mock_os -destination=internal/sysutil/internal/mocks/os_mocks.go os FileInfo
+	mockgen -source=internal/sysutil/common.go -package=sysutil -destination=internal/sysutil/common_mocks.go
+	mockgen -source=internal/sysutil/os_operations_helper.go -package=sysutil -destination=internal/sysutil/os_operations_helper_mocks.go
 	mockgen -source=internal/sysaccess/common.go -package=mocks -destination=internal/sysaccess/internal/mocks/mocks.go
 	mockgen -source=internal/sysaccess/ssh_helper.go -package=sysaccess -destination=internal/sysaccess/ssh_helper_mocks.go
 	mockgen -source=internal/sysaccess/authorized_keys_file_updater.go -package=sysaccess -destination=internal/sysaccess/authorized_keys_file_updater_mocks.go

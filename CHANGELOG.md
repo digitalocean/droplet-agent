@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.10](https://github.com/digitalocean/droplet-agent/tree/1.2.10) (2025-02-12)
+### Updated
+- Enforce file permission when updating authorized_keys file
+
 ## [1.2.9](https://github.com/digitalocean/droplet-agent/tree/1.2.9) (2024-12-11)
 ### Updated
 - config: include version in user agent

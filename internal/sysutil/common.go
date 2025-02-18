@@ -18,8 +18,18 @@ var (
 	ErrMakeDirFailed = fmt.Errorf("failed to make directory")
 	// ErrCreateFileFailed indicates the error of failing to create a file
 	ErrCreateFileFailed = fmt.Errorf("failed to create file")
+	// ErrFileNotFound indicates a file not exist error
+	ErrFileNotFound = fmt.Errorf("file not found")
+	// ErrOpenFileFailed indicates the error of failing to open a file
+	ErrOpenFileFailed = fmt.Errorf("failed to open file")
 	// ErrRunCmdFailed is returned when a command is failed to run
 	ErrRunCmdFailed = fmt.Errorf("failed to run command")
+	// ErrInvalidFileType is returned when the file type is unexpected
+	ErrInvalidFileType = fmt.Errorf("invalid file type")
+	// ErrUnexpected indicates an unexpected error
+	ErrUnexpected = fmt.Errorf("unexpected error")
+	// ErrPermissionDenied indicates the given permission is not sufficient to perform the designated operation
+	ErrPermissionDenied = fmt.Errorf("insufficient permission")
 )
 
 // User struct contains information of a user
@@ -38,8 +48,18 @@ type CmdResult struct {
 	StdErr   string
 }
 
+// File contains common operations on *os.File
+type File interface {
+	Name() string
+	Close() error
+	Stat() (os.FileInfo, error)
+
+	io.ReadWriteCloser
+}
+
 type osOperator interface {
 	getpwnam(username string) (*User, error)
 	mkdir(dir string, user *User, perm os.FileMode) error
-	createFileForWrite(file string, user *User, perm os.FileMode) (io.WriteCloser, error)
+	createTempFile(dir, pattern string, user *User) (File, error)
+	openFile(name string, flag int, perm os.FileMode) (File, error)
 }
