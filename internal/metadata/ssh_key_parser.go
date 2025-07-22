@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 	"regexp"
 	"strings"
+
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 const (
@@ -52,7 +53,7 @@ func (p *SSHKeyParser) FromDOTTYKey(key string) (*sysaccess.SSHKey, error) {
 	ret := &sysaccess.SSHKey{
 		Type: sysaccess.SSHKeyTypeDOTTY,
 	}
-	if err := json.Unmarshal([]byte(key), ret); err != nil {
+	if err := json.Unmarshal([]byte(strings.Trim(key, " \t\r\n")), ret); err != nil {
 		return nil, fmt.Errorf("%w:invalid key", err)
 	}
 	return ret, nil
