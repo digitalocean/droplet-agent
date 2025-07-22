@@ -32,6 +32,9 @@ func (p *SSHKeyParser) FromPublicKey(key string) (*sysaccess.SSHKey, error) {
 		PublicKey: strings.Trim(key, " \t\r\n"),
 		Type:      sysaccess.SSHKeyTypeDroplet,
 	}
+	if strings.Contains(ret.PublicKey, "\n") || strings.Contains(ret.PublicKey, "\r") {
+		return nil, errors.New("invalid public key: contains newline characters")
+	}
 	match := p.pubKeyOSUserRegex.FindAllStringSubmatch(key, -1)
 	if len(match) != 0 {
 		// trying to find "-os_user" flag from the key
@@ -55,6 +58,9 @@ func (p *SSHKeyParser) FromDOTTYKey(key string) (*sysaccess.SSHKey, error) {
 	}
 	if err := json.Unmarshal([]byte(strings.Trim(key, " \t\r\n")), ret); err != nil {
 		return nil, fmt.Errorf("%w:invalid key", err)
+	}
+	if strings.Contains(ret.PublicKey, "\n") || strings.Contains(ret.PublicKey, "\r") {
+		return nil, errors.New("invalid public key: contains newline characters")
 	}
 	return ret, nil
 }

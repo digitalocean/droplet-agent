@@ -2,9 +2,10 @@ package metadata
 
 import (
 	"fmt"
-	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 	"reflect"
 	"testing"
+
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 func TestSSHKeyParser_FromPublicKey(t *testing.T) {
@@ -62,6 +63,18 @@ func TestSSHKeyParser_FromPublicKey(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"should reject key with newline",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=\ncomment",
+			nil,
+			true,
+		},
+		{
+			"should reject key with carriage return",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=\rcomment",
+			nil,
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -102,6 +115,18 @@ func TestSSHKeyParser_FromDOTTYKey(t *testing.T) {
 		{
 			"return error if not valid json",
 			"invalid-json-string",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with newline",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=\ncomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with carriage return",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=\rcomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
 			nil,
 			true,
 		},
