@@ -24,6 +24,7 @@ const (
 type Conf struct {
 	UseSyslog bool
 	DebugMode bool
+	UtilMode  bool
 
 	CustomSSHDPort              int
 	CustomSSHDCfgFile           string
@@ -36,6 +37,17 @@ func Init() *Conf {
 		AuthorizedKeysCheckInterval: backgroundJobInterval,
 	}
 
+	args := os.Args[1:]
+	for i, arg := range args {
+		// util mode is used for subprocessing file utility interactions
+		// it is hidden from the cli to not cause unnecessary confusion
+		if arg == "-util" {
+			cfg.UtilMode = true
+			args = append(args[:i], args[i+1:]...)
+			break
+		}
+	}
+
 	fs := flag.NewFlagSet("droplet-agent", flag.ExitOnError)
 
 	fs.BoolVar(&cfg.UseSyslog, "syslog", false, "Use syslog service for logging")
@@ -43,9 +55,11 @@ func Init() *Conf {
 	fs.IntVar(&cfg.CustomSSHDPort, "sshd_port", 0, "The port sshd is binding to")
 	fs.StringVar(&cfg.CustomSSHDCfgFile, "sshd_config", "", "The location of sshd_config")
 
-	ff.Parse(fs, os.Args[1:],
-		ff.WithEnvVarPrefix("DROPLET_AGENT"),
-	)
+	err := ff.Parse(fs, args, ff.WithEnvVarPrefix("DROPLET_AGENT"))
+
+	if err != nil {
+		panic("failed to parse command line arguments: " + err.Error())
+	}
 
 	return &cfg
 }

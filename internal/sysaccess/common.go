@@ -53,6 +53,7 @@ type sshKeyInfo struct {
 
 type sysManager interface {
 	GetUserByName(username string) (*sysutil.User, error)
+	GetCurrentUser() (*sysutil.User, error)
 	MkDirIfNonExist(dir string, user *sysutil.User, perm os.FileMode) error
 	CreateTempFile(dir, pattern string, user *sysutil.User) (sysutil.File, error)
 	CopyFileAttribute(from, to string) error
@@ -62,4 +63,6 @@ type sysManager interface {
 	RemoveFile(name string) error
 	FileExists(name string) (bool, error)
 	Sleep(d time.Duration)
+	UtilSubprocess(user *sysutil.User, stdin []string) (*sysutil.CmdResult, error)
+	IsSymLink(path string) (bool, error)
 }

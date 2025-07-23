@@ -22,15 +22,25 @@ import (
 )
 
 func main() {
-	log.Info("Launching %s", config.AppFullName)
 	cfg := config.Init()
 
+	if cfg.UtilMode {
+		if err := sysaccess.NewUtilManager(nil).Util(); err != nil {
+			log.Fatal("failed to run in util mode: %v", err)
+		}
+		return
+	}
+
+	log.Info("Launching %s", config.AppFullName)
 	log.Info("Config Loaded. Agent Starting (version:%s)", config.Version)
 
 	if cfg.DebugMode {
 		log.EnableDebug()
 		go func() {
-			http.ListenAndServe(config.AppDebugAddr, nil) // #nosec G114
+			err := http.ListenAndServe(config.AppDebugAddr, nil) // #nosec G114
+			if err != nil {
+				log.Error("error running debug server: %v", err)
+			}
 		}()
 		log.Info("Debug mode enabled")
 	}

@@ -6,8 +6,11 @@
 package sysutil
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -23,7 +26,6 @@ const (
 	passwdIdxUID     = 2
 	passwdIdxGID     = 3
 	passwdIdxHomeDir = 5
-	passwdIdxShell   = 6
 )
 
 type osOperatorImpl struct {
@@ -106,6 +108,29 @@ func parseLine(line string) (*User, error) {
 	ret.GID = int(gid)
 
 	ret.HomeDir = strings.TrimSpace(items[passwdIdxHomeDir])
-	ret.Shell = strings.TrimSpace(items[passwdIdxShell])
 	return ret, nil
+}
+
+func (o *osOperatorImpl) executable() (string, error) {
+	return os.Executable()
+}
+
+func (o *osOperatorImpl) evalSymLinks(path string) (string, error) {
+	return filepath.EvalSymlinks(path)
+}
+
+func (o *osOperatorImpl) command(name string, args ...string) cmd {
+	return newCmd(name, args...)
+}
+
+func (o *osOperatorImpl) dir(path string) string {
+	return filepath.Dir(path)
+}
+
+func (o *osOperatorImpl) newBuffer() bytes.Buffer {
+	return bytes.Buffer{}
+}
+
+func (o *osOperatorImpl) newStringReader(contents string) io.Reader {
+	return strings.NewReader(contents)
 }

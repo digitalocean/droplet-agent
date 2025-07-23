@@ -7,11 +7,13 @@ package sysutil
 
 import (
 	"errors"
-	mock_os "github.com/digitalocean/droplet-agent/internal/sysutil/internal/mocks"
-	"go.uber.org/mock/gomock"
 	"os"
 	"reflect"
 	"testing"
+
+	mock_os "github.com/digitalocean/droplet-agent/internal/sysutil/internal/mocks"
+
+	"go.uber.org/mock/gomock"
 )
 
 func Test_osOperatorImpl_getpwnam(t *testing.T) {
@@ -48,7 +50,6 @@ hlee:x:1000:1001::/home/hlee:/bin/bash`
 				UID:     1000,
 				GID:     1001,
 				HomeDir: "/home/hlee",
-				Shell:   "/bin/bash",
 			},
 			wantErr: nil,
 		},
@@ -69,7 +70,6 @@ hlee:x:1000:1001::/home/hlee:/bin/bash`
 				UID:     1000,
 				GID:     1001,
 				HomeDir: "/home/hlee",
-				Shell:   "/bin/bash",
 			},
 			wantErr: nil,
 		},
@@ -122,7 +122,6 @@ func Test_osOperatorImpl_mkdir(t *testing.T) {
 		UID:     1,
 		GID:     2,
 		HomeDir: "/home/path",
-		Shell:   "/bin/sh",
 	}
 	perm := os.FileMode(0700)
 	tests := []struct {
@@ -196,7 +195,6 @@ func Test_osOperatorImpl_createTempFile(t *testing.T) {
 		UID:     1,
 		GID:     2,
 		HomeDir: "/home/path",
-		Shell:   "/bin/sh",
 	}
 	pattern := "data-*"
 	tests := []struct {
