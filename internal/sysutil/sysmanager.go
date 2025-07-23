@@ -28,7 +28,7 @@ type SysManager struct {
 
 // ReadFile reads a file
 func (s *SysManager) ReadFile(filename string) ([]byte, error) {
-	return os.ReadFile(filename)
+	return os.ReadFile(filename) //nolint:gosec
 }
 
 // RenameFile renames a file
@@ -68,32 +68,33 @@ func (s *SysManager) FileExists(name string) (bool, error) {
 	return false, err
 }
 
+// Sleep pauses execution
 func (s *SysManager) Sleep(d time.Duration) {
 	time.Sleep(d)
 }
 
 // UtilSubprocess calls this binary in util mode in a subprocess
 func (s *SysManager) UtilSubprocess(user *User, stdin []string) (*CmdResult, error) {
-	exStart, err := s.osOperator.executable()
+	exStart, err := s.executable()
 	if err != nil {
 		return nil, err
 	}
 
-	ex, err := s.osOperator.evalSymLinks(exStart)
+	ex, err := s.evalSymLinks(exStart)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := s.osOperator.command(ex, "-util")
+	cmd := s.command(ex, "-util")
 
-	stdOut := s.osOperator.newBuffer()
-	stdErr := s.osOperator.newBuffer()
+	stdOut := s.newBuffer()
+	stdErr := s.newBuffer()
 	cmd.SetStdout(&stdOut)
 	cmd.SetStderr(&stdErr)
-	cmd.SetDir(s.osOperator.dir(ex))
+	cmd.SetDir(s.dir(ex))
 
 	if len(stdin) > 0 {
-		cmd.SetStdin(s.osOperator.newStringReader(strings.Join(stdin, "\n")))
+		cmd.SetStdin(s.newStringReader(strings.Join(stdin, "\n")))
 	}
 
 	cmd.SetUser(user)
@@ -117,30 +118,32 @@ func (s *SysManager) UtilSubprocess(user *User, stdin []string) (*CmdResult, err
 	}, nil
 }
 
+// GetCurrentUser retrieves the current user information
 func (s *SysManager) GetCurrentUser() (*User, error) {
-	usr, err := s.userOperator.Current()
+	usr, err := s.Current()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrGetUserFailed, err)
 	}
 
-	uid, err := strconv.Atoi(usr.Uid)
+	uid, err := strconv.ParseUint(usr.Uid, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%w: invalid UID %s: %v", ErrGetUserFailed, usr.Uid, err)
 	}
 
-	gid, err := strconv.Atoi(usr.Gid)
+	gid, err := strconv.ParseUint(usr.Gid, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%w: invalid GID %s: %v", ErrGetUserFailed, usr.Gid, err)
 	}
 
 	return &User{
 		Name:    usr.Username,
-		UID:     uid,
-		GID:     gid,
+		UID:     uint32(uid),
+		GID:     uint32(gid),
 		HomeDir: usr.HomeDir,
 	}, nil
 }
 
+// IsSymLink checks if the given path is a symbolic link
 func (s *SysManager) IsSymLink(path string) (bool, error) {
 	info, err := os.Lstat(path)
 	if err != nil {

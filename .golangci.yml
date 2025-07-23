@@ -1,3 +1,16 @@
-run:
-  skip-dirs:
-    - vendor
+version: "2"
+
+linters:
+  exclusions:
+    paths:
+      - vendor
+      - '.*_test\.go$'
+  settings:
+    revive:
+      severity: warning
+      confidence: 0.8
+
+formatters:
+  settings:
+    gofmt:
+      simplify: false

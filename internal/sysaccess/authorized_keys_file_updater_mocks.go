@@ -19,6 +19,7 @@ import (
 type MockauthorizedKeysFileUpdater struct {
 	ctrl     *gomock.Controller
 	recorder *MockauthorizedKeysFileUpdaterMockRecorder
+	isgomock struct{}
 }
 
 // MockauthorizedKeysFileUpdaterMockRecorder is the mock recorder for MockauthorizedKeysFileUpdater.

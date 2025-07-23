@@ -178,7 +178,7 @@ func Test_updaterImpl_updateAuthorizedKeysFile_threadSafe(t *testing.T) {
 			strUser := fmt.Sprintf("user_%d", i)
 			user := &sysutil.User{
 				Name:    strUser,
-				UID:     i,
+				UID:     uint32(i),
 				GID:     1,
 				HomeDir: fmt.Sprintf("/home/%s", strUser),
 			}

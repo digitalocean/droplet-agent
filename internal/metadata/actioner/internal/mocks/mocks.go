@@ -20,6 +20,7 @@ import (
 type MocksshManager struct {
 	ctrl     *gomock.Controller
 	recorder *MocksshManagerMockRecorder
+	isgomock struct{}
 }
 
 // MocksshManagerMockRecorder is the mock recorder for MocksshManager.
@@ -95,6 +96,7 @@ func (mr *MocksshManagerMockRecorder) UpdateKeys(keys any) *gomock.Call {
 type MocksshKeyParser struct {
 	ctrl     *gomock.Controller
 	recorder *MocksshKeyParserMockRecorder
+	isgomock struct{}
 }
 
 // MocksshKeyParserMockRecorder is the mock recorder for MocksshKeyParser.

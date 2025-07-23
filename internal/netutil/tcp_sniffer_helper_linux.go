@@ -87,7 +87,7 @@ func (h *tcpSnifferHelperImpl) ToBpfFilters(identifier *TCPPacketIdentifier) ([]
 	tRet := len(filter) - 2
 	for i := 1; i < tRet; i += 2 {
 		ji := filter[i].(bpf.JumpIf)
-		ji.SkipFalse = uint8(tRet - i)
+		ji.SkipFalse = uint8(tRet - i) //nolint:gosec
 		filter[i] = ji
 	}
 	return filter, nil
@@ -111,16 +111,16 @@ func (h *tcpSnifferHelperImpl) SocketWithBPFFilter(filter []bpf.Instruction) (re
 		return 0, fmt.Errorf("%w:%v", ErrApplyFilter, err)
 	}
 	program := unix.SockFprog{
-		Len:    uint16(len(assembled)),
-		Filter: (*unix.SockFilter)(unsafe.Pointer(&assembled[0])),
+		Len:    uint16(len(assembled)),                            //nolint:gosec
+		Filter: (*unix.SockFilter)(unsafe.Pointer(&assembled[0])), //nolint:gosec
 	}
 
-	b := (*[unix.SizeofSockFprog]byte)(unsafe.Pointer(&program))[:unix.SizeofSockFprog]
+	b := (*[unix.SizeofSockFprog]byte)(unsafe.Pointer(&program))[:unix.SizeofSockFprog] //nolint:gosec
 	_, _, errno := h.Syscall6(unix.SYS_SETSOCKOPT,
 		uintptr(fd),
 		uintptr(unix.SOL_SOCKET),
 		uintptr(unix.SO_ATTACH_FILTER),
-		uintptr(unsafe.Pointer(&b[0])),
+		uintptr(unsafe.Pointer(&b[0])), //nolint:gosec
 		uintptr(len(b)),
 		0)
 	if errno != 0 {
@@ -139,10 +139,10 @@ func (h *tcpSnifferHelperImpl) UnmarshalTCPPacket(in []byte) (*TCPPacket, error)
 	ret.SeqNum = binary.BigEndian.Uint32(in[offSeqNum:])
 	ret.AckNum = binary.BigEndian.Uint32(in[offAckNum:])
 	mix := binary.BigEndian.Uint16(in[offTCPFlags:])
-	ret.DataOffset = uint8(mix >> 12)    // first 4 bits is the DataOffset
-	ret.Reserved = uint8((mix >> 9) & 7) // the following 3 bits are the reserved bits
-	ret.ECN = uint8((mix >> 6) & 7)      // then 3 bits of ECN related flags
-	ret.Ctrl = uint8(mix & 0x3f)         // fetch the last 6 bits of TCP flags. NOTE: 0x3f = 0011 1111
+	ret.DataOffset = uint8(mix >> 12)    //nolint:gosec // first 4 bits is the DataOffset
+	ret.Reserved = uint8((mix >> 9) & 7) //nolint:gosec // the following 3 bits are the reserved bits
+	ret.ECN = uint8((mix >> 6) & 7)      //nolint:gosec // then 3 bits of ECN related flags
+	ret.Ctrl = uint8(mix & 0x3f)         //nolint:gosec // fetch the last 6 bits of TCP flags. NOTE: 0x3f = 0011 1111
 	ret.Window = binary.BigEndian.Uint16(in[offWindowSize:])
 	ret.Checksum = binary.BigEndian.Uint16(in[offCheckSum:])
 	ret.Urgent = binary.BigEndian.Uint16(in[offUrgent:])
