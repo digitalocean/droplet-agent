@@ -1,12 +1,15 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package metadata
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 	"regexp"
 	"strings"
+
+	"github.com/digitalocean/droplet-agent/internal/sysaccess"
 )
 
 const (
@@ -25,11 +28,23 @@ func NewSSHKeyParser() *SSHKeyParser {
 	}
 }
 
+func containsNewlineOrEncodedNewline(s string) bool {
+	return strings.Contains(s, "\n") ||
+		strings.Contains(s, "\r") ||
+		strings.Contains(s, "%0A") ||
+		strings.Contains(s, "%0D") ||
+		strings.Contains(s, "%0a") ||
+		strings.Contains(s, "%0d")
+}
+
 // FromPublicKey parses a string public key and attempts to convert it to a SSHKey object
 func (p *SSHKeyParser) FromPublicKey(key string) (*sysaccess.SSHKey, error) {
 	ret := &sysaccess.SSHKey{
 		PublicKey: strings.Trim(key, " \t\r\n"),
 		Type:      sysaccess.SSHKeyTypeDroplet,
+	}
+	if containsNewlineOrEncodedNewline(ret.PublicKey) {
+		return nil, errors.New("invalid public key: contains newline or encoded newline characters")
 	}
 	match := p.pubKeyOSUserRegex.FindAllStringSubmatch(key, -1)
 	if len(match) != 0 {
@@ -52,8 +67,11 @@ func (p *SSHKeyParser) FromDOTTYKey(key string) (*sysaccess.SSHKey, error) {
 	ret := &sysaccess.SSHKey{
 		Type: sysaccess.SSHKeyTypeDOTTY,
 	}
-	if err := json.Unmarshal([]byte(key), ret); err != nil {
+	if err := json.Unmarshal([]byte(strings.Trim(key, " \t\r\n")), ret); err != nil {
 		return nil, fmt.Errorf("%w:invalid key", err)
+	}
+	if containsNewlineOrEncodedNewline(ret.PublicKey) {
+		return nil, errors.New("invalid public key: contains newline or encoded newline characters")
 	}
 	return ret, nil
 }
