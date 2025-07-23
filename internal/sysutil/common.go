@@ -43,8 +43,8 @@ var (
 // User struct contains information of a user
 type User struct {
 	Name    string
-	UID     int
-	GID     int
+	UID     uint32
+	GID     uint32
 	HomeDir string
 }
 

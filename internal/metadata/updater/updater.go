@@ -46,7 +46,7 @@ func (u *agentInfoUpdaterImpl) Update(md *metadata.Metadata) error {
 	}
 	defer func() {
 		if resp.Body != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 	}()
 

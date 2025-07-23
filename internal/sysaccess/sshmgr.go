@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ type SSHManager struct {
 	authorizedKeysFileUpdater
 
 	authorizedKeysFilePattern string // same as the AuthorizedKeysFile in sshd_config, default to %h/.ssh/authorized_keys
-	sshdPort                  int
+	sshdPort                  uint16
 
 	sysMgr            sysManager
 	fsWatcher         fsWatcher
@@ -75,9 +76,6 @@ func NewSSHManager(opts ...SSHManagerOpt) (*SSHManager, error) {
 	err := ret.parseSSHDConfig()
 	if err != nil {
 		return nil, err
-	}
-	if !validPort(ret.sshdPort) {
-		return nil, fmt.Errorf("%w:[%d]", ErrInvalidPortNumber, ret.sshdPort)
 	}
 	log.Info("SSH Manager Initialized. sshd_config:[%s], sshd_port:[%d]", ret.sshdConfigFile(), ret.sshdPort)
 	return ret, nil
@@ -219,7 +217,7 @@ func (s *SSHManager) RemoveDOTTYKeys() error {
 }
 
 // SSHDPort returns the port sshd is binding to
-func (s *SSHManager) SSHDPort() int {
+func (s *SSHManager) SSHDPort() uint16 {
 	return s.sshdPort
 }
 
@@ -382,7 +380,7 @@ func (s *SSHManager) parseSSHDPort(line string) error {
 		if err != nil {
 			return fmt.Errorf("%w: invalid Port:%v", ErrSSHDConfigParseFailed, err)
 		}
-		s.sshdPort = portTmp
+		return s.setSshdPort(portTmp)
 	case "ListenAddress":
 		_, port, err := net.SplitHostPort(cfg)
 		if err != nil {
@@ -394,11 +392,15 @@ func (s *SSHManager) parseSSHDPort(line string) error {
 		if err != nil {
 			return fmt.Errorf("%w: invalid Port in address:%v", ErrSSHDConfigParseFailed, err)
 		}
-		s.sshdPort = portTmp
+		return s.setSshdPort(portTmp)
 	}
 	return nil
 }
 
-func validPort(port int) bool {
-	return port > 0 && port <= 65535
+func (s *SSHManager) setSshdPort(port int) error {
+	if port >= 0 && port <= math.MaxUint16 {
+		s.sshdPort = uint16(port)
+		return nil
+	}
+	return fmt.Errorf("%w: sshd port %d is out of range", ErrSSHDConfigParseFailed, port)
 }

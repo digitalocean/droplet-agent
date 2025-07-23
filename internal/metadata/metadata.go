@@ -35,7 +35,7 @@ type Metadata struct {
 // SSHInfo contains the information of the sshd service running on the droplet
 type SSHInfo struct {
 	// Port is the port that the sshd is listening to
-	Port int `json:"port,omitempty"`
+	Port uint16 `json:"port,omitempty"`
 	// HostKeys is the public ssh keys of the droplet, needed for identifying the droplet
 	HostKeys []string `json:"host_keys,omitempty"`
 }

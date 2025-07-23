@@ -24,7 +24,7 @@ func TestSSHManager_parseSSHDConfig(t *testing.T) {
 		sshdCfg                string
 		sshdCfgReadErr         error
 		wantAuthorizedKeysFile string
-		wantSSHDPort           int
+		wantSSHDPort           uint16
 		wantErr                error
 	}{
 		{

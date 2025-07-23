@@ -24,7 +24,7 @@ func NewSSHWatcher(cfg *Conf) MetadataWatcher {
 		sniffer:             netutil.NewTCPPacketSniffer(),
 		limiter:             rate.NewLimiter(rate.Every(time.Second/maxFetchPerSecond), 1),
 		registeredActioners: nil,
-		sshdPort:            uint16(cfg.SSHPort),
+		sshdPort:            cfg.SSHPort,
 		done:                make(chan struct{}),
 	}
 	return ret

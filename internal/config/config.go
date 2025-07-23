@@ -4,6 +4,7 @@ package config
 
 import (
 	"flag"
+	"math"
 	"os"
 	"time"
 
@@ -11,10 +12,13 @@ import (
 )
 
 const (
-	AppFullName  = "DigitalOcean Droplet Agent (code name: DOTTY)"
+	// AppFullName is the full name of this application
+	AppFullName = "DigitalOcean Droplet Agent (code name: DOTTY)"
+	// AppShortName is the short name of this application
 	AppShortName = "Droplet Agent"
+	// AppDebugAddr is the address where the agent listens for debug connections
 	AppDebugAddr = "127.0.0.1:304"
-
+	// UserAgent is the user agent string used by the agent
 	UserAgent = "Droplet-Agent/" + Version
 
 	backgroundJobInterval = 120 * time.Second
@@ -26,7 +30,7 @@ type Conf struct {
 	DebugMode bool
 	UtilMode  bool
 
-	CustomSSHDPort              int
+	CustomSSHDPort              uint16
 	CustomSSHDCfgFile           string
 	AuthorizedKeysCheckInterval time.Duration
 }
@@ -52,13 +56,20 @@ func Init() *Conf {
 
 	fs.BoolVar(&cfg.UseSyslog, "syslog", false, "Use syslog service for logging")
 	fs.BoolVar(&cfg.DebugMode, "debug", false, "Turn on debug mode")
-	fs.IntVar(&cfg.CustomSSHDPort, "sshd_port", 0, "The port sshd is binding to")
+	var port uint
+	fs.UintVar(&port, "sshd_port", 0, "The port sshd is binding to")
 	fs.StringVar(&cfg.CustomSSHDCfgFile, "sshd_config", "", "The location of sshd_config")
 
 	err := ff.Parse(fs, args, ff.WithEnvVarPrefix("DROPLET_AGENT"))
 
 	if err != nil {
 		panic("failed to parse command line arguments: " + err.Error())
+	}
+
+	if port <= math.MaxUint16 {
+		cfg.CustomSSHDPort = uint16(port)
+	} else {
+		panic("sshd_port value is out of range")
 	}
 
 	return &cfg

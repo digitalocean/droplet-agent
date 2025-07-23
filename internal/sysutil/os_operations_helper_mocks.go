@@ -20,6 +20,7 @@ import (
 type MockosOpHelper struct {
 	ctrl     *gomock.Controller
 	recorder *MockosOpHelperMockRecorder
+	isgomock struct{}
 }
 
 // MockosOpHelperMockRecorder is the mock recorder for MockosOpHelper.
@@ -40,7 +41,7 @@ func (m *MockosOpHelper) EXPECT() *MockosOpHelperMockRecorder {
 }
 
 // Chown mocks base method.
-func (m *MockosOpHelper) Chown(name string, uid, gid int) error {
+func (m *MockosOpHelper) Chown(name string, uid, gid uint32) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Chown", name, uid, gid)
 	ret0, _ := ret[0].(error)

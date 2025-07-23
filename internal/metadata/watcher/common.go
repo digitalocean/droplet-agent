@@ -18,5 +18,5 @@ var (
 
 // Conf contains configurations for a watcher
 type Conf struct {
-	SSHPort int
+	SSHPort uint16
 }

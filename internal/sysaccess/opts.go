@@ -3,7 +3,7 @@
 package sysaccess
 
 type sshMgrOpts struct {
-	customSSHDPort    int
+	customSSHDPort    uint16
 	customSSHDCfgFile string
 	manageDropletKeys bool
 }
@@ -12,7 +12,7 @@ type sshMgrOpts struct {
 type SSHManagerOpt func(opt *sshMgrOpts)
 
 // WithCustomSSHDPort indicates the SSHD is running on a custom port which is specified via command line argument
-func WithCustomSSHDPort(port int) SSHManagerOpt {
+func WithCustomSSHDPort(port uint16) SSHManagerOpt {
 	return func(opt *sshMgrOpts) {
 		opt.customSSHDPort = port
 	}

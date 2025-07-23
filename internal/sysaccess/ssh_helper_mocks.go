@@ -21,6 +21,7 @@ import (
 type MocksshHelper struct {
 	ctrl     *gomock.Controller
 	recorder *MocksshHelperMockRecorder
+	isgomock struct{}
 }
 
 // MocksshHelperMockRecorder is the mock recorder for MocksshHelper.
@@ -159,6 +160,7 @@ func (mr *MocksshHelperMockRecorder) validateKey(k any) *gomock.Call {
 type MockfsWatcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockfsWatcherMockRecorder
+	isgomock struct{}
 }
 
 // MockfsWatcherMockRecorder is the mock recorder for MockfsWatcher.

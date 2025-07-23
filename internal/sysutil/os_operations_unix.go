@@ -33,7 +33,7 @@ type osOperatorImpl struct {
 }
 
 func (o *osOperatorImpl) openFile(name string, flag int, perm os.FileMode) (File, error) {
-	return os.OpenFile(name, flag, perm)
+	return os.OpenFile(name, flag, perm) //nolint:gosec
 }
 
 func (o *osOperatorImpl) getpwnam(username string) (*User, error) {
@@ -95,17 +95,17 @@ func parseLine(line string) (*User, error) {
 	}
 	ret.Name = strings.TrimSpace(items[passwdIdxName])
 
-	uid, err := strconv.ParseInt(items[passwdIdxUID], 10, 32)
+	uid, err := strconv.ParseUint(items[passwdIdxUID], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid line: %s is not a valid uid", items[passwdIdxUID])
 	}
-	ret.UID = int(uid)
+	ret.UID = uint32(uid)
 
-	gid, err := strconv.ParseInt(items[passwdIdxGID], 10, 32)
+	gid, err := strconv.ParseUint(items[passwdIdxGID], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid line: %s is not a valid gid", items[passwdIdxGID])
 	}
-	ret.GID = int(gid)
+	ret.GID = uint32(gid)
 
 	ret.HomeDir = strings.TrimSpace(items[passwdIdxHomeDir])
 	return ret, nil
