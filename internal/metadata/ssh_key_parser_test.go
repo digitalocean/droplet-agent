@@ -77,6 +77,30 @@ func TestSSHKeyParser_FromPublicKey(t *testing.T) {
 			nil,
 			true,
 		},
+		{
+			"should reject key with %0A (encoded newline)",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=%0Acomment",
+			nil,
+			true,
+		},
+		{
+			"should reject key with %0D (encoded carriage return)",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=%0Dcomment",
+			nil,
+			true,
+		},
+		{
+			"should reject key with %0a (encoded newline, lowercase)",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=%0acomment",
+			nil,
+			true,
+		},
+		{
+			"should reject key with %0d (encoded carriage return, lowercase)",
+			"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHRjqHzBANlihrvlhyecJecbR4yV5ufOgl9fllxDFpDGMMDd6Pb+ypR/noxmQwa9ik8Z3ki9e1UAIeQ8K5R3kpE=%0dcomment",
+			nil,
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -129,6 +153,30 @@ func TestSSHKeyParser_FromDOTTYKey(t *testing.T) {
 		{
 			"should reject DOTTY key with carriage return",
 			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=\rcomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with %0A (encoded newline)",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=%0Acomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with %0D (encoded carriage return)",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=%0Dcomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with %0a (encoded newline, lowercase)",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=%0acomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
+			nil,
+			true,
+		},
+		{
+			"should reject DOTTY key with %0d (encoded carriage return, lowercase)",
+			"{\"os_user\":\"root\",\"ssh_key\":\"ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHxxGMc7paI72eTQSNoz+e9jxVZjYDsMwfy6MwPgZlzncKjm+QTfgilNEDskWfU8Om4EiOMedhvrDhBfVSbqAoA=%0dcomment\",\"actor_email\":\"actor@email.com\",\"ttl\":50}",
 			nil,
 			true,
 		},
