@@ -2,6 +2,19 @@
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
 
+## [1.2.11](https://github.com/digitalocean/droplet-agent/tree/1.2.11) (2025-07-23)
+### Updated
+- Switched to go 1.24.5
+- Updated all modules
+- Read and write to authorized_keys file in subprocess as target user
+- Do not read or overwrite authorized_keys file if it's a symlink
+- Reject public keys containing embedded new lines
+
+### Related PRs
+- read & write auth keys through user-run subprocess [\#141](https://github.com/digitalocean/droplet-agent/pull/141)
+- bump go version; update deps; lint fixes [\#142](https://github.com/digitalocean/droplet-agent/pull/142)
+- ssh key handle new lines [\#143](https://github.com/digitalocean/droplet-agent/pull/143)
+
 ## [1.2.10](https://github.com/digitalocean/droplet-agent/tree/1.2.10) (2025-02-12)
 ### Updated
 - Enforce file permission when updating authorized_keys file
