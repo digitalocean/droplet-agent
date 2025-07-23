@@ -241,3 +241,4 @@ mockgen:
 	GOOS=linux mockgen -source=internal/netutil/tcp_sniffer_helper_linux.go -package=mocks -destination=internal/netutil/internal/mocks/dependent_functions_mock.go
 	mockgen -source=internal/metadata/updater/updater.go -package=updater -destination=internal/metadata/updater/updater_mocks.go
 	mockgen -destination=internal/metadata/updater/readcloser_mocks.go -package=updater -build_flags=--mod=mod io ReadCloser
+	mockgen -source=internal/sysutil/usermanager.go -package=sysutil -destination=internal/sysutil/usermanager_mocks.go

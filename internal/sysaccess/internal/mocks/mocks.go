@@ -22,6 +22,7 @@ import (
 type MocksysManager struct {
 	ctrl     *gomock.Controller
 	recorder *MocksysManagerMockRecorder
+	isgomock struct{}
 }
 
 // MocksysManagerMockRecorder is the mock recorder for MocksysManager.
@@ -85,6 +86,21 @@ func (mr *MocksysManagerMockRecorder) FileExists(name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileExists", reflect.TypeOf((*MocksysManager)(nil).FileExists), name)
 }
 
+// GetCurrentUser mocks base method.
+func (m *MocksysManager) GetCurrentUser() (*sysutil.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentUser")
+	ret0, _ := ret[0].(*sysutil.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCurrentUser indicates an expected call of GetCurrentUser.
+func (mr *MocksysManagerMockRecorder) GetCurrentUser() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentUser", reflect.TypeOf((*MocksysManager)(nil).GetCurrentUser))
+}
+
 // GetUserByName mocks base method.
 func (m *MocksysManager) GetUserByName(username string) (*sysutil.User, error) {
 	m.ctrl.T.Helper()
@@ -98,6 +114,21 @@ func (m *MocksysManager) GetUserByName(username string) (*sysutil.User, error) {
 func (mr *MocksysManagerMockRecorder) GetUserByName(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByName", reflect.TypeOf((*MocksysManager)(nil).GetUserByName), username)
+}
+
+// IsSymLink mocks base method.
+func (m *MocksysManager) IsSymLink(path string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSymLink", path)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsSymLink indicates an expected call of IsSymLink.
+func (mr *MocksysManagerMockRecorder) IsSymLink(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSymLink", reflect.TypeOf((*MocksysManager)(nil).IsSymLink), path)
 }
 
 // MkDirIfNonExist mocks base method.
@@ -182,4 +213,19 @@ func (m *MocksysManager) Sleep(d time.Duration) {
 func (mr *MocksysManagerMockRecorder) Sleep(d any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sleep", reflect.TypeOf((*MocksysManager)(nil).Sleep), d)
+}
+
+// UtilSubprocess mocks base method.
+func (m *MocksysManager) UtilSubprocess(user *sysutil.User, stdin []string) (*sysutil.CmdResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UtilSubprocess", user, stdin)
+	ret0, _ := ret[0].(*sysutil.CmdResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UtilSubprocess indicates an expected call of UtilSubprocess.
+func (mr *MocksysManagerMockRecorder) UtilSubprocess(user, stdin any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UtilSubprocess", reflect.TypeOf((*MocksysManager)(nil).UtilSubprocess), user, stdin)
 }

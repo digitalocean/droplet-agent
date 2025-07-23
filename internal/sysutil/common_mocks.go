@@ -10,6 +10,8 @@
 package sysutil
 
 import (
+	bytes "bytes"
+	io "io"
 	os "os"
 	reflect "reflect"
 
@@ -20,6 +22,7 @@ import (
 type MockFile struct {
 	ctrl     *gomock.Controller
 	recorder *MockFileMockRecorder
+	isgomock struct{}
 }
 
 // MockFileMockRecorder is the mock recorder for MockFile.
@@ -116,6 +119,7 @@ func (mr *MockFileMockRecorder) Write(p any) *gomock.Call {
 type MockosOperator struct {
 	ctrl     *gomock.Controller
 	recorder *MockosOperatorMockRecorder
+	isgomock struct{}
 }
 
 // MockosOperatorMockRecorder is the mock recorder for MockosOperator.
@@ -135,6 +139,25 @@ func (m *MockosOperator) EXPECT() *MockosOperatorMockRecorder {
 	return m.recorder
 }
 
+// command mocks base method.
+func (m *MockosOperator) command(name string, args ...string) cmd {
+	m.ctrl.T.Helper()
+	varargs := []any{name}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "command", varargs...)
+	ret0, _ := ret[0].(cmd)
+	return ret0
+}
+
+// command indicates an expected call of command.
+func (mr *MockosOperatorMockRecorder) command(name any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{name}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "command", reflect.TypeOf((*MockosOperator)(nil).command), varargs...)
+}
+
 // createTempFile mocks base method.
 func (m *MockosOperator) createTempFile(dir, pattern string, user *User) (File, error) {
 	m.ctrl.T.Helper()
@@ -148,6 +171,50 @@ func (m *MockosOperator) createTempFile(dir, pattern string, user *User) (File, 
 func (mr *MockosOperatorMockRecorder) createTempFile(dir, pattern, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "createTempFile", reflect.TypeOf((*MockosOperator)(nil).createTempFile), dir, pattern, user)
+}
+
+// dir mocks base method.
+func (m *MockosOperator) dir(path string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "dir", path)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// dir indicates an expected call of dir.
+func (mr *MockosOperatorMockRecorder) dir(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "dir", reflect.TypeOf((*MockosOperator)(nil).dir), path)
+}
+
+// evalSymLinks mocks base method.
+func (m *MockosOperator) evalSymLinks(path string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "evalSymLinks", path)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// evalSymLinks indicates an expected call of evalSymLinks.
+func (mr *MockosOperatorMockRecorder) evalSymLinks(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "evalSymLinks", reflect.TypeOf((*MockosOperator)(nil).evalSymLinks), path)
+}
+
+// executable mocks base method.
+func (m *MockosOperator) executable() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "executable")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// executable indicates an expected call of executable.
+func (mr *MockosOperatorMockRecorder) executable() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "executable", reflect.TypeOf((*MockosOperator)(nil).executable))
 }
 
 // getpwnam mocks base method.
@@ -179,6 +246,34 @@ func (mr *MockosOperatorMockRecorder) mkdir(dir, user, perm any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mkdir", reflect.TypeOf((*MockosOperator)(nil).mkdir), dir, user, perm)
 }
 
+// newBuffer mocks base method.
+func (m *MockosOperator) newBuffer() bytes.Buffer {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "newBuffer")
+	ret0, _ := ret[0].(bytes.Buffer)
+	return ret0
+}
+
+// newBuffer indicates an expected call of newBuffer.
+func (mr *MockosOperatorMockRecorder) newBuffer() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "newBuffer", reflect.TypeOf((*MockosOperator)(nil).newBuffer))
+}
+
+// newStringReader mocks base method.
+func (m *MockosOperator) newStringReader(contents string) io.Reader {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "newStringReader", contents)
+	ret0, _ := ret[0].(io.Reader)
+	return ret0
+}
+
+// newStringReader indicates an expected call of newStringReader.
+func (mr *MockosOperatorMockRecorder) newStringReader(contents any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "newStringReader", reflect.TypeOf((*MockosOperator)(nil).newStringReader), contents)
+}
+
 // openFile mocks base method.
 func (m *MockosOperator) openFile(name string, flag int, perm os.FileMode) (File, error) {
 	m.ctrl.T.Helper()
@@ -192,4 +287,102 @@ func (m *MockosOperator) openFile(name string, flag int, perm os.FileMode) (File
 func (mr *MockosOperatorMockRecorder) openFile(name, flag, perm any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "openFile", reflect.TypeOf((*MockosOperator)(nil).openFile), name, flag, perm)
+}
+
+// Mockcmd is a mock of cmd interface.
+type Mockcmd struct {
+	ctrl     *gomock.Controller
+	recorder *MockcmdMockRecorder
+	isgomock struct{}
+}
+
+// MockcmdMockRecorder is the mock recorder for Mockcmd.
+type MockcmdMockRecorder struct {
+	mock *Mockcmd
+}
+
+// NewMockcmd creates a new mock instance.
+func NewMockcmd(ctrl *gomock.Controller) *Mockcmd {
+	mock := &Mockcmd{ctrl: ctrl}
+	mock.recorder = &MockcmdMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *Mockcmd) EXPECT() *MockcmdMockRecorder {
+	return m.recorder
+}
+
+// Run mocks base method.
+func (m *Mockcmd) Run() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Run")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Run indicates an expected call of Run.
+func (mr *MockcmdMockRecorder) Run() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*Mockcmd)(nil).Run))
+}
+
+// SetDir mocks base method.
+func (m *Mockcmd) SetDir(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetDir", arg0)
+}
+
+// SetDir indicates an expected call of SetDir.
+func (mr *MockcmdMockRecorder) SetDir(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDir", reflect.TypeOf((*Mockcmd)(nil).SetDir), arg0)
+}
+
+// SetStderr mocks base method.
+func (m *Mockcmd) SetStderr(arg0 io.Writer) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetStderr", arg0)
+}
+
+// SetStderr indicates an expected call of SetStderr.
+func (mr *MockcmdMockRecorder) SetStderr(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStderr", reflect.TypeOf((*Mockcmd)(nil).SetStderr), arg0)
+}
+
+// SetStdin mocks base method.
+func (m *Mockcmd) SetStdin(arg0 io.Reader) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetStdin", arg0)
+}
+
+// SetStdin indicates an expected call of SetStdin.
+func (mr *MockcmdMockRecorder) SetStdin(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStdin", reflect.TypeOf((*Mockcmd)(nil).SetStdin), arg0)
+}
+
+// SetStdout mocks base method.
+func (m *Mockcmd) SetStdout(arg0 io.Writer) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetStdout", arg0)
+}
+
+// SetStdout indicates an expected call of SetStdout.
+func (mr *MockcmdMockRecorder) SetStdout(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStdout", reflect.TypeOf((*Mockcmd)(nil).SetStdout), arg0)
+}
+
+// SetUser mocks base method.
+func (m *Mockcmd) SetUser(user *User) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetUser", user)
+}
+
+// SetUser indicates an expected call of SetUser.
+func (mr *MockcmdMockRecorder) SetUser(user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUser", reflect.TypeOf((*Mockcmd)(nil).SetUser), user)
 }

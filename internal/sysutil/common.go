@@ -3,9 +3,13 @@
 package sysutil
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"syscall"
 )
 
 // Possible errors
@@ -30,6 +34,10 @@ var (
 	ErrUnexpected = fmt.Errorf("unexpected error")
 	// ErrPermissionDenied indicates the given permission is not sufficient to perform the designated operation
 	ErrPermissionDenied = fmt.Errorf("insufficient permission")
+	// ErrReadAuthorizedKeysFileFailed indicates the error of failing to read the authorized_keys file
+	ErrReadAuthorizedKeysFileFailed = errors.New("failed to read authorized_keys file")
+	// ErrWriteAuthorizedKeysFileFailed indicates the error of failing to write the authorized_keys file
+	ErrWriteAuthorizedKeysFileFailed = errors.New("failed to write authorized_keys file")
 )
 
 // User struct contains information of a user
@@ -38,7 +46,6 @@ type User struct {
 	UID     int
 	GID     int
 	HomeDir string
-	Shell   string
 }
 
 // CmdResult struct contains the result of executing a command
@@ -62,4 +69,62 @@ type osOperator interface {
 	mkdir(dir string, user *User, perm os.FileMode) error
 	createTempFile(dir, pattern string, user *User) (File, error)
 	openFile(name string, flag int, perm os.FileMode) (File, error)
+	executable() (string, error)
+	evalSymLinks(path string) (string, error)
+	command(name string, args ...string) cmd
+	dir(path string) string
+	newBuffer() bytes.Buffer
+	newStringReader(contents string) io.Reader
+}
+
+type cmd interface {
+	Run() error
+	SetStdout(io.Writer)
+	SetStdin(io.Reader)
+	SetStderr(io.Writer)
+	SetDir(string)
+	SetUser(user *User)
+}
+
+func newCmd(name string, args ...string) cmd {
+	return &cmdImpl{
+		exec.Command(name, args...),
+	}
+}
+
+type cmdImpl struct {
+	cmd *exec.Cmd
+}
+
+func (c *cmdImpl) Run() error {
+	return c.cmd.Run()
+}
+
+func (c *cmdImpl) SetStdout(w io.Writer) {
+	c.cmd.Stdout = w
+}
+
+func (c *cmdImpl) SetStdin(r io.Reader) {
+	c.cmd.Stdin = r
+}
+
+func (c *cmdImpl) SetStderr(w io.Writer) {
+	c.cmd.Stderr = w
+}
+
+func (c *cmdImpl) SetDir(dir string) {
+	c.cmd.Dir = dir
+}
+
+func (c *cmdImpl) SetUser(user *User) {
+	if user != nil {
+		c.cmd.SysProcAttr = &syscall.SysProcAttr{
+			Credential: &syscall.Credential{
+				Uid: uint32(user.UID),
+				Gid: uint32(user.GID),
+			},
+		}
+	} else {
+		c.cmd.SysProcAttr = nil
+	}
 }

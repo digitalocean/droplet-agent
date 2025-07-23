@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package sysutil
 
 import "os"
@@ -25,11 +27,12 @@ func (*osOpHelperImpl) MkDir(path string, perm os.FileMode) error {
 	return os.MkdirAll(path, perm)
 }
 
-func (*osOpHelperImpl) Chown(name string, uid, gid int) error {
-	return os.Chown(name, uid, gid)
-}
 func (*osOpHelperImpl) CreateTemp(dir, pattern string) (File, error) {
 	return os.CreateTemp(dir, pattern)
+}
+
+func (*osOpHelperImpl) Chown(name string, uid, gid int) error {
+	return os.Chown(name, uid, gid)
 }
 
 func (*osOpHelperImpl) Remove(name string) error {

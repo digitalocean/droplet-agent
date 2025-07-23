@@ -4,11 +4,12 @@ package sysutil
 
 import (
 	"fmt"
-	"github.com/digitalocean/droplet-agent/internal/log"
-	"github.com/opencontainers/selinux/go-selinux"
 	"io"
 	"os"
 	"syscall"
+
+	"github.com/digitalocean/droplet-agent/internal/log"
+	"github.com/opencontainers/selinux/go-selinux"
 )
 
 // CopyFileAttribute copies a file's attribute to another

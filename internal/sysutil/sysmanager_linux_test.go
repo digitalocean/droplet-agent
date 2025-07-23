@@ -2,13 +2,15 @@ package sysutil
 
 import (
 	"errors"
-	mock_os "github.com/digitalocean/droplet-agent/internal/sysutil/internal/mocks"
-	"go.uber.org/mock/gomock"
 	"io"
 	"os"
 	"reflect"
 	"syscall"
 	"testing"
+
+	mock_os "github.com/digitalocean/droplet-agent/internal/sysutil/internal/mocks"
+
+	"go.uber.org/mock/gomock"
 )
 
 func TestSysManager_ReadFileOfUser(t *testing.T) {
