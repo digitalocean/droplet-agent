@@ -2,11 +2,7 @@
 
 package sysutil
 
-import (
-	"os"
-	"math"
-	"fmt"
-)
+import "os"
 
 type osOpHelper interface {
 	ReadFile(filename string) ([]byte, error)
@@ -36,9 +32,6 @@ func (*osOpHelperImpl) CreateTemp(dir, pattern string) (File, error) {
 }
 
 func (*osOpHelperImpl) Chown(name string, uid, gid uint32) error {
-	if uid > math.MaxInt32 || gid > math.MaxInt32 {
-		return fmt.Errorf("uid or gid out of range: uid=%d, gid=%d", uid, gid)
-	}
 	return os.Chown(name, int(uid), int(gid))
 }
 
