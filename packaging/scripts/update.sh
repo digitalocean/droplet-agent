@@ -113,14 +113,14 @@ find_latest_pkg() {
     if [ -n "${KEYRING_PKG_PATTERN}" ]; then
       keyring_pkgs=$(echo "${repo_tree}" | grep -oP '(?<=Key>'"${KEYRING_PKG_PATTERN}"')[^<]+' | tr ' ' '\n')
       sorted_pkgs=$(echo "${keyring_pkgs}" | sort -V)
-      LATEST_KEYRING_VER=$(echo "${sorted_pkgs}" | tail -1 | grep -oP '\d.\d.\d')
+      LATEST_KEYRING_VER=$(echo "${sorted_pkgs}" | tail -1 | grep -oP '\d+\.\d+\.\d+')
       echo "Latest keyring package:${LATEST_KEYRING_VER}"
     fi
     ;;
   esac
   files=$(echo "${repo_tree}" | grep -oP '(?<=Key>'"${PKG_PATTERN}"')[^<]+' | tr ' ' '\n')
   sorted_files=$(echo "${files}" | sort -V)
-  LATEST_VER=$(echo "${sorted_files}" | tail -1 | grep -oP '\d.\d.\d')
+  LATEST_VER=$(echo "${sorted_files}" | tail -1 | grep -oP '\d+\.\d+\.\d+')
   echo "Latest agent package:${LATEST_VER}"
 }
 
