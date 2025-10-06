@@ -8,8 +8,7 @@ KEYRING_PKG="${SVC_NAME}-keyring"
 
 REPO_HOST=""
 PKG_PATTERN=""
-ARCH=""
-ARCH_ALIAS=""
+ARCH="x86_64"
 LATEST_VER="-"
 LOCAL_VER=""
 LATEST_KEYRING_VER=""
@@ -56,17 +55,9 @@ update_rpm() {
 
 check_arch() {
   echo -n "Checking architecture support..."
-  case $(uname -m) in
-  i386 | i686)
-    ARCH="i386"
-    ARCH_ALIAS="i386"
-    ;;
-  x86_64)
-    ARCH="x86_64"
-    ARCH_ALIAS="amd64"
-    ;;
-  *) not_supported ;;
-  esac
+  if [ "$(uname -m)" != "$ARCH" ]; then
+    not_supported
+  fi
   echo "OK"
 }
 

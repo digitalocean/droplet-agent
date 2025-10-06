@@ -25,7 +25,6 @@ RETRY_CRON_SCHEDULE=/etc/cron.hourly
 RETRY_CRON=${RETRY_CRON_SCHEDULE}/droplet-agent-install
 
 dist="unknown"
-architecture="unknown"
 exit_status=0
 no_retry="false"
 repo_name=droplet-agent
@@ -224,15 +223,9 @@ check_dist() {
 
 check_arch() {
   echo "Checking architecture support..."
-  case $(uname -m) in
-  i386 | i686)
-    architecture="i386"
-    ;;
-  x86_64)
-    architecture="x86_64"
-    ;;
-  *) not_supported ;;
-  esac
+  if [ "$(uname -m)" != "x86_64" ]; then
+    not_supported
+  fi
   echo "OK"
 }
 

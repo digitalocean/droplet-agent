@@ -39,7 +39,7 @@ func (s *SysManager) ReadFileOfUser(filename string, user *User) ([]byte, error)
 		}
 		return nil, fmt.Errorf("%w:failed to open file:%v", ErrOpenFileFailed, err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	info, err := file.Stat()
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to stat:%v", ErrUnexpected, err)

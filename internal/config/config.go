@@ -4,6 +4,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"math"
 	"os"
 	"time"
@@ -17,12 +18,32 @@ const (
 	// AppShortName is the short name of this application
 	AppShortName = "Droplet Agent"
 	// AppDebugAddr is the address where the agent listens for debug connections
-	AppDebugAddr = "127.0.0.1:304"
-	// UserAgent is the user agent string used by the agent
-	UserAgent = "Droplet-Agent/" + Version
-
+	AppDebugAddr          = "127.0.0.1:304"
 	backgroundJobInterval = 120 * time.Second
 )
+
+var (
+	// UserAgent is the user agent string used by the agent
+	UserAgent string
+
+	// Version is injected at build-time
+	Version string
+
+	// BuildDate is injected at build-time
+	BuildDate string
+)
+
+func init() {
+	if Version == "" {
+		Version = "local-dev"
+	}
+
+	if BuildDate == "" {
+		BuildDate = time.Now().UTC().Format(time.RFC3339)
+	}
+
+	UserAgent = "Droplet-Agent/" + Version
+}
 
 // Conf contains the configurations needed to run the agent
 type Conf struct {
@@ -52,6 +73,8 @@ func Init() *Conf {
 		}
 	}
 
+	showVer := false
+
 	fs := flag.NewFlagSet("droplet-agent", flag.ExitOnError)
 
 	fs.BoolVar(&cfg.UseSyslog, "syslog", false, "Use syslog service for logging")
@@ -59,6 +82,8 @@ func Init() *Conf {
 	var port uint
 	fs.UintVar(&port, "sshd_port", 0, "The port sshd is binding to")
 	fs.StringVar(&cfg.CustomSSHDCfgFile, "sshd_config", "", "The location of sshd_config")
+
+	fs.BoolVar(&showVer, "version", false, "Show version information")
 
 	err := ff.Parse(fs, args, ff.WithEnvVarPrefix("DROPLET_AGENT"))
 
@@ -70,6 +95,11 @@ func Init() *Conf {
 		cfg.CustomSSHDPort = uint16(port)
 	} else {
 		panic("sshd_port value is out of range")
+	}
+
+	if showVer {
+		fmt.Printf("Droplet-agent %s (Built: %s)\n", Version, BuildDate)
+		os.Exit(0)
 	}
 
 	return &cfg
