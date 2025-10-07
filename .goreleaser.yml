@@ -1,0 +1,17 @@
+---
+version: 2
+
+builds:
+  - main: ./cmd/agent
+    flags:
+      - -trimpath
+      - -buildvcs=false
+      - -mod=vendor
+    ldflags:
+      - -s -w -X github.com/digitalocean/droplet-agent/internal/config.Version={{.Version}} -X github.com/digitalocean/droplet-agent/internal/config.BuildDate={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64

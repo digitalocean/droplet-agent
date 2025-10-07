@@ -49,7 +49,7 @@ To build a package, assumed the repo is already cloned, go to the repo directory
 
 NOTES:
 1. As of now, the only supported `<target OS>` is Linux
-2. Supported GOARCH are `amd64` and `386`
+2. The only supported GOARCH is `amd64`
 3. Supported `<target package>` are `deb`, `rpm` and/or `tar`
 4. Multiple packages can be built at the same time by specifying the `<target package>` list in space separated format.
 For example, `GOOS=linux GOARCH=amd64 make build deb rpm tar` will generate `deb`, `rpm`, and `tar` packages
