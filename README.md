@@ -44,21 +44,15 @@ The Droplet Agent should now be running on your droplet.
 We now support building `deb` and `rpm` packages. You are welcome to submit
 PRs for supporting other package management systems.
 
-To build a package, assumed the repo is already cloned, go to the repo directory and run:
-`GOOS=<target OS> GOARCH=<go arch> make build <target package>`
-
 NOTES:
-1. As of now, the only supported `<target OS>` is Linux
+1. As of now, the only supported `<target OS>` is Linux, via `deb` and `rpm`
 2. The only supported GOARCH is `amd64`
-3. Supported `<target package>` are `deb`, `rpm` and/or `tar`
-4. Multiple packages can be built at the same time by specifying the `<target package>` list in space separated format.
-For example, `GOOS=linux GOARCH=amd64 make build deb rpm tar` will generate `deb`, `rpm`, and `tar` packages
-5. `systemd` is the preferred way for managing the droplet-agent service. Although `initctl` is also supported, it may
+3. `systemd` is the preferred way for managing the droplet-agent service. Although `initctl` is also supported, it may
 not support all features provided by the droplet-agent, and should only be used on older system that does not have
 `systemd` support.
-6. `systemd` configuration of the agent service is saved at `etc/systemd/system/droplet-agent.service`, once updated,
+4. `systemd` configuration of the agent service is saved at `etc/systemd/system/droplet-agent.service`, once updated,
 please remember to apply the changes by running `systemctl daemon-reload`
-7. Configuration for `initctl` is saved at `/etc/init/droplet-agent.conf`. If updated, please run
+5. Configuration for `initctl` is saved at `/etc/init/droplet-agent.conf`. If updated, please run
 `initctl reload-configuration` to apply the updated configuration.
 
 ## Running the Agent
@@ -99,8 +93,8 @@ Droplet Agent currently supports:
 
 - Ubuntu (oldest [End Of Standard Support](https://wiki.ubuntu.com/Releases) LTS release and later)
 - Debian ([oldest supported](https://wiki.debian.org/LTS) LTS release and later)
-- Fedora 39+
-- CentOS 7+
+- Fedora 41+
+- CentOS 9+
 - AlmaLinux 8+
 - Rocky Linux 8+
 
