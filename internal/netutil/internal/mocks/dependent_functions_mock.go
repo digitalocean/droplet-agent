@@ -21,6 +21,7 @@ import (
 type MockdependentFns struct {
 	ctrl     *gomock.Controller
 	recorder *MockdependentFnsMockRecorder
+	isgomock struct{}
 }
 
 // MockdependentFnsMockRecorder is the mock recorder for MockdependentFns.
