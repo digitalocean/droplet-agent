@@ -42,7 +42,7 @@ patch_updates() {
 
   cat <<-EOF >"${CRON}"
 	#!/bin/sh
-	/bin/bash ${script} 2>&1
+	/bin/bash ${script} >/var/log/droplet-agent.update.log 2>&1
 	EOF
 
   chmod +x "${CRON}"
