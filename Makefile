@@ -66,3 +66,8 @@ mockgen:
 	$(mockgen) -source=internal/metadata/updater/updater.go -package=updater -destination=internal/metadata/updater/updater_mocks.go
 	$(mockgen) -destination=internal/metadata/updater/readcloser_mocks.go -package=updater -build_flags=--mod=mod io ReadCloser
 	$(mockgen) -source=internal/sysutil/usermanager.go -package=sysutil -destination=internal/sysutil/usermanager_mocks.go
+	$(mockgen) -source=internal/troubleshooting/file/file.go -package=mocks -destination=internal/troubleshooting/mocks/file_mocks.go
+	$(mockgen) -source=internal/troubleshooting/command/command.go -package=mocks -destination=internal/troubleshooting/mocks/command_mocks.go
+	$(mockgen) -source=internal/troubleshooting/command/exec.go -package=mocks -destination=internal/troubleshooting/mocks/exec_mocks.go
+	$(mockgen) -source=internal/troubleshooting/parser/parser.go -package=mocks -destination=internal/troubleshooting/mocks/parser_mocks.go
+	$(mockgen) -source=internal/troubleshooting/otlp/client.go -package=mocks -destination=internal/troubleshooting/mocks/otlp_client_mocks.go
