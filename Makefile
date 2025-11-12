@@ -28,9 +28,7 @@ go_docker = $(docker) \
 
 cgo = $(go_docker) golang:latest go
 
-mockgen_container = @echo "FROM golang:latest\nRUN go install go.uber.org/mock/mockgen@latest" | docker build -t droplet-agent-mockgen -
-
-mockgen = $(go_docker) --pull=never droplet-agent-mockgen mockgen
+mockgen = go tool mockgen
 
 #############
 ## Targets ##
@@ -51,10 +49,9 @@ lint: shellcheck
 	$(print)
 	$(linter) ./...
 
-.PHONY: mockgen
-mockgen:
+.PHONY: mocks
+mocks:
 	$(print)
-	$(mockgen_container)
 	$(mockgen) -package=mock_os -destination=internal/sysutil/internal/mocks/os_mocks.go os FileInfo
 	$(mockgen) -source=internal/sysutil/common.go -package=sysutil -destination=internal/sysutil/common_mocks.go
 	$(mockgen) -source=internal/sysutil/os_operations_helper.go -package=sysutil -destination=internal/sysutil/os_operations_helper_mocks.go
