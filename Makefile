@@ -3,30 +3,28 @@
 ############
 print = @printf ":::::::::::::::: [$(shell date -u)] $@ ::::::::::::::::\n"
 
-docker = @docker run --rm --platform linux/amd64 --pull=always
-
-shellcheck = $(docker) \
+shellcheck = @docker run --rm \
 	-v "$(CURDIR):$(CURDIR)" \
 	-w "$(CURDIR)" \
 	-u $(shell id -u) \
 	koalaman/shellcheck:latest
 
-linter = $(docker) \
+linter = @docker run --rm \
 	-v "$(CURDIR):$(CURDIR)" \
 	-w "$(CURDIR)" \
-	-e "GO111MODULE=on" \
-	-e "GOFLAGS=-mod=vendor -buildvcs=false" \
 	-e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
-	-u $(shell id -u) golangci/golangci-lint:latest \
+	-u $(shell id -u) \
+	golangci/golangci-lint:latest \
 	golangci-lint run -D errcheck -E revive -E gosec
 
-go_docker = $(docker) \
-	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
-	-e "CGO_ENABLED=1" \
-	-v "$(CURDIR):$(CURDIR)" \
-	-w "$(CURDIR)"
+go_version = 1.25.1
 
-cgo = $(go_docker) golang:latest go
+go_docker = @docker run --rm --platform linux/amd64 --pull=always \
+	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
+	-v "$(CURDIR):$(CURDIR)" \
+	-w "$(CURDIR)" \
+	golang:$(go_version) \
+	go
 
 mockgen = go tool mockgen
 
@@ -36,7 +34,7 @@ mockgen = go tool mockgen
 .PHONY: test
 test: lint
 	$(print)
-	$(cgo) test -cover -race ./...
+	$(go_docker) test -cover -race ./...
 
 .PHONY: shellcheck
 shellcheck:
