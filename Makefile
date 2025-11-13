@@ -3,34 +3,30 @@
 ############
 print = @printf ":::::::::::::::: [$(shell date -u)] $@ ::::::::::::::::\n"
 
-docker = @docker run --rm --platform linux/amd64 --pull=always
-
-shellcheck = $(docker) \
+shellcheck = @docker run --rm \
 	-v "$(CURDIR):$(CURDIR)" \
 	-w "$(CURDIR)" \
 	-u $(shell id -u) \
 	koalaman/shellcheck:latest
 
-linter = $(docker) \
+linter = @docker run --rm \
 	-v "$(CURDIR):$(CURDIR)" \
 	-w "$(CURDIR)" \
-	-e "GO111MODULE=on" \
-	-e "GOFLAGS=-mod=vendor -buildvcs=false" \
 	-e "XDG_CACHE_HOME=$(CURDIR)/target/.cache/go" \
-	-u $(shell id -u) golangci/golangci-lint:latest \
+	-u $(shell id -u) \
+	golangci/golangci-lint:latest \
 	golangci-lint run -D errcheck -E revive -E gosec
 
-go_docker = $(docker) \
+go_version = 1.25.4 # keep this aligned with .github/workflows/*
+
+go_docker = @docker run --rm --platform linux/amd64 --pull=always \
 	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
-	-e "CGO_ENABLED=1" \
 	-v "$(CURDIR):$(CURDIR)" \
-	-w "$(CURDIR)"
+	-w "$(CURDIR)" \
+	golang:$(go_version) \
+	go
 
-cgo = $(go_docker) golang:latest go
-
-mockgen_container = @echo "FROM golang:latest\nRUN go install go.uber.org/mock/mockgen@latest" | docker build -t droplet-agent-mockgen -
-
-mockgen = $(go_docker) --pull=never droplet-agent-mockgen mockgen
+mockgen = go tool mockgen
 
 #############
 ## Targets ##
@@ -38,7 +34,7 @@ mockgen = $(go_docker) --pull=never droplet-agent-mockgen mockgen
 .PHONY: test
 test: lint
 	$(print)
-	$(cgo) test -cover -race ./...
+	$(go_docker) test -cover -race ./...
 
 .PHONY: shellcheck
 shellcheck:
@@ -51,10 +47,9 @@ lint: shellcheck
 	$(print)
 	$(linter) ./...
 
-.PHONY: mockgen
-mockgen:
+.PHONY: mocks
+mocks:
 	$(print)
-	$(mockgen_container)
 	$(mockgen) -package=mock_os -destination=internal/sysutil/internal/mocks/os_mocks.go os FileInfo
 	$(mockgen) -source=internal/sysutil/common.go -package=sysutil -destination=internal/sysutil/common_mocks.go
 	$(mockgen) -source=internal/sysutil/os_operations_helper.go -package=sysutil -destination=internal/sysutil/os_operations_helper_mocks.go

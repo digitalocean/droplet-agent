@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//go:build amd64
-// +build amd64
+//go:build linux
 
 package netutil
 
