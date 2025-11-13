@@ -17,7 +17,7 @@ linter = @docker run --rm \
 	golangci/golangci-lint:latest \
 	golangci-lint run -D errcheck -E revive -E gosec
 
-go_version = 1.25.1
+go_version = 1.25.4 # keep this aligned with .github/workflows/*
 
 go_docker = @docker run --rm --platform linux/amd64 --pull=always \
 	-e "GOCACHE=$(CURDIR)/target/.cache/go" \
