@@ -285,6 +285,7 @@ func TestTroubleshootingExporter_Do(t *testing.T) {
 					command: "journalctl",
 					args: []string{
 						"--no-pager",
+						"--output=short-iso",
 						"--since=2023-10-15T18:45:00Z",
 						"--until=2023-10-15T19:15:00Z",
 					},
@@ -309,7 +310,7 @@ func TestTroubleshootingExporter_Do(t *testing.T) {
 			expectedCommands: []expectedCommand{
 				{
 					command: "journalctl",
-					args:    []string{"--no-pager"}, // No time flags when TimeWindow is nil
+					args:    []string{"--no-pager", "--output=short-iso"}, // No time flags when TimeWindow is nil
 				},
 			},
 		},

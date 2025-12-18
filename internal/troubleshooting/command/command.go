@@ -44,7 +44,7 @@ var (
 		"journalctl": {
 			name: "journalctl",
 			path: "/usr/bin/journalctl",
-			args: []string{"--no-pager"},
+			args: []string{"--no-pager", "--output=short-iso"},
 		},
 	}
 )
