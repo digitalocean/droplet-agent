@@ -161,8 +161,9 @@ func TestTroubleshootingExporter_Do(t *testing.T) {
 					Requesting:        []string{InvestigationArtifactSyslog},
 				},
 			},
-			expectCommandCalls: 0,
-			expectFileCalls:    1,
+			expectCommandCalls:   0,
+			expectFileCalls:      1,
+			expectEmitErrorCalls: 1, // Error emitted for invalid TriggeredAt time
 			expectedFiles: []file.Config{
 				{
 					Source:     InvestigationArtifactSyslog,
@@ -302,8 +303,9 @@ func TestTroubleshootingExporter_Do(t *testing.T) {
 					Requesting:        []string{InvestigationArtifactJournalctl},
 				},
 			},
-			expectCommandCalls: 1,
-			expectFileCalls:    0,
+			expectCommandCalls:   1,
+			expectFileCalls:      0,
+			expectEmitErrorCalls: 1, // Error emitted for invalid TriggeredAt time
 			expectedCommands: []expectedCommand{
 				{
 					command: "journalctl",

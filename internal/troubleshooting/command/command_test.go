@@ -303,6 +303,7 @@ func TestNewRunnerWithConfig_TimeWindow(t *testing.T) {
 
 	mockEmitter := mocks.NewMockEmitter(ctrl)
 	mockExecutor := mocks.NewMockCommandExecutor(ctrl)
+	mockTime := time.Date(2023, 10, 15, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name         string
@@ -329,8 +330,9 @@ func TestNewRunnerWithConfig_TimeWindow(t *testing.T) {
 			config: Config{
 				Source:     "command:journalctl",
 				TimeWindow: nil,
+				timeNow:    func() time.Time { return mockTime },
 			},
-			expectedArgs: []string{"--no-pager"},
+			expectedArgs: []string{"--no-pager", "--since=2023-10-15T11:45:00Z"},
 		},
 		{
 			name: "ps command ignores TimeWindow",
