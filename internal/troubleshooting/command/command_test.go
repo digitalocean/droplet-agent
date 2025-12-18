@@ -263,7 +263,7 @@ func TestCommand_AllowedCommands(t *testing.T) {
 			command:      "journalctl",
 			expectedName: "journalctl",
 			expectedPath: "/usr/bin/journalctl",
-			expectedArgs: []string{"--no-pager"},
+			expectedArgs: []string{"--no-pager", "--output=short-iso"},
 		},
 	}
 
@@ -303,6 +303,7 @@ func TestNewRunnerWithConfig_TimeWindow(t *testing.T) {
 
 	mockEmitter := mocks.NewMockEmitter(ctrl)
 	mockExecutor := mocks.NewMockCommandExecutor(ctrl)
+	mockTime := time.Date(2023, 10, 15, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name         string
@@ -320,6 +321,7 @@ func TestNewRunnerWithConfig_TimeWindow(t *testing.T) {
 			},
 			expectedArgs: []string{
 				"--no-pager",
+				"--output=short-iso",
 				"--since=2023-10-15T10:00:00Z",
 				"--until=2023-10-15T11:00:00Z",
 			},
@@ -329,8 +331,13 @@ func TestNewRunnerWithConfig_TimeWindow(t *testing.T) {
 			config: Config{
 				Source:     "command:journalctl",
 				TimeWindow: nil,
+				timeNow:    func() time.Time { return mockTime },
 			},
-			expectedArgs: []string{"--no-pager"},
+			expectedArgs: []string{
+				"--no-pager",
+				"--output=short-iso",
+				"--since=2023-10-15T11:45:00Z",
+			},
 		},
 		{
 			name: "ps command ignores TimeWindow",

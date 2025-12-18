@@ -179,6 +179,9 @@ func (te *TroubleshootingExporter) Do(md *metadata.Metadata) {
 			}
 			log.Info("[Troubleshooting Actioner] Using time window: %s to %s (±15 min from trigger)",
 				timeWindow.Start.Format(time.RFC3339), timeWindow.End.Format(time.RFC3339))
+		} else {
+			client.EmitError(ctx, "actioner", fmt.Sprintf("Failed to parse triggered_at time '%s': %v", triggered, err))
+			log.Error("[Troubleshooting Actioner] Failed to parse triggered_at time '%s': %v", triggered, err)
 		}
 	}
 
