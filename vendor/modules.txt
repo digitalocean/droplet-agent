@@ -91,9 +91,10 @@ go.opentelemetry.io/otel/sdk
 go.opentelemetry.io/otel/sdk/instrumentation
 go.opentelemetry.io/otel/sdk/internal/x
 go.opentelemetry.io/otel/sdk/resource
-# go.opentelemetry.io/otel/sdk/log v0.14.0
-## explicit; go 1.23.0
+# go.opentelemetry.io/otel/sdk/log v0.15.0
+## explicit; go 1.24.0
 go.opentelemetry.io/otel/sdk/log
+go.opentelemetry.io/otel/sdk/log/internal/observ
 go.opentelemetry.io/otel/sdk/log/internal/x
 # go.opentelemetry.io/otel/trace v1.39.0
 ## explicit; go 1.24.0
