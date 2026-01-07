@@ -44,7 +44,7 @@ var (
 		"journalctl": {
 			name: "journalctl",
 			path: "/usr/bin/journalctl",
-			args: []string{"--no-pager"},
+			args: []string{"--no-pager", "--output=short-iso"},
 		},
 	}
 )
@@ -55,6 +55,8 @@ type Config struct {
 	Source string
 	// TimeWindow optionally specifies time bounds for commands that support it (e.g., journalctl)
 	TimeWindow *file.TimeWindow
+	// timeNow allows for mocking time in tests
+	timeNow func() time.Time
 }
 
 // Command represents a command that can be run and emit logs.
@@ -82,6 +84,11 @@ func NewRunner(config Config, client otlp.Emitter) (Command, error) {
 // NewRunnerWithExecutor creates a new Command instance with configuration and a custom executor.
 // This is useful for testing with mock executors.
 func NewRunnerWithExecutor(config Config, client otlp.Emitter, executor CommandExecutor) (Command, error) {
+	// Set default time function if not provided
+	if config.timeNow == nil {
+		config.timeNow = time.Now
+	}
+
 	command := strings.TrimPrefix(config.Source, CmdPrefix)
 	commandName := strings.TrimSpace(command)
 	if commandName == "" {
@@ -98,13 +105,17 @@ func NewRunnerWithExecutor(config Config, client otlp.Emitter, executor CommandE
 	commandArgs := append([]string{}, spec.args...)
 
 	// Add time-specific arguments for journalctl if TimeWindow is provided
-	if commandName == "journalctl" && config.TimeWindow != nil {
-		// Format times using RFC3339 for journalctl compatibility
-		// This is safe from injection because we use Go's time.Format()
-		sinceTime := config.TimeWindow.Start.Format(time.RFC3339)
-		untilTime := config.TimeWindow.End.Format(time.RFC3339)
-
-		commandArgs = append(commandArgs, "--since="+sinceTime, "--until="+untilTime)
+	if commandName == "journalctl" {
+		if config.TimeWindow != nil {
+			// Format times using RFC3339 for journalctl compatibility
+			sinceTime := config.TimeWindow.Start.Format(time.RFC3339)
+			untilTime := config.TimeWindow.End.Format(time.RFC3339)
+			commandArgs = append(commandArgs, "--since="+sinceTime, "--until="+untilTime)
+		} else {
+			// Default to last 15 minutes if no time window is provided
+			lastFifteen := config.timeNow().Add(-15 * time.Minute).Format(time.RFC3339)
+			commandArgs = append(commandArgs, "--since="+lastFifteen)
+		}
 	}
 
 	return &commandImpl{
