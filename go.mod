@@ -9,7 +9,7 @@ require (
 	go.opentelemetry.io/otel v1.42.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.17.0
 	go.opentelemetry.io/otel/log v0.18.0
-	go.opentelemetry.io/otel/sdk v1.41.0
+	go.opentelemetry.io/otel/sdk v1.42.0
 	go.opentelemetry.io/otel/sdk/log v0.17.0
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.48.0
