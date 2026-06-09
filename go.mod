@@ -3,7 +3,7 @@ module github.com/digitalocean/droplet-agent
 go 1.25.0
 
 require (
-	github.com/fsnotify/fsnotify v1.9.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/opencontainers/selinux v1.15.1
 	github.com/peterbourgon/ff/v3 v3.4.0
 	go.opentelemetry.io/otel v1.44.0
