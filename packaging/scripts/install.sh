@@ -146,7 +146,7 @@ remove_retry_install() {
 }
 
 remove_legacy_retry_cron() {
-  [ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
+  rm -f "${LEGACY_RETRY_CRON}"
 }
 
 script_cleanup() {

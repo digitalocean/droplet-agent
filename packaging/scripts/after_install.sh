@@ -48,8 +48,8 @@ remove_install_retry_timer() {
 }
 
 remove_legacy_cron() {
-  [ -f "${LEGACY_CRON}" ] && rm -f "${LEGACY_CRON}"
-  [ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
+  rm -f "${LEGACY_CRON}"
+  rm -f "${LEGACY_RETRY_CRON}"
 }
 
 main
