@@ -47,13 +47,12 @@ PRs for supporting other package management systems.
 NOTES:
 1. As of now, the only supported `<target OS>` is Linux, via `deb` and `rpm`
 2. The only supported GOARCH is `amd64`
-3. `systemd` is the preferred way for managing the droplet-agent service. Although `initctl` is also supported, it may
-not support all features provided by the droplet-agent, and should only be used on older system that does not have
-`systemd` support.
-4. `systemd` configuration of the agent service is saved at `etc/systemd/system/droplet-agent.service`, once updated,
-please remember to apply the changes by running `systemctl daemon-reload`
-5. Configuration for `initctl` is saved at `/etc/init/droplet-agent.conf`. If updated, please run
-`initctl reload-configuration` to apply the updated configuration.
+3. `systemd` is required for service management, automatic package updates, and install retries
+4. The agent service unit is installed at `/etc/systemd/system/droplet-agent.service`. After editing it, run
+`systemctl daemon-reload`
+5. Hourly package update checks are handled by `droplet-agent-update.timer` and
+`droplet-agent-update.service` in `/etc/systemd/system/`. The timer is enabled automatically on package install.
+After editing these units, run `systemctl daemon-reload && systemctl enable --now droplet-agent-update.timer`
 
 ## Running the Agent
 The agent binary takes several command line arguments:
@@ -97,6 +96,8 @@ Droplet Agent currently supports:
 - CentOS 9+
 - AlmaLinux 8+
 - Rocky Linux 8+
+
+All supported distributions use `systemd`.
 
 ## Contributing
 
