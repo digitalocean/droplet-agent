@@ -1,0 +1,10 @@
+[Unit]
+Description=DigitalOcean Droplet Agent update check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/digitalocean/droplet-agent/scripts/update.sh
+StandardOutput=append:/var/log/droplet-agent.update.log
+StandardError=append:/var/log/droplet-agent.update.log

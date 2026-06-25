@@ -4,8 +4,13 @@
 set -ue
 
 SVC_NAME=droplet-agent
-CRON_SCHEDULE=/etc/cron.hourly
-CRON=${CRON_SCHEDULE}/${SVC_NAME}
+UPDATE_TIMER=${SVC_NAME}-update.timer
+INSTALL_RETRY_TIMER=${SVC_NAME}-install-retry.timer
+INSTALL_RETRY_SERVICE=${SVC_NAME}-install-retry.service
+INSTALL_RETRY_DIR=/var/lib/digitalocean/droplet-agent-install
+LEGACY_INIT_SVC_FILE="/etc/init/${SVC_NAME}.conf"
+LEGACY_CRON=/etc/cron.hourly/${SVC_NAME}
+LEGACY_RETRY_CRON=/etc/cron.hourly/droplet-agent-install
 
 # fix an issue where this script runs on upgrades for rpm
 # see https://github.com/jordansissel/fpm/issues/1175#issuecomment-240086016
@@ -22,30 +27,32 @@ main() {
 
 	if command -v systemctl >/dev/null 2>&1; then
 		clean_systemd
-	elif command -v initctl >/dev/null 2>&1; then
-		clean_upstart
 	else
 		echo "Unknown init system" > /dev/stderr
 	fi
 
-	remove_cron
-}
-
-remove_cron() {
-	rm -fv "${CRON}"
-}
-
-clean_upstart() {
-	echo "Cleaning up init scripts"
-	initctl stop ${SVC_NAME} || true
-	initctl reload-configuration || true
+	remove_legacy_cron
+	rm -f "${LEGACY_INIT_SVC_FILE}"
 }
 
 clean_systemd() {
 	echo "Cleaning up systemd scripts"
+	systemctl stop "${UPDATE_TIMER}" || true
+	systemctl disable "${UPDATE_TIMER}" || true
+	systemctl stop "${INSTALL_RETRY_TIMER}" || true
+	systemctl disable "${INSTALL_RETRY_TIMER}" || true
 	systemctl stop ${SVC_NAME} || true
 	systemctl disable ${SVC_NAME}.service || true
 	systemctl daemon-reload || true
+	rm -f \
+		"/etc/systemd/system/${INSTALL_RETRY_TIMER}" \
+		"/etc/systemd/system/${INSTALL_RETRY_SERVICE}" \
+		"${INSTALL_RETRY_DIR}/retry_install.sh"
+}
+
+remove_legacy_cron() {
+	[ -f "${LEGACY_CRON}" ] && rm -f "${LEGACY_CRON}"
+	[ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
 }
 
 main

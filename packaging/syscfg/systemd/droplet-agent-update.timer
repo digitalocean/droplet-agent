@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly DigitalOcean Droplet Agent update check
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=900
+Unit=droplet-agent-update.service
+
+[Install]
+WantedBy=timers.target

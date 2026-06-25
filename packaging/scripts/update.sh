@@ -16,11 +16,6 @@ LOCAL_KEYRING_VER=""
 KEYRING_PKG_PATTERN=""
 
 main() {
-  # add some jitter to prevent overloading the remote repo server
-  delay=$((RANDOM % 900))
-  echo "Waiting ${delay} seconds"
-  sleep ${delay}
-
   check_arch
   if command -v apt-get >/dev/null 2>&1; then
     platform="deb"

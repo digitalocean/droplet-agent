@@ -21,8 +21,13 @@ branch="droplet-agent"
 [ "${UNSTABLE}" != 0 ] && branch="droplet-agent-unstable"
 [ "${BETA}" != 0 ] && branch="droplet-agent-beta"
 
-RETRY_CRON_SCHEDULE=/etc/cron.hourly
-RETRY_CRON=${RETRY_CRON_SCHEDULE}/droplet-agent-install
+RETRY_INSTALL_DIR=/var/lib/digitalocean/droplet-agent-install
+RETRY_INSTALL_SCRIPT=${RETRY_INSTALL_DIR}/retry_install.sh
+RETRY_INSTALL_SERVICE=droplet-agent-install-retry.service
+RETRY_INSTALL_TIMER=droplet-agent-install-retry.timer
+RETRY_INSTALL_SERVICE_FILE=/etc/systemd/system/${RETRY_INSTALL_SERVICE}
+RETRY_INSTALL_TIMER_FILE=/etc/systemd/system/${RETRY_INSTALL_TIMER}
+LEGACY_RETRY_CRON=/etc/cron.hourly/droplet-agent-install
 
 dist="unknown"
 exit_status=0
@@ -77,37 +82,71 @@ main() {
 }
 
 patch_retry_install() {
-  [ -f "${RETRY_CRON}" ] && rm -f "${RETRY_CRON}"
-  mkdir -p ${RETRY_CRON_SCHEDULE}
-  if ! command -v crontab >/dev/null 2>&1; then
-    echo "cron not installed, installing"
-    if command -v apt-get >/dev/null 2>&1; then
-      apt-get -qq install -y cron
-    elif command -v yum >/dev/null 2>&1; then
-      yum install -y cronie
-    else
-      echo "not supported os"
-      return 1
-    fi
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "systemd is required to schedule install retries"
+    return 1
   fi
 
-  cat <<'EOF' >"${RETRY_CRON}"
+  remove_legacy_retry_cron
+  systemctl stop "${RETRY_INSTALL_TIMER}" || true
+  systemctl disable "${RETRY_INSTALL_TIMER}" || true
+  mkdir -p "${RETRY_INSTALL_DIR}"
+
+  cat <<'EOF' >"${RETRY_INSTALL_SCRIPT}"
 #!/bin/sh
 tmp_file=$(mktemp -t droplet_agent.install.XXXXXX)
-trap "rm -f ${tmp_file}" EXIT
+trap 'rm -f "${tmp_file}"' EXIT
 url="https://repos-droplet.digitalocean.com/install.sh"
 install_script=$(curl -sSL "${url}" || wget -qO- "${url}")
-echo "${install_script}" > ${tmp_file}
+echo "${install_script}" > "${tmp_file}"
 now=$(date +"%T")
 echo "Retry at: ${now}" > /var/log/droplet_agent.install.log
-/bin/bash ${tmp_file} >> /var/log/droplet_agent.install.log 2>&1
+/bin/bash "${tmp_file}" >> /var/log/droplet_agent.install.log 2>&1
 EOF
 
-  chmod +x "${RETRY_CRON}"
+  chmod +x "${RETRY_INSTALL_SCRIPT}"
+
+  cat <<-EOF >"${RETRY_INSTALL_SERVICE_FILE}"
+[Unit]
+Description=DigitalOcean Droplet Agent install retry
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=${RETRY_INSTALL_SCRIPT}
+EOF
+
+  cat <<-EOF >"${RETRY_INSTALL_TIMER_FILE}"
+[Unit]
+Description=Hourly DigitalOcean Droplet Agent install retry
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=${RETRY_INSTALL_SERVICE}
+
+[Install]
+WantedBy=timers.target
+EOF
+
+  systemctl daemon-reload
+  systemctl enable "${RETRY_INSTALL_TIMER}"
+  systemctl restart "${RETRY_INSTALL_TIMER}"
 }
 
 remove_retry_install() {
-  rm -f "${RETRY_CRON}"
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl stop "${RETRY_INSTALL_TIMER}" || true
+    systemctl disable "${RETRY_INSTALL_TIMER}" || true
+    systemctl daemon-reload || true
+  fi
+  rm -f "${RETRY_INSTALL_SERVICE_FILE}" "${RETRY_INSTALL_TIMER_FILE}" "${RETRY_INSTALL_SCRIPT}"
+  remove_legacy_retry_cron
+}
+
+remove_legacy_retry_cron() {
+  [ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
 }
 
 script_cleanup() {
@@ -165,11 +204,7 @@ install_apt() (
 	EOF
 
   echo "Installing droplet-agent"
-  # TODO:
-  #  replace the `apt-get -qq update` with
-  # `apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"`
-  #  once dependency on crond is gone.
-  apt-get -qq update
+  apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/droplet-agent.list"
   apt-get -qq --fix-missing install -y droplet-agent droplet-agent-keyring
 )
 
@@ -195,8 +230,6 @@ install_yum() (
 
   yum --disablerepo="*" --enablerepo="${repo_name}" makecache
   yum install -y droplet-agent
-  # to ensure crond service is started
-  systemctl start crond.service || true
 )
 
 check_dist() {
