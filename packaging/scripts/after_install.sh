@@ -39,8 +39,8 @@ configure_updates() {
 }
 
 remove_install_retry_timer() {
-  systemctl stop "${INSTALL_RETRY_TIMER}" || true
-  systemctl disable "${INSTALL_RETRY_TIMER}" || true
+  systemctl stop "${INSTALL_RETRY_TIMER}" >/dev/null 2>&1 || true
+  systemctl disable "${INSTALL_RETRY_TIMER}" >/dev/null 2>&1 || true
   rm -f \
     "/etc/systemd/system/${INSTALL_RETRY_TIMER}" \
     "/etc/systemd/system/${INSTALL_RETRY_SERVICE}" \
@@ -48,8 +48,8 @@ remove_install_retry_timer() {
 }
 
 remove_legacy_cron() {
-  [ -f "${LEGACY_CRON}" ] && rm -f "${LEGACY_CRON}"
-  [ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
+  rm -f "${LEGACY_CRON}"
+  rm -f "${LEGACY_RETRY_CRON}"
 }
 
 main

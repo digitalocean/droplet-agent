@@ -88,8 +88,8 @@ patch_retry_install() {
   fi
 
   remove_legacy_retry_cron
-  systemctl stop "${RETRY_INSTALL_TIMER}" || true
-  systemctl disable "${RETRY_INSTALL_TIMER}" || true
+  systemctl stop "${RETRY_INSTALL_TIMER}" >/dev/null 2>&1 || true
+  systemctl disable "${RETRY_INSTALL_TIMER}" >/dev/null 2>&1 || true
   mkdir -p "${RETRY_INSTALL_DIR}"
 
   cat <<'EOF' >"${RETRY_INSTALL_SCRIPT}"
@@ -137,8 +137,8 @@ EOF
 
 remove_retry_install() {
   if command -v systemctl >/dev/null 2>&1; then
-    systemctl stop "${RETRY_INSTALL_TIMER}" || true
-    systemctl disable "${RETRY_INSTALL_TIMER}" || true
+    systemctl stop "${RETRY_INSTALL_TIMER}" >/dev/null 2>&1 || true
+    systemctl disable "${RETRY_INSTALL_TIMER}" >/dev/null 2>&1 || true
     systemctl daemon-reload || true
   fi
   rm -f "${RETRY_INSTALL_SERVICE_FILE}" "${RETRY_INSTALL_TIMER_FILE}" "${RETRY_INSTALL_SCRIPT}"
@@ -146,7 +146,7 @@ remove_retry_install() {
 }
 
 remove_legacy_retry_cron() {
-  [ -f "${LEGACY_RETRY_CRON}" ] && rm -f "${LEGACY_RETRY_CRON}"
+  rm -f "${LEGACY_RETRY_CRON}"
 }
 
 script_cleanup() {
