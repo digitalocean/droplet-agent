@@ -39,8 +39,8 @@ clean_systemd() {
 	echo "Cleaning up systemd scripts"
 	systemctl stop "${UPDATE_TIMER}" || true
 	systemctl disable "${UPDATE_TIMER}" || true
-	systemctl stop "${INSTALL_RETRY_TIMER}" || true
-	systemctl disable "${INSTALL_RETRY_TIMER}" || true
+	systemctl stop "${INSTALL_RETRY_TIMER}" >/dev/null 2>&1 || true
+	systemctl disable "${INSTALL_RETRY_TIMER}" >/dev/null 2>&1 || true
 	systemctl stop ${SVC_NAME} || true
 	systemctl disable ${SVC_NAME}.service || true
 	systemctl daemon-reload || true
