@@ -120,20 +120,20 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 // sourceFile specifies the source of the log (e.g., "file:/var/log/syslog" or "command:top")
 func (c *Client) EmitLog(ctx context.Context, sourceFile string, entry parser.LogEntry) {
 	record := log.Record{}
-	logAttributes := []log.KeyValue{
-		log.String(logSourceAttribute, sourceFile),
-		log.String(investigationUUIDAttribute, c.investigationUUID),
+	logAttributes := []attribute.KeyValue{
+		attribute.String(logSourceAttribute, sourceFile),
+		attribute.String(investigationUUIDAttribute, c.investigationUUID),
 	}
 
-	record.SetBody(log.StringValue(entry.Original))
+	record.SetBody(attribute.StringValue(entry.Original))
 
 	// Set timestamp: uses parsed timestamp if available, otherwise the observed
 	// time is used. We add an attribute to indicate which was used.
 	record.SetTimestamp(entry.Timestamp)
 	if entry.TimestampParsed {
-		logAttributes = append(logAttributes, log.String(timeStampParsedAttribute, "parsed"))
+		logAttributes = append(logAttributes, attribute.String(timeStampParsedAttribute, "parsed"))
 	} else {
-		logAttributes = append(logAttributes, log.String(timeStampParsedAttribute, "observed"))
+		logAttributes = append(logAttributes, attribute.String(timeStampParsedAttribute, "observed"))
 	}
 
 	record.AddAttributes(logAttributes...)
@@ -143,13 +143,13 @@ func (c *Client) EmitLog(ctx context.Context, sourceFile string, entry parser.Lo
 
 func (c *Client) EmitError(ctx context.Context, sourceComponent string, msg string) {
 	record := log.Record{}
-	logAttributes := []log.KeyValue{
-		log.String(logSourceAttribute, fmt.Sprintf("error:%s", sourceComponent)),
-		log.String(investigationUUIDAttribute, c.investigationUUID),
-		log.String(timeStampParsedAttribute, "observed"),
+	logAttributes := []attribute.KeyValue{
+		attribute.String(logSourceAttribute, fmt.Sprintf("error:%s", sourceComponent)),
+		attribute.String(investigationUUIDAttribute, c.investigationUUID),
+		attribute.String(timeStampParsedAttribute, "observed"),
 	}
 
-	record.SetBody(log.StringValue(msg))
+	record.SetBody(attribute.StringValue(msg))
 	record.SetTimestamp(time.Now())
 	record.AddAttributes(logAttributes...)
 
