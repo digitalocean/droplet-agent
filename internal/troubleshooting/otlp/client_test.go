@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/droplet-agent/internal/troubleshooting/parser"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/embedded"
 )
@@ -288,7 +289,7 @@ func (m *mockLogger) Emit(ctx context.Context, record log.Record) {
 		attributes: make(map[string]interface{}),
 	}
 
-	record.WalkAttributes(func(kv log.KeyValue) bool {
+	record.WalkAttributes(func(kv attribute.KeyValue) bool {
 		// Since we're only dealing with string attributes in our tests,
 		// we can safely use AsString()
 		captured.attributes[string(kv.Key)] = kv.Value.AsString()
