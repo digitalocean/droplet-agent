@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased](https://github.com/digitalocean/droplet-agent/tree/HEAD)
+### Removed
+- Remove Droplet SRE / troubleshooting agent support (metadata-driven log collection and OTLP export via `/v1/sre-agents/...`)
 
 ## [1.2.11](https://github.com/digitalocean/droplet-agent/tree/1.2.11) (2025-07-23)
 ### Updated

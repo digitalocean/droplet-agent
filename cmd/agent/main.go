@@ -19,7 +19,6 @@ import (
 	"github.com/digitalocean/droplet-agent/internal/metadata/updater"
 	"github.com/digitalocean/droplet-agent/internal/metadata/watcher"
 	"github.com/digitalocean/droplet-agent/internal/sysaccess"
-	tsactioner "github.com/digitalocean/droplet-agent/internal/troubleshooting/actioner"
 )
 
 func main() {
@@ -66,12 +65,6 @@ func main() {
 	metadataWatcher := newMetadataWatcher(&watcher.Conf{SSHPort: sshMgr.SSHDPort()})
 	metadataWatcher.RegisterActioner(doManagedKeysActioner)
 	infoUpdater := updater.NewAgentInfoUpdater()
-
-	logExporter := tsactioner.NewTroubleshootingExporter(tsactioner.AgentConfig{
-		Version:   config.Version,
-		UserAgent: config.UserAgent,
-	})
-	metadataWatcher.RegisterActioner(logExporter)
 
 	// monitor sshd_config
 	go mustMonitorSSHDConfig(sshMgr)
