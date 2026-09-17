@@ -35,10 +35,31 @@ main() {
   ${do_update}
 }
 
+deb822() {
+  apt_dir="/etc/apt/"
+  deb_src="sources.list.d/${SVC_NAME}.sources"
+  thing=${1:-}
+  if [ -f "${apt_dir}${deb_src}" ]; then
+    case "${thing}" in
+      url) repo_url=$(grep -Piom1 '^URIs:\s*\K\S+' <"${apt_dir}${deb_src}") ;;
+    esac
+  else
+    deb_src="${deb_src%.*}.list"
+    case "${thing}" in
+      url) repo_url=$(cut -f 3 -d' ' <"${apt_dir}${deb_src}") ;;
+    esac
+  fi
+  case "${thing}" in
+    src) echo "$deb_src" ;;
+    url) echo "${repo_url%/}" ;;
+    *) false ;;
+  esac
+}
+
 update_deb() {
   echo "Updating ${SVC_NAME} deb package"
   export DEBIAN_FRONTEND="noninteractive"
-  apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="sources.list.d/${SVC_NAME}.list"
+  apt-get -qq update -o Dir::Etc::SourceParts=/dev/null -o APT::Get::List-Cleanup=no -o Dir::Etc::SourceList="$(deb822 src)"
   apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq install -y --only-upgrade ${SVC_NAME} ${KEYRING_PKG}
 }
 
@@ -69,7 +90,7 @@ prepare() {
   deb)
     LOCAL_VER=$(dpkg -s ${SVC_NAME} | grep Version | cut -f 2 -d: | tr -d '[:space:]')
     LOCAL_KEYRING_VER=$(dpkg -s ${KEYRING_PKG} | grep Version | cut -f 2 -d: | tr -d '[:space:]')
-    url=$(cut -f 3 -d' ' <"/etc/apt/sources.list.d/${SVC_NAME}.list")
+    url=$(deb822 url)
     KEYRING_PKG_PATTERN=$(echo "${url}/pool/main/main/d/${KEYRING_PKG}/${KEYRING_PKG}_" | grep "/" | cut -d"/" -f4-)
     url="${url}/pool/main/main/d/${SVC_NAME}/${SVC_NAME}_"
     ;;
