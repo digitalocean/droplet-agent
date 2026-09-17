@@ -88,6 +88,7 @@ type cmd interface {
 
 func newCmd(name string, args ...string) cmd {
 	return &cmdImpl{
+		//nolint:gosec // G204: name is always this binary's own resolved path (os.Executable + EvalSymlinks) and args are compile-time constants; no external input reaches here
 		exec.Command(name, args...),
 	}
 }
