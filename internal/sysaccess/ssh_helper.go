@@ -142,9 +142,14 @@ func (s *sshHelperImpl) validateKey(k *SSHKey) (err error) {
 		k.expireAt = s.timeNow().Add(time.Duration(k.TTL) * time.Second)
 	}
 	k.PublicKey = strings.Trim(k.PublicKey, " \t\r\n")
-	pubKey, _, _, _, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey))
+	pubKey, _, _, rest, e := ssh.ParseAuthorizedKey([]byte(k.PublicKey))
 	if e != nil {
 		return fmt.Errorf("%w: invalid ssh key: %s-%v", ErrInvalidKey, k.PublicKey, e)
+	}
+	if len(strings.TrimSpace(string(rest))) != 0 {
+		// ParseAuthorizedKey only consumes the first line; a non-empty remainder
+		// is a multi-line key that would add extra authorized_keys entries.
+		return fmt.Errorf("%w: public key must be a single line", ErrInvalidKey)
 	}
 	k.fingerprint = ssh.FingerprintSHA256(pubKey)
 	return nil
